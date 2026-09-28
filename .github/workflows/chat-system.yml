@@ -1,0 +1,145 @@
+name: Build Pigeon (chat-system)
+
+on:
+  push:
+    paths:
+      - "chat-system/**"
+      - ".github/workflows/chat-system.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  web:
+    name: Shared web app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chat-system/app/package-lock.json
+      - run: npm ci
+        working-directory: chat-system/app
+      - run: npm run build
+        working-directory: chat-system/app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: www
+          path: chat-system/app/www
+
+  android:
+    name: Android APK
+    needs: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: www
+          path: chat-system/app/www
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chat-system/mobile/package-lock.json
+      - run: npm ci
+        working-directory: chat-system/mobile
+      - run: npx cap sync android
+        working-directory: chat-system/mobile
+      - run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+        working-directory: chat-system/mobile/android
+      - run: cp chat-system/mobile/android/app/build/outputs/apk/release/app-release.apk Pigeon.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pigeon-android
+          path: Pigeon.apk
+
+  desktop:
+    name: Desktop (${{ matrix.name }})
+    needs: web
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+            args: --win nsis portable --x64
+          - os: ubuntu-latest
+            name: linux
+            args: --linux AppImage deb --x64
+          - os: macos-latest
+            name: macos
+            args: --mac dmg zip
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: www
+          path: chat-system/app/www
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chat-system/desktop/package-lock.json
+      - run: npm ci
+        working-directory: chat-system/desktop
+      - run: node sync-www.mjs
+        working-directory: chat-system/desktop
+      - run: npx electron-builder ${{ matrix.args }} --publish never
+        working-directory: chat-system/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pigeon-desktop-${{ matrix.name }}
+          path: |
+            chat-system/desktop/dist/*.exe
+            chat-system/desktop/dist/*.AppImage
+            chat-system/desktop/dist/*.deb
+            chat-system/desktop/dist/*.dmg
+            chat-system/desktop/dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [android, desktop]
+    if: always() && needs.android.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - run: ls -R artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pigeon-v1.0.${{ github.run_number }}
+          name: Pigeon 1.0.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          body: |
+            Pigeon – serverless one-to-one P2P chat (text, photos, voice notes, files and whole folders).
+
+            **Downloads**
+            - `Pigeon.apk` – Android (enable *Install unknown apps* for your browser/file manager, then open the APK)
+            - `Pigeon-Setup-1.0.0.exe` – Windows installer (one-click; SmartScreen may ask you to click *More info → Run anyway* because the build is unsigned)
+            - `Pigeon-Portable-1.0.0.exe` – Windows, no install needed
+            - `Pigeon-1.0.0-linux-x86_64.AppImage` / `.deb` – Linux
+            - `Pigeon-1.0.0-mac-*.dmg` – macOS (unsigned: right-click → Open the first time)
+
+            See `chat-system/README.md` for pairing instructions.
+          files: |
+            artifacts/Pigeon-android/Pigeon.apk
+            artifacts/Pigeon-desktop-windows/*
+            artifacts/Pigeon-desktop-linux/*
+            artifacts/Pigeon-desktop-macos/*
+          fail_on_unmatched_files: false

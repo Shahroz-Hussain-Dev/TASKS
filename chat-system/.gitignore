@@ -1,0 +1,8 @@
+node_modules/
+app/www/
+desktop/www/
+desktop/dist/
+dist/
+tools/shots/
+*.log
+.DS_Store

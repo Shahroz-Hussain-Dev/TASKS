@@ -1,0 +1,12 @@
+{
+  "appId": "dev.shahroz.pigeon",
+  "appName": "Pigeon",
+  "webDir": "../app/www",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0f1115"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
