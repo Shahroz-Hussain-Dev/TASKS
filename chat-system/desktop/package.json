@@ -1,0 +1,90 @@
+{
+  "name": "pigeon-desktop",
+  "version": "1.1.0",
+  "description": "Pigeon - serverless one-to-one P2P chat with file, folder and voice sharing",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "prebuild": "node sync-www.mjs",
+    "build:win": "npm run prebuild && electron-builder --win",
+    "build:linux": "npm run prebuild && electron-builder --linux",
+    "build:mac": "npm run prebuild && electron-builder --mac",
+    "build": "npm run prebuild && electron-builder --win --linux"
+  },
+  "author": "Shahroz Hussain",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  },
+  "productName": "Pigeon",
+  "private": true,
+  "build": {
+    "appId": "dev.shahroz.pigeon",
+    "productName": "Pigeon",
+    "artifactName": "Pigeon-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "www/**/*",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Pigeon",
+      "artifactName": "Pigeon-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Pigeon-Portable-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Network",
+      "icon": "build/icon.png",
+      "maintainer": "shahroz.comsats@gmail.com"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.social-networking",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Pigeon uses the microphone for voice notes and calls.",
+        "NSCameraUsageDescription": "Pigeon uses the camera for video calls."
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shahroz-hussain-dev/tasks.git"
+  }
+}

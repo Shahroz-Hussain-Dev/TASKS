@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pigeon</string>
+    <string name="title_activity_main">Pigeon</string>
+    <string name="package_name">dev.shahroz.pigeon</string>
+    <string name="custom_url_scheme">dev.shahroz.pigeon</string>
+</resources>
