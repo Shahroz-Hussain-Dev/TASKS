@@ -54,6 +54,9 @@ function startNetwork() {
   net.addEventListener('typing', (e) => onTyping(e.detail));
   net.addEventListener('transfer', (e) => onTransfer(e.detail.transfer));
   net.addEventListener('offer', (e) => onOffer(e.detail.transfer));
+  net.addEventListener('call', (e) => onCallUpdate(e.detail.call));
+  net.addEventListener('call-ended', (e) => onCallEnded(e.detail));
+  net.addEventListener('call-log', (e) => onCallLog(e.detail));
   net.addEventListener('id-taken', () => showIdTakenDialog());
   net.addEventListener('error', (e) => toast(`Network error: ${e.detail.message || e.detail.type}`, 'error'));
   net.start();
@@ -97,6 +100,7 @@ function closeModal() {
 
 function handleBack() {
   if (state.modal) { if (state.modal.dismissible) closeModal(); return true; }
+  if (net?.call && net.call.status === 'ringing' && net.call.dir === 'in') { net.declineCall(); return true; }
   if (state.rec) { stopRecording(false); return true; }
   if (state.activeId && isNarrow()) { selectContact(null); return true; }
   return false;
@@ -135,6 +139,7 @@ function renderShell() {
       <footer class="side-foot"><span class="net-text"></span></footer>
     </aside>
     <main class="chat"></main>
+    <div class="call-root"></div>
     <div class="modal-root"></div>
     <div class="toasts"></div>`;
   renderMe();
@@ -198,6 +203,8 @@ function renderChat() {
         <div class="sub"><code>${c.id}</code> · <span class="pstate">${isOnline(c.id) ? 'online' : 'offline'}</span></div>
       </div>
       <div class="head-actions">
+        <button class="icon-btn call-btn" data-action="call-audio" title="Voice call" ${isOnline(c.id) ? '' : 'disabled'}>📞</button>
+        <button class="icon-btn call-btn" data-action="call-video" title="Video call" ${isOnline(c.id) ? '' : 'disabled'}>🎥</button>
         <button class="icon-btn" data-action="rename" title="Rename contact">✏️</button>
         <button class="icon-btn" data-action="delete-contact" title="Delete contact">🗑️</button>
       </div>
@@ -259,7 +266,19 @@ function statusIcon(m) {
   return `<span class="st ${m.status}" title="${title}">${icon}</span>`;
 }
 
+function callLabel(m) {
+  const dur = m.duration ? ` · ${fmtDuration(m.duration)}` : '';
+  const kind = m.video ? 'video call' : 'call';
+  if (m.outcome === 'completed') return `${m.dir === 'out' ? 'Outgoing' : 'Incoming'} ${kind}${dur}`;
+  if (m.dir === 'in') return m.outcome === 'declined' ? `Declined ${kind}` : `Missed ${kind}`;
+  return { declined: `${kind} declined`, busy: `${kind} · busy`, cancelled: `${kind} cancelled`, 'no-answer': `${kind} · no answer` }[m.outcome] || `${kind} failed`;
+}
+
 function renderMessage(m) {
+  if (m.kind === 'call') {
+    const missed = m.dir === 'in' && m.outcome !== 'completed';
+    return `<div class="msg call ${m.dir}" data-mid="${m.id}"><div class="call-line ${missed ? 'missed' : ''}"><span>${m.video ? '🎥' : '📞'}</span> ${esc(callLabel(m))} <span class="time">${fmtTime(m.ts)}</span></div></div>`;
+  }
   const out = m.dir === 'out';
   const t = m.transferId ? net.transfers.get(m.transferId) : null;
   const body = m.kind === 'text' ? `<div class="text">${linkify(esc(m.text))}</div>` : renderFileBody(m, t);
@@ -411,6 +430,7 @@ function onPresence({ peerId, online, name }) {
     if (ps) ps.textContent = online ? 'online' : 'offline';
     const pr = $('.chat-head .presence');
     if (pr) pr.classList.toggle('on', online);
+    document.querySelectorAll('.chat-head .call-btn').forEach((b) => { b.disabled = !online; });
   }
 }
 
@@ -649,6 +669,138 @@ function stopRecording(send) {
   if (rec.recorder.state !== 'inactive') rec.recorder.stop(); else finish();
 }
 
+// ------------------------------------------------------------------ calls
+const callUi = { timer: null, tone: null, remoteEl: null, localEl: null, speaker: true };
+
+async function startCall(video) {
+  const peerId = state.activeId;
+  if (!peerId) return;
+  if (!isOnline(peerId)) return toast(`${contactName(peerId)} is offline`, 'error');
+  if (net.call) return toast('You are already in a call', 'error');
+  try {
+    await net.startCall(peerId, { video });
+    platform.callStarted?.(video);
+  } catch (e) {
+    toast(e.message.includes('Permission') || e.name === 'NotAllowedError' ? 'Microphone/camera permission denied' : `Could not start call: ${e.message}`, 'error');
+  }
+}
+
+function onCallUpdate(call) {
+  renderCall(call);
+  if (call.status === 'ringing') startTone(call.dir === 'in' ? 'ring' : 'ringback');
+  else stopTone();
+  if (call.status === 'ringing' && call.dir === 'in') {
+    platform.notify?.(contactName(call.peerId), `Incoming ${call.video ? 'video' : 'voice'} call`);
+  }
+}
+
+function onCallEnded({ call, reason, error }) {
+  stopTone();
+  renderCall(null);
+  platform.callEnded?.();
+  const why = { 'no-answer': 'No answer', declined: 'Call declined', busy: 'Contact is busy', 'connection-lost': 'Connection lost', error: error || 'Call failed', missed: '' }[reason];
+  if (why) toast(why, reason === 'error' || reason === 'connection-lost' ? 'error' : 'info');
+}
+
+async function onCallLog({ peerId, dir, video, outcome, duration }) {
+  const m = { id: uid(), contactId: peerId, dir, kind: 'call', video, outcome, duration, ts: Date.now(), status: 'done' };
+  await store.putMessage(m);
+  const missed = dir === 'in' && outcome !== 'completed';
+  await bumpContact(peerId, `${video ? '🎥' : '📞'} ${callLabel(m)}`, missed && (peerId !== state.activeId || document.hidden));
+  if (peerId === state.activeId) { state.messages.push(m); appendMessageEl(m); }
+  if (missed) maybeNotify(peerId, `Missed ${video ? 'video ' : ''}call`);
+}
+
+function renderCall(call) {
+  const root = $('.call-root');
+  if (!root) return;
+  clearInterval(callUi.timer);
+  callUi.timer = null;
+  if (!call) {
+    root.innerHTML = '';
+    root.classList.remove('open');
+    callUi.remoteEl = callUi.localEl = null;
+    document.body.classList.remove('in-call');
+    return;
+  }
+  const name = contactName(call.peerId);
+  const initial = esc(name.slice(0, 1).toUpperCase());
+  const muted = call.local ? !(call.local.getAudioTracks()[0]?.enabled ?? true) : false;
+  const camOff = call.local ? !(call.local.getVideoTracks()[0]?.enabled ?? true) : false;
+  const hasLocalVideo = !!call.local?.getVideoTracks().length;
+  const hasRemoteVideo = !!call.remote?.getVideoTracks().length;
+  let status = '';
+  if (call.status === 'ringing') status = call.dir === 'in' ? `Incoming ${call.video ? 'video' : 'voice'} call` : 'Calling…';
+  else if (call.status === 'connecting') status = 'Connecting…';
+  else status = '<span class="call-timer">0:00</span>';
+  let controls = '';
+  if (call.status === 'ringing' && call.dir === 'in') {
+    controls = `<button class="call-btn-round decline" data-action="call-decline" title="Decline">📵</button>
+      <button class="call-btn-round accept" data-action="call-accept" title="Answer">📞</button>
+      ${call.video ? '<button class="call-btn-round accept" data-action="call-accept-video" title="Answer with video">🎥</button>' : ''}`;
+  } else {
+    controls = `<button class="call-btn-round ${muted ? 'active' : ''}" data-action="call-mute" title="${muted ? 'Unmute' : 'Mute'}">${muted ? '🔇' : '🎙️'}</button>
+      ${hasLocalVideo ? `<button class="call-btn-round ${camOff ? 'active' : ''}" data-action="call-camera" title="Camera on/off">${camOff ? '🚫' : '📷'}</button>` : ''}
+      ${hasLocalVideo && platform.name === 'android' ? '<button class="call-btn-round" data-action="call-switch" title="Switch camera">🔄</button>' : ''}
+      ${platform.setSpeaker ? `<button class="call-btn-round ${callUi.speaker ? 'active' : ''}" data-action="call-speaker" title="Speaker">🔊</button>` : ''}
+      <button class="call-btn-round decline" data-action="call-hangup" title="Hang up">📵</button>`;
+  }
+  root.innerHTML = `<div class="call-panel ${hasRemoteVideo ? 'has-video' : ''}">
+      <video class="remote-video" autoplay playsinline ${hasRemoteVideo ? '' : 'hidden'}></video>
+      <div class="call-center" ${hasRemoteVideo ? 'hidden' : ''}><div class="avatar xl">${initial}</div><div class="call-name">${esc(name)}</div><div class="call-status">${status}</div></div>
+      <div class="call-top" ${hasRemoteVideo ? '' : 'hidden'}><div class="call-name">${esc(name)}</div><div class="call-status">${status}</div></div>
+      <video class="local-video" autoplay playsinline muted ${hasLocalVideo ? '' : 'hidden'}></video>
+      <div class="call-controls">${controls}</div>
+    </div>`;
+  root.classList.add('open');
+  document.body.classList.add('in-call');
+  callUi.remoteEl = root.querySelector('.remote-video');
+  callUi.localEl = root.querySelector('.local-video');
+  if (call.remote) { callUi.remoteEl.srcObject = call.remote; callUi.remoteEl.play?.().catch(() => {}); }
+  if (call.local) { callUi.localEl.srcObject = call.local; }
+  if (call.status === 'connected') {
+    const tick = () => { const txt = fmtDuration((Date.now() - call.startedAt) / 1000); root.querySelectorAll('.call-timer').forEach((el) => { el.textContent = txt; }); };
+    tick();
+    callUi.timer = setInterval(tick, 1000);
+  }
+}
+
+function startTone(kind) {
+  stopTone();
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001;
+    gain.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = kind === 'ring' ? 880 : 440;
+    osc.connect(gain);
+    osc.start();
+    const pattern = kind === 'ring' ? [0.4, 0.2, 0.4, 1.4] : [1, 2];
+    let i = 0; let on = true; let t = ctx.currentTime;
+    const schedule = () => {
+      for (let n = 0; n < 8; n++) {
+        gain.gain.setValueAtTime(on ? 0.12 : 0.0001, t);
+        t += pattern[i % pattern.length]; i++; on = !on;
+      }
+    };
+    schedule();
+    const iv = setInterval(schedule, 3000);
+    callUi.tone = { ctx, osc, iv };
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  } catch {}
+}
+
+function stopTone() {
+  const t = callUi.tone;
+  if (!t) return;
+  callUi.tone = null;
+  clearInterval(t.iv);
+  try { t.osc.stop(); } catch {}
+  try { t.ctx.close(); } catch {}
+}
+
 // ------------------------------------------------------------------ dialogs
 function showNameDialog(firstRun = false) {
   showModal(`<h3>${firstRun ? 'Welcome to Pigeon 🕊️' : 'Your name'}</h3>
@@ -759,6 +911,16 @@ function setupGlobalHandlers() {
       case 'open': if (el.dataset.path) platform.openFile(el.dataset.path); break;
       case 'show': if (el.dataset.path) platform.showInFolder?.(el.dataset.path); break;
       case 'regen-id': regenerateId(); break;
+      case 'call-audio': startCall(false); break;
+      case 'call-video': startCall(true); break;
+      case 'call-accept': net.acceptCall({ video: false }).then(() => platform.callStarted?.(false)).catch((e) => toast(e.message, 'error')); break;
+      case 'call-accept-video': net.acceptCall({ video: true }).then(() => platform.callStarted?.(true)).catch((e) => toast(e.message, 'error')); break;
+      case 'call-decline': net.declineCall(); break;
+      case 'call-hangup': net.hangUp(); break;
+      case 'call-mute': net.toggleMute(); break;
+      case 'call-camera': net.toggleCamera(); break;
+      case 'call-switch': net.switchCamera().catch(() => toast('Could not switch camera', 'error')); break;
+      case 'call-speaker': callUi.speaker = !callUi.speaker; platform.setSpeaker?.(callUi.speaker); if (net.call) renderCall(net.call); break;
       case 'retry-connect': closeModal(); net.status = 'connecting'; net.restart(); break;
       default: break;
     }
@@ -809,6 +971,6 @@ function setupGlobalHandlers() {
 }
 
 // expose for debugging / tests
-window.pigeon = { state, get net() { return net; }, get store() { return store; }, get platform() { return platform; }, addContact, selectContact, sendItems };
+window.pigeon = { state, get net() { return net; }, get store() { return store; }, get platform() { return platform; }, addContact, selectContact, sendItems, startCall };
 
 main().catch((e) => { console.error(e); document.body.innerHTML = `<pre style="color:#f66;padding:20px">Failed to start: ${esc(e.stack || e)}</pre>`; });

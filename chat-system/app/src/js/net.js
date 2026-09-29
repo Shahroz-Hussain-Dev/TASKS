@@ -13,7 +13,8 @@ const ACCEPT_TIMEOUT = 90000;
 const POLL_INTERVAL = 15000;
 const HB_INTERVAL = 8000;      // ping cadence
 const HB_TIMEOUT = 30000;      // drop the link if nothing was heard for this long
-const ICE_GRACE = 10000;       // time an ICE 'disconnected' state may last before we give up
+const ICE_GRACE = 10000;
+const CALL_RING_TIMEOUT = 45000;       // time an ICE 'disconnected' state may last before we give up
 
 function waitBufferLow(dc) {
   return new Promise((resolve) => {
@@ -50,6 +51,7 @@ export class Network extends EventTarget {
 
   destroy() {
     this._destroyed = true;
+    if (this.call) this.hangUp();
     clearInterval(this._pollTimer);
     clearTimeout(this._reconnectTimer);
     try { this.peer?.destroy(); } catch {}
@@ -80,6 +82,7 @@ export class Network extends EventTarget {
       this._pollContacts();
     });
     peer.on('connection', (conn) => this._attach(conn, false));
+    peer.on('call', (mc) => this._onIncomingCall(mc));
     peer.on('disconnected', () => {
       if (peer !== this.peer) return;
       this.status = 'offline';
@@ -334,6 +337,15 @@ export class Network extends EventTarget {
         break;
       case 'ping':
         this._sendJson(link.conn, { t: 'pong' });
+        break;
+      case 'call-decline':
+        if (this.call && this.call.peerId === peerId && this.call.id === m.id) this._finishCall('declined');
+        break;
+      case 'call-busy':
+        if (this.call && this.call.peerId === peerId && this.call.id === m.id) this._finishCall('busy');
+        break;
+      case 'call-end':
+        if (this.call && this.call.peerId === peerId && this.call.id === m.id) this._finishCall('remote-hangup');
         break;
       case 'pong':
         break;
@@ -590,6 +602,7 @@ export class Network extends EventTarget {
   }
 
   _failTransfersFor(link, reason) {
+    if (this.call && this.call.peerId === link.id && this.call.status !== 'connected') this._finishCall('connection-lost');
     for (const t of this.transfers.values()) {
       if (t.peerId !== link.id) continue;
       if (t.dir === 'out' && ['queued', 'offered', 'active'].includes(t.status)) {
@@ -599,6 +612,161 @@ export class Network extends EventTarget {
       }
     }
     link.outQ = [];
+  }
+
+  // ---------------- voice / video calls ----------------
+  // this.call = { id, peerId, dir, video, mc, local, remote, status: 'ringing'|'connecting'|'connected', ts, startedAt }
+
+  async startCall(peerId, { video = false } = {}) {
+    if (this.call) throw new Error('Already in a call');
+    const link = this.links.get(peerId);
+    if (!link?.open) throw new Error('Contact is offline');
+    const local = await this._getMedia(video);
+    const id = uid();
+    const call = { id, peerId, dir: 'out', video, mc: null, local, remote: null, status: 'ringing', ts: Date.now(), startedAt: 0 };
+    this.call = call;
+    let mc;
+    try {
+      mc = this.peer.call(peerId, local, { metadata: { callId: id, video } });
+    } catch (e) {
+      this._finishCall('error', e.message);
+      throw e;
+    }
+    call.mc = mc;
+    this._wireCall(call);
+    call.ringTimer = setTimeout(() => { if (this.call === call && call.status === 'ringing') this._finishCall('no-answer'); }, CALL_RING_TIMEOUT);
+    this.emit('call', { call });
+    return call;
+  }
+
+  _onIncomingCall(mc) {
+    const peerId = mc.peer;
+    const meta = mc.metadata || {};
+    const id = String(meta.callId || uid());
+    const link = this.links.get(peerId);
+    if (!this.isTrusted(peerId) || !link?.open) { try { mc.close(); } catch {} return; }
+    if (this.call) {
+      this._sendJson(link.conn, { t: 'call-busy', id });
+      try { mc.close(); } catch {}
+      this.emit('call-log', { peerId, dir: 'in', video: !!meta.video, outcome: 'missed', duration: 0 });
+      return;
+    }
+    const call = { id, peerId, dir: 'in', video: !!meta.video, mc, local: null, remote: null, status: 'ringing', ts: Date.now(), startedAt: 0 };
+    this.call = call;
+    this._wireCall(call);
+    call.ringTimer = setTimeout(() => { if (this.call === call && call.status === 'ringing') this._finishCall('missed'); }, CALL_RING_TIMEOUT);
+    this.emit('call', { call });
+  }
+
+  async acceptCall({ video } = {}) {
+    const call = this.call;
+    if (!call || call.dir !== 'in' || call.status !== 'ringing') return;
+    const withVideo = video === undefined ? call.video : !!video;
+    let local;
+    try { local = await this._getMedia(withVideo); }
+    catch (e) { this._finishCall('error', 'Microphone/camera unavailable'); throw e; }
+    if (this.call !== call) { local.getTracks().forEach((t) => t.stop()); return; }
+    call.local = local;
+    call.video = withVideo || call.video;
+    call.status = 'connecting';
+    clearTimeout(call.ringTimer);
+    call.mc.answer(local);
+    this.emit('call', { call });
+  }
+
+  declineCall() {
+    const call = this.call;
+    if (!call) return;
+    const link = this.links.get(call.peerId);
+    if (link?.open) this._sendJson(link.conn, { t: 'call-decline', id: call.id });
+    this._finishCall(call.dir === 'in' ? 'declined-local' : 'cancelled');
+  }
+
+  hangUp() {
+    const call = this.call;
+    if (!call) return;
+    const link = this.links.get(call.peerId);
+    if (link?.open) this._sendJson(link.conn, { t: 'call-end', id: call.id });
+    this._finishCall(call.status === 'connected' ? 'hangup' : 'cancelled');
+  }
+
+  toggleMute() {
+    const t = this.call?.local?.getAudioTracks() || [];
+    if (!t.length) return false;
+    const muted = t[0].enabled;
+    t.forEach((x) => { x.enabled = !muted; });
+    this.emit('call', { call: this.call });
+    return muted; // returns new muted state
+  }
+
+  toggleCamera() {
+    const t = this.call?.local?.getVideoTracks() || [];
+    if (!t.length) return false;
+    const off = t[0].enabled;
+    t.forEach((x) => { x.enabled = !off; });
+    this.emit('call', { call: this.call });
+    return off;
+  }
+
+  async switchCamera() {
+    const call = this.call;
+    const cur = call?.local?.getVideoTracks()[0];
+    if (!call || !cur) return;
+    const facing = cur.getSettings().facingMode === 'environment' ? 'user' : 'environment';
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing } } });
+    const next = stream.getVideoTracks()[0];
+    const sender = call.mc.peerConnection?.getSenders().find((s) => s.track && s.track.kind === 'video');
+    if (sender) await sender.replaceTrack(next);
+    call.local.removeTrack(cur); cur.stop();
+    call.local.addTrack(next);
+    this.emit('call', { call });
+  }
+
+  async _getMedia(video) {
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error('Media devices not available');
+    const constraints = {
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: video ? { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+    };
+    try { return await navigator.mediaDevices.getUserMedia(constraints); }
+    catch (e) {
+      if (video) return navigator.mediaDevices.getUserMedia({ audio: constraints.audio }); // no camera: fall back to voice
+      throw e;
+    }
+  }
+
+  _wireCall(call) {
+    const mc = call.mc;
+    mc.on('stream', (remote) => {
+      if (this.call !== call || call.remote) return;
+      call.remote = remote;
+      call.status = 'connected';
+      call.startedAt = Date.now();
+      clearTimeout(call.ringTimer);
+      this.emit('call', { call });
+    });
+    mc.on('close', () => { if (this.call === call) this._finishCall(call.status === 'connected' ? 'remote-hangup' : 'closed'); });
+    mc.on('error', (e) => { if (this.call === call) this._finishCall('error', e?.message); });
+    mc.on('iceStateChanged', (state) => {
+      if (this.call !== call) return;
+      if (state === 'failed' || state === 'closed') this._finishCall('connection-lost');
+    });
+  }
+
+  _finishCall(reason, error = '') {
+    const call = this.call;
+    if (!call) return;
+    this.call = null;
+    clearTimeout(call.ringTimer);
+    try { call.mc?.close(); } catch {}
+    call.local?.getTracks().forEach((t) => t.stop());
+    const duration = call.startedAt ? Math.round((Date.now() - call.startedAt) / 1000) : 0;
+    let outcome;
+    if (call.startedAt) outcome = 'completed';
+    else if (call.dir === 'in') outcome = reason === 'declined-local' ? 'declined' : 'missed';
+    else outcome = reason === 'declined' ? 'declined' : reason === 'busy' ? 'busy' : reason === 'cancelled' ? 'cancelled' : reason === 'no-answer' ? 'no-answer' : 'failed';
+    this.emit('call-ended', { call, reason, error, duration, outcome });
+    this.emit('call-log', { peerId: call.peerId, dir: call.dir, video: call.video, outcome, duration, error });
   }
 
   _progress(t, force = false) {

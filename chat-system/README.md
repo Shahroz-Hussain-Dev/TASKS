@@ -1,4 +1,4 @@
-# Pigeon – serverless one-to-one chat (desktop + Android)
+# Pigeon – serverless one-to-one chat and calls (desktop + Android)
 
 Pigeon is a private, one-to-one chat that works between a **desktop app** (Windows / Linux / macOS) and an **Android app**, from anywhere in the world, with no server of your own to run.
 
@@ -21,17 +21,17 @@ Every push that touches `chat-system/` runs the GitHub Actions workflow `.github
 | Platform | File |
 | --- | --- |
 | Android | `Pigeon.apk` |
-| Windows | `Pigeon-Setup-1.0.0.exe` (installer) or `Pigeon-Portable-1.0.0.exe` (no install) |
-| Linux | `Pigeon-1.0.0-linux-x86_64.AppImage` or `.deb` |
-| macOS | `Pigeon-1.0.0-mac-*.dmg` |
+| Windows | `Pigeon-Setup-<version>.exe` (installer) or `Pigeon-Portable-<version>.exe` (no install) |
+| Linux | `Pigeon-<version>-linux-x86_64.AppImage` or `.deb` |
+| macOS | `Pigeon-<version>-mac-*.dmg` |
 
 The same files are also attached to each workflow run as artifacts.
 
 ## Install
 
-**Windows laptop** – download `Pigeon-Setup-1.0.0.exe` and run it. It is a one-click installer that creates a desktop shortcut. The build is not code-signed, so Windows SmartScreen shows a warning the first time: click **More info → Run anyway**.
+**Windows laptop** – download `Pigeon-Setup-<version>.exe` and run it. It is a one-click installer that creates a desktop shortcut. The build is not code-signed, so Windows SmartScreen shows a warning the first time: click **More info → Run anyway**.
 
-**Android phone** – download `Pigeon.apk` on the phone and open it. Android asks you to allow installs from your browser or file manager (*Install unknown apps*) – allow it once and tap *Install*. The app asks for microphone (voice notes) and notification permissions when first needed.
+**Android phone** – download `Pigeon.apk` on the phone and open it. Android asks you to allow installs from your browser or file manager (*Install unknown apps*) – allow it once and tap *Install*. The app asks for microphone and camera (voice notes, calls) and notification permissions when first needed.
 
 **Linux** – `chmod +x Pigeon-*.AppImage && ./Pigeon-*.AppImage`, or install the `.deb`.
 
@@ -54,6 +54,7 @@ From then on the two devices connect automatically whenever both are online.
 - **Any file**, any size – streamed in 64 KB chunks with back-pressure, progress bar, speed and cancel
 - **Whole folders** – tap 📁 (desktop: also drag & drop a folder onto the chat). The folder structure is recreated on the receiving side exactly, no zipping
 - Paste an image from the clipboard on desktop to send it
+- **Voice and video calls** – 📞 / 🎥 in the chat header (enabled while the contact is online). The other side gets a ringing screen with *Answer*, *Answer with video* and *Decline*. In-call controls: mute, camera on/off, switch camera (Android), speaker/earpiece (Android), hang up. Calls are logged in the chat (duration, missed, declined). Media goes peer to peer over the same encrypted WebRTC session as messages.
 
 Received files are saved to:
 
@@ -70,7 +71,7 @@ Received files are saved to:
 
 ### Protocol (over the data channel)
 
-JSON text frames for control: `hello`, `msg`, `ack`, `typing`, `offer` (file/folder manifest), `accept`/`reject`, `fstart`/`fend` (per file), `done`, `complete`, `cancel`. Binary frames are raw file chunks that belong to the current `fstart`ed file. One transfer at a time per direction; text messages interleave freely.
+JSON text frames for control: `hello`, `msg`, `ack`, `typing`, `ping`/`pong`, `offer` (file/folder manifest), `accept`/`reject`, `fstart`/`fend` (per file), `done`, `complete`, `cancel`, and `call-decline`/`call-busy`/`call-end` for calls (the media itself is a PeerJS media connection next to the data channel). Binary frames are raw file chunks that belong to the current `fstart`ed file. One transfer at a time per direction; text messages interleave freely.
 
 ## Limitations (by design of a serverless system)
 
@@ -104,6 +105,6 @@ The Android release build is signed with the development keystore in `mobile/key
 
 ### Tests
 
-`node tools/e2e.mjs` (needs `playwright-core`, `peer` and `express` installed somewhere reachable via `PW_REQUIRE_FROM=<path to a package.json>` and a Chromium at `CHROMIUM_PATH`). It launches a local PeerJS server and two headless browsers that pair, exchange text, a 3 MB file with integrity check, an image, a nested folder, a voice note recorded from a fake microphone, and verifies offline queueing and history persistence.
+`node tools/e2e.mjs` (needs `playwright-core`, `peer` and `express` installed somewhere reachable via `PW_REQUIRE_FROM=<path to a package.json>` and a Chromium at `CHROMIUM_PATH`). It launches a local PeerJS server and two headless browsers that pair, exchange text, a 3 MB file with integrity check, an image, a nested folder, a voice note recorded from a fake microphone, a video call (ring, answer, media both ways, mute, hang up, call log), a declined call, and verifies offline queueing and history persistence.
 
 `node tools/gen-icons.mjs` regenerates all launcher/installer icons from the SVG in the script.

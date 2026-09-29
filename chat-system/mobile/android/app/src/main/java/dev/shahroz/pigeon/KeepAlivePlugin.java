@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
+import android.view.WindowManager;
 import android.os.Build;
 
 import androidx.core.app.ActivityCompat;
@@ -60,6 +62,39 @@ public class KeepAlivePlugin extends Plugin {
     @PluginMethod
     public void stop(PluginCall call) {
         getContext().stopService(new Intent(getContext(), KeepAliveService.class));
+        call.resolve();
+    }
+
+    /** Routes call audio to the loudspeaker (true) or the earpiece (false). */
+    @PluginMethod
+    public void setSpeaker(PluginCall call) {
+        boolean on = Boolean.TRUE.equals(call.getBoolean("on", true));
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (am != null) {
+            am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            am.setSpeakerphoneOn(on);
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void resetAudio(PluginCall call) {
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (am != null) {
+            am.setSpeakerphoneOn(false);
+            am.setMode(AudioManager.MODE_NORMAL);
+        }
+        call.resolve();
+    }
+
+    /** Keeps the screen on during a call. */
+    @PluginMethod
+    public void keepScreenOn(PluginCall call) {
+        boolean on = Boolean.TRUE.equals(call.getBoolean("on", true));
+        getActivity().runOnUiThread(() -> {
+            if (on) getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            else getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        });
         call.resolve();
     }
 

@@ -127,14 +127,14 @@ jobs:
           name: Pigeon 1.0.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           body: |
-            Pigeon – serverless one-to-one P2P chat (text, photos, voice notes, files and whole folders).
+            Pigeon – serverless one-to-one P2P chat and calls (text, photos, voice notes, files, whole folders, voice and video calls).
 
             **Downloads**
             - `Pigeon.apk` – Android (enable *Install unknown apps* for your browser/file manager, then open the APK)
-            - `Pigeon-Setup-1.0.0.exe` – Windows installer (one-click; SmartScreen may ask you to click *More info → Run anyway* because the build is unsigned)
-            - `Pigeon-Portable-1.0.0.exe` – Windows, no install needed
-            - `Pigeon-1.0.0-linux-x86_64.AppImage` / `.deb` – Linux
-            - `Pigeon-1.0.0-mac-*.dmg` – macOS (unsigned: right-click → Open the first time)
+            - `Pigeon-Setup-<version>.exe` – Windows installer (one-click; SmartScreen may ask you to click *More info → Run anyway* because the build is unsigned)
+            - `Pigeon-Portable-<version>.exe` – Windows, no install needed
+            - `Pigeon-<version>-linux-x86_64.AppImage` / `.deb` – Linux
+            - `Pigeon-<version>-mac-*.dmg` – macOS (unsigned: right-click → Open the first time)
 
             See `chat-system/README.md` for pairing instructions.
           files: |

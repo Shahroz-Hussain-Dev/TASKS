@@ -96,6 +96,9 @@ export function create() {
     downloadsDir: async () => `Documents/${ROOT}`,
     notify(title, body) { KeepAlive.notify({ title, body }).catch(() => {}); },
     keepAlive(on) { (on ? KeepAlive.start() : KeepAlive.stop()).catch(() => {}); },
+    setSpeaker(on) { KeepAlive.setSpeaker({ on: !!on }).catch(() => {}); },
+    callStarted(video) { KeepAlive.keepScreenOn({ on: true }).catch(() => {}); KeepAlive.setSpeaker({ on: true }).catch(() => {}); },
+    callEnded() { KeepAlive.keepScreenOn({ on: false }).catch(() => {}); KeepAlive.resetAudio().catch(() => {}); },
     async share(text) { try { await navigator.share({ text }); } catch {} },
   };
 }

@@ -1,6 +1,6 @@
 {
   "name": "pigeon-desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pigeon - serverless one-to-one P2P chat with file, folder and voice sharing",
   "main": "main.js",
   "scripts": {
@@ -76,7 +76,11 @@
         "zip"
       ],
       "icon": "build/icon.png",
-      "category": "public.app-category.social-networking"
+      "category": "public.app-category.social-networking",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Pigeon uses the microphone for voice notes and calls.",
+        "NSCameraUsageDescription": "Pigeon uses the camera for video calls."
+      }
     }
   },
   "repository": {

@@ -44,7 +44,7 @@ async function main() {
     await sleep(1500);
     const settings = JSON.stringify({ peerHost: '127.0.0.1', peerPort: PEER_PORT, peerPath: '/', peerSecure: false, iceServers: [], autoAcceptFiles: true, notifications: false });
     const mk = async (name, id) => {
-      const ctx = await browser.newContext({ viewport: { width: 1100, height: 720 }, permissions: ['notifications', 'microphone'] });
+      const ctx = await browser.newContext({ viewport: { width: 1100, height: 720 }, permissions: ['notifications', 'microphone', 'camera'] });
       await ctx.addInitScript(({ settings, name, id }) => {
         localStorage.setItem('pigeon.settings', settings);
         localStorage.setItem('pigeon.identity', JSON.stringify({ id, name, createdAt: Date.now() }));
@@ -114,10 +114,39 @@ async function main() {
 
     // voice note via fake microphone
     await B.click('[data-action="mic"]');
+    await waitFor(() => B.evaluate(() => !!window.pigeon.state.rec && document.querySelector('.chat').classList.contains('recording')), { what: 'recording started' });
     await sleep(1500);
     await B.click('[data-action="rec-stop"]');
     await waitFor(() => A.evaluate(() => (window.__pigeonReceived || []).some((x) => x.relPath.startsWith('voice-'))), { what: 'voice note received' });
     console.log('✓ voice note recorded and received');
+
+    // voice/video call: Alice calls Bob with video, Bob answers, both get remote media, Alice hangs up
+    await A.click('[data-action="call-video"]');
+    await waitFor(() => B.$('[data-action="call-accept-video"]'), { what: 'Bob sees incoming call' });
+    await B.screenshot({ path: path.join(shots, 'bob-incoming-call.png') });
+    await B.click('[data-action="call-accept-video"]');
+    await waitFor(() => A.evaluate(() => window.pigeon.net.call?.status === 'connected'), { what: 'Alice call connected' });
+    await waitFor(() => B.evaluate(() => window.pigeon.net.call?.status === 'connected'), { what: 'Bob call connected' });
+    const tracks = await Promise.all([A, B].map((p) => p.evaluate(() => window.pigeon.net.call.remote.getTracks().map((t) => t.kind).sort().join('+'))));
+    if (tracks.some((t) => t !== 'audio+video')) failures.push('remote call tracks wrong: ' + tracks.join(' | '));
+    await waitFor(() => A.evaluate(() => { const v = document.querySelector('.remote-video'); return v && v.srcObject && v.videoWidth > 0; }), { what: 'remote video frames on Alice' });
+    await sleep(2500);
+    const visibleTimer = await A.evaluate(() => Array.from(document.querySelectorAll('.call-timer')).find((el) => el.offsetParent !== null)?.textContent);
+    if (!visibleTimer || visibleTimer === '0:00') failures.push(`visible call timer not advancing: ${visibleTimer}`);
+    await A.screenshot({ path: path.join(shots, 'alice-in-call.png') });
+    await A.click('[data-action="call-mute"]');
+    const mutedOk = await A.evaluate(() => window.pigeon.net.call.local.getAudioTracks()[0].enabled === false);
+    if (!mutedOk) failures.push('mute did not disable audio track');
+    await A.click('[data-action="call-hangup"]');
+    await waitFor(() => A.evaluate(() => !window.pigeon.net.call) && B.evaluate(() => !window.pigeon.net.call), { what: 'call ended on both sides' });
+    await waitFor(() => A.evaluate(() => window.pigeon.state.messages.some((m) => m.kind === 'call' && m.outcome === 'completed' && m.dir === 'out')) && B.evaluate(() => window.pigeon.state.messages.some((m) => m.kind === 'call' && m.outcome === 'completed' && m.dir === 'in')), { what: 'call log entries' });
+    console.log('✓ video call: ring, answer, media both ways, mute, hang up, call log');
+    // declined call: Bob calls Alice (voice), Alice declines
+    await B.click('[data-action="call-audio"]');
+    await waitFor(() => A.$('[data-action="call-decline"]'), { what: 'Alice sees incoming voice call' });
+    await A.click('[data-action="call-decline"]');
+    await waitFor(() => B.evaluate(() => !window.pigeon.net.call && window.pigeon.state.messages.some((m) => m.kind === 'call' && m.outcome === 'declined')), { what: 'Bob sees declined' });
+    console.log('✓ declined call is signalled and logged');
 
     // offline queueing: Bob closes, Alice sends, Bob reopens and receives
     await A.screenshot({ path: path.join(shots, 'alice-chat.png') });
@@ -135,7 +164,7 @@ async function main() {
     await B2.click('[data-action="select"][data-id="ALICE001"]');
     await waitFor(() => B2.evaluate(() => Array.from(document.querySelectorAll('.messages .msg .text')).some((el) => el.textContent.includes('Sent while you were offline'))), { what: 'queued message delivered' });
     const hist = await B2.evaluate(() => document.querySelectorAll('.messages .msg').length);
-    if (hist < 6) failures.push(`expected full history restored from IndexedDB, got ${hist} messages`);
+    if (hist < 8) failures.push(`expected full history restored from IndexedDB, got ${hist} messages`);
     console.log(`✓ offline queue + persistence (Bob restored ${hist} messages from IndexedDB)`);
     await B2.screenshot({ path: path.join(shots, 'bob-restored.png') });
     // narrow (phone) layout screenshot
@@ -144,6 +173,20 @@ async function main() {
     await B2.screenshot({ path: path.join(shots, 'bob-phone.png') });
   } catch (e) {
     failures.push(e.stack || String(e));
+    // diagnostics: last messages and live transfers on every open page
+    for (const pg of browser.contexts().flatMap((c) => c.pages())) {
+      try {
+        const d = await pg.evaluate(() => ({
+          id: window.pigeon?.state?.identity?.id,
+          last: (window.pigeon?.state?.messages || []).slice(-3).map((m) => ({ kind: m.kind, dir: m.dir, status: m.status, error: m.error, files: (m.files || []).map((f) => f.path) })),
+          transfers: Array.from(window.pigeon?.net?.transfers?.values() || []).map((t) => ({ dir: t.dir, status: t.status, done: t.done, total: t.total, error: t.error })),
+          rec: !!window.pigeon?.state?.rec,
+          received: (window.__pigeonReceived || []).map((x) => x.relPath),
+          toasts: Array.from(document.querySelectorAll('.toast')).map((t) => t.textContent),
+        }));
+        console.error('DIAG', JSON.stringify(d));
+      } catch {}
+    }
   } finally {
     await browser.close();
     web.close();
