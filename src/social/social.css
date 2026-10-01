@@ -1,0 +1,580 @@
+/* ===========================================================================
+   daily_jobs social demo styles
+   Scoped under .dj-* so they don't collide with the property-rental site.
+   =========================================================================== */
+
+:root {
+  --dj-bg: #f0f2f5;
+  --dj-card: #ffffff;
+  --dj-text: #1c1e21;
+  --dj-muted: #65676b;
+  --dj-border: #dddfe2;
+  --dj-blue: #1877f2;
+  --dj-blue-dark: #166fe5;
+  --dj-green: #42b72a;
+  --dj-danger: #e41e3f;
+  --dj-radius: 10px;
+}
+
+.dj-screen {
+  min-height: 100vh;
+  background: var(--dj-bg);
+  color: var(--dj-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.dj-screen * {
+  box-sizing: border-box;
+}
+
+/* ---------- auth (login / forgot / signup) ---------- */
+
+.dj-auth-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.dj-auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--dj-card);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  padding: 28px 24px;
+}
+
+.dj-brand {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.dj-brand .dj-logo {
+  color: var(--dj-blue);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.dj-brand .dj-tagline {
+  color: var(--dj-muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.dj-auth-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 2px;
+}
+
+.dj-auth-sub {
+  color: var(--dj-muted);
+  font-size: 14px;
+  margin-bottom: 18px;
+  word-break: break-word;
+}
+
+.dj-field {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 1px solid var(--dj-border);
+  border-radius: var(--dj-radius);
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.dj-field:focus {
+  border-color: var(--dj-blue);
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.15);
+}
+
+.dj-btn {
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--dj-radius);
+  cursor: pointer;
+}
+
+.dj-btn-primary {
+  background: var(--dj-blue);
+  color: #fff;
+}
+.dj-btn-primary:hover {
+  background: var(--dj-blue-dark);
+}
+
+.dj-btn-green {
+  background: var(--dj-green);
+  color: #fff;
+}
+
+.dj-btn-ghost {
+  background: #e4e6eb;
+  color: var(--dj-text);
+}
+
+.dj-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dj-link {
+  color: var(--dj-blue);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.dj-link:hover {
+  text-decoration: underline;
+}
+
+.dj-center {
+  text-align: center;
+  margin-top: 14px;
+}
+
+.dj-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dj-muted);
+  font-size: 13px;
+  margin: 18px 0;
+}
+.dj-divider::before,
+.dj-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--dj-border);
+}
+
+/* Google button (triggers OAuth -- we never collect a Google password) */
+.dj-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #3c4043;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: var(--dj-radius);
+  cursor: pointer;
+}
+.dj-google-btn:hover {
+  background: #f7f8f8;
+}
+.dj-google-g {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.dj-error {
+  background: #ffebe9;
+  color: var(--dj-danger);
+  border: 1px solid #ffc4c4;
+  padding: 10px 12px;
+  border-radius: var(--dj-radius);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.dj-success {
+  background: #e6f4ea;
+  color: #1e7a34;
+  border: 1px solid #b7e1c1;
+  padding: 10px 12px;
+  border-radius: var(--dj-radius);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.dj-note {
+  font-size: 12px;
+  color: var(--dj-muted);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* identity chip shown on the password step (shows which account) */
+.dj-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--dj-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  width: fit-content;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.dj-identity .dj-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--dj-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* OTP boxes */
+.dj-otp-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dj-otp-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 22px;
+  border: 1px solid var(--dj-border);
+  border-radius: var(--dj-radius);
+  outline: none;
+}
+.dj-otp-box:focus {
+  border-color: var(--dj-blue);
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.15);
+}
+.dj-otp-demo {
+  font-size: 13px;
+  color: var(--dj-muted);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* ---------- reels ---------- */
+
+.dj-reels-screen {
+  background: #000;
+  min-height: 100vh;
+  color: #fff;
+}
+
+.dj-reels-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+.dj-reels-top .dj-logo {
+  color: #fff;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.dj-reels-feed {
+  height: calc(100vh - 0px);
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+.dj-reel {
+  position: relative;
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+}
+
+.dj-reel-media {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dj-reel-media video,
+.dj-reel-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dj-reel-placeholder {
+  text-align: center;
+  color: #8a8d91;
+  padding: 24px;
+}
+.dj-reel-placeholder .dj-play {
+  font-size: 54px;
+  opacity: 0.6;
+}
+
+/* right-side action rail */
+.dj-reel-actions {
+  position: absolute;
+  right: 10px;
+  bottom: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: center;
+}
+.dj-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #fff;
+  background: none;
+  border: none;
+}
+.dj-action .dj-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+.dj-action .dj-count {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* bottom caption / channel */
+.dj-reel-info {
+  position: absolute;
+  left: 0;
+  right: 70px;
+  bottom: 28px;
+  padding: 0 16px;
+}
+.dj-channel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dj-channel .dj-ch-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--dj-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+}
+.dj-channel .dj-ch-name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dj-verified {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  color: var(--dj-blue);
+}
+.dj-follow-btn {
+  margin-left: 6px;
+  padding: 4px 12px;
+  border: 1px solid #fff;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.dj-reel-caption {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.dj-reel-music {
+  font-size: 13px;
+  color: #d1d1d1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- admin ---------- */
+
+.dj-admin-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+.dj-admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dj-admin-head h1 {
+  font-size: 24px;
+  margin: 0;
+}
+.dj-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.dj-tab {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--dj-border);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dj-muted);
+}
+.dj-tab.active {
+  background: var(--dj-blue);
+  color: #fff;
+  border-color: var(--dj-blue);
+}
+.dj-panel {
+  background: #fff;
+  border: 1px solid var(--dj-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.dj-panel h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+.dj-form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+.dj-form-grid .dj-full {
+  grid-column: 1 / -1;
+}
+.dj-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dj-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+textarea.dj-field {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.dj-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.dj-table th,
+.dj-table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--dj-border);
+  vertical-align: top;
+}
+.dj-table th {
+  color: var(--dj-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dj-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dj-pill.ok {
+  background: #e6f4ea;
+  color: #1e7a34;
+}
+.dj-pill.bad {
+  background: #ffebe9;
+  color: var(--dj-danger);
+}
+.dj-pill.info {
+  background: #e7f0fe;
+  color: var(--dj-blue);
+}
+.dj-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--dj-muted);
+  word-break: break-all;
+}
+.dj-admin-reel {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--dj-border);
+}
+.dj-admin-reel .thumb {
+  width: 64px;
+  height: 90px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-size: 22px;
+}
+.dj-del {
+  color: var(--dj-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+.dj-banner {
+  background: #fff7e6;
+  border: 1px solid #ffe0a3;
+  color: #7a5b00;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .dj-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
