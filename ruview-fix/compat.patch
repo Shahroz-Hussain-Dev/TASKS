@@ -1,0 +1,38 @@
+diff --git a/v2/crates/wifi-densepose-sensing-server/src/main.rs b/v2/crates/wifi-densepose-sensing-server/src/main.rs
+index 180ae6f..190b97d 100644
+--- a/v2/crates/wifi-densepose-sensing-server/src/main.rs
++++ b/v2/crates/wifi-densepose-sensing-server/src/main.rs
+@@ -138,9 +138,14 @@ struct Args {
+     tick_ms: u64,
+ 
+     /// Bind address (default 127.0.0.1; set to 0.0.0.0 for network access)
+-    #[arg(long, default_value = "127.0.0.1", env = "SENSING_BIND_ADDR")]
++    #[arg(long, alias = "bind", default_value = "127.0.0.1", env = "SENSING_BIND_ADDR")]
+     bind_addr: String,
+ 
++    /// Accepted for compatibility with RuView Desktop v0.4.x, which always
++    /// passes `--log-level`. Log filtering is controlled by RUST_LOG.
++    #[arg(long, hide = true)]
++    log_level: Option<String>,
++
+     /// Disable local `_ruview._tcp` discovery. Discovery is automatically
+     /// skipped for loopback-only binds and never carries sensor data.
+     #[arg(long, env = "RUVIEW_NO_MDNS")]
+@@ -11268,6 +11273,17 @@ async fn main() {
+ 
+     let mut args = Args::parse();
+     args.ui_path = coalesce_ui_path(args.ui_path);
++    let _ = &args.log_level;
++
++    // RuView Desktop launches the server with its install directory as the
++    // working directory (e.g. C:\Program Files\RuView Desktop), which is not
++    // writable. Keep the default relative `data` dir under the user's profile.
++    #[cfg(windows)]
++    if args.data_dir == std::path::Path::new("data") && std::env::var_os("RUVIEW_DATA_DIR").is_none() {
++        if let Some(base) = std::env::var_os("LOCALAPPDATA") {
++            args.data_dir = std::path::PathBuf::from(base).join("RuView").join("data");
++        }
++    }
+ 
+     if let Err(error) = validate_startup_calibration_request(args.calibrate) {
+         eprintln!("Error: {error}");
