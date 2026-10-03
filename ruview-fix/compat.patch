@@ -1,5 +1,5 @@
 diff --git a/v2/crates/wifi-densepose-sensing-server/src/main.rs b/v2/crates/wifi-densepose-sensing-server/src/main.rs
-index 180ae6f..190b97d 100644
+index 180ae6f..104371f 100644
 --- a/v2/crates/wifi-densepose-sensing-server/src/main.rs
 +++ b/v2/crates/wifi-densepose-sensing-server/src/main.rs
 @@ -138,9 +138,14 @@ struct Args {
@@ -18,7 +18,27 @@ index 180ae6f..190b97d 100644
      /// Disable local `_ruview._tcp` discovery. Discovery is automatically
      /// skipped for loopback-only binds and never carries sensor data.
      #[arg(long, env = "RUVIEW_NO_MDNS")]
-@@ -11268,6 +11273,17 @@ async fn main() {
+@@ -11236,8 +11241,17 @@ fn coalesce_ui_path(initial: std::path::PathBuf) -> std::path::PathBuf {
+     if initial.is_dir() {
+         return initial;
+     }
+-    for rel in &["../ui", "./ui", "../../ui"] {
+-        let p = std::path::PathBuf::from(rel);
++    // Also look next to the executable: RuView Desktop starts the server with
++    // its own install folder (not the server's) as the working directory.
++    let exe_dir = std::env::current_exe()
++        .ok()
++        .and_then(|e| e.parent().map(|d| d.to_path_buf()));
++    let mut candidates: Vec<std::path::PathBuf> =
++        ["../ui", "./ui", "../../ui"].iter().map(std::path::PathBuf::from).collect();
++    if let Some(dir) = exe_dir {
++        candidates.push(dir.join("ui"));
++    }
++    for p in candidates {
+         if p.is_dir() {
+             warn!(
+                 "UI path {} not found; using {} (set --ui-path explicitly if wrong)",
+@@ -11268,6 +11282,17 @@ async fn main() {
  
      let mut args = Args::parse();
      args.ui_path = coalesce_ui_path(args.ui_path);
@@ -36,3 +56,14 @@ index 180ae6f..190b97d 100644
  
      if let Err(error) = validate_startup_calibration_request(args.calibrate) {
          eprintln!("Error: {error}");
+--- a/ui/components/SensingTab.js	2026-10-03 11:18:21.108871060 +0000
++++ b/ui/components/SensingTab.js	2026-10-03 12:02:14.636592497 +0000
+@@ -152,7 +152,7 @@
+ 
+     return new Promise((resolve, reject) => {
+       const script = document.createElement('script');
+-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
++      script.src = 'vendor/three.min.js'; // bundled (was cdnjs r128) so the tab works offline
+       script.onload = () => {
+         this._threeLoaded = true;
+         resolve();

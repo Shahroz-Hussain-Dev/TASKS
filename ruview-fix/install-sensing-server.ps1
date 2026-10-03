@@ -1,12 +1,16 @@
 <#
-  Installs the missing RuView sensing server next to RuView Desktop v0.4.x.
+  Makes RuView Desktop v0.4.x work on Windows, with or without ESP32 boards.
 
-  RuView Desktop's "Start Server" button launches a separate program,
-  wifi-densepose-sensing-server.exe, which the desktop installer does not ship.
-  This script copies a prebuilt Windows build of that server:
-    1. into the RuView Desktop install folder (found automatically), and
-    2. into %LOCALAPPDATA%\RuView\bin, which is added to your user PATH,
-  and opens the firewall for UDP 5005 so ESP32 nodes can stream CSI later.
+  1. Installs the sensing server that RuView Desktop's "Start Server" button
+     launches (wifi-densepose-sensing-server.exe). The desktop installer does
+     not ship it. It goes into the RuView Desktop folder (found automatically)
+     and into %LOCALAPPDATA%\RuView\bin, which is added to your user PATH.
+  2. Installs the live web dashboard next to the server
+     (http://localhost:8080/ui/index.html while the server runs).
+  3. Installs ruview-laptop-node.exe, which turns this laptop's WiFi adapter
+     into a RuView sensing node, and starts it now and at every logon.
+  4. Lets ESP32 boards on your home network reach the server (UDP 5005/5006).
+  5. Self-tests the server and the laptop WiFi stream.
 
   Usage (from this folder, in PowerShell):
     powershell -ExecutionPolicy Bypass -File .\install-sensing-server.ps1
@@ -77,10 +81,20 @@ $targets += $binDir
 # Stop any old copy that is still running so the files can be replaced.
 Get-Process -Name "wifi-densepose-sensing-server","sensing-server" -ErrorAction SilentlyContinue | Stop-Process -Force
 
+$uiSrc = Join-Path $here "ui"
 foreach ($t in $targets) {
   # v0.4.x looks for wifi-densepose-sensing-server.exe; newer builds look for sensing-server.exe.
   Copy-Item $src (Join-Path $t "wifi-densepose-sensing-server.exe") -Force
   Copy-Item $src (Join-Path $t "sensing-server.exe") -Force
+  # Live web dashboard served by the server at http://localhost:8080/ui/index.html
+  # A marker file tells this script (and uninstall.ps1) the folder is ours;
+  # a pre-existing ui folder without it is left untouched.
+  $uiDst = Join-Path $t "ui"
+  if ((Test-Path $uiSrc) -and (-not (Test-Path $uiDst) -or (Test-Path (Join-Path $uiDst ".ruview-fix")))) {
+    if (Test-Path $uiDst) { Remove-Item $uiDst -Recurse -Force }
+    Copy-Item $uiSrc $uiDst -Recurse -Force
+    Set-Content (Join-Path $uiDst ".ruview-fix") "installed by install-sensing-server.ps1"
+  }
   Write-Host "  installed -> $t"
 }
 
@@ -124,19 +138,86 @@ foreach ($port in 5005, 5006) {
   }
 }
 
-# Quick self-test: the server must start and answer on http://127.0.0.1:8080.
+# Laptop WiFi node: turns this PC's WiFi adapter into a RuView sensing node,
+# so RuView works without ESP32 hardware. Starts now and at every logon.
+$nodeSrc = Join-Path $here "ruview-laptop-node.exe"
+$nodeExe = Join-Path $binDir "ruview-laptop-node.exe"
+if (Test-Path $nodeSrc) {
+  Get-Process -Name "ruview-laptop-node" -ErrorAction SilentlyContinue | Stop-Process -Force
+  Start-Sleep -Milliseconds 500
+  Copy-Item $nodeSrc $nodeExe -Force
+  $startup = [Environment]::GetFolderPath("Startup")
+  $lnk = Join-Path $startup "RuView Laptop Node.lnk"
+  $shell = New-Object -ComObject WScript.Shell
+  $sc = $shell.CreateShortcut($lnk)
+  $sc.TargetPath = $nodeExe
+  $sc.WorkingDirectory = $binDir
+  $sc.Description = "Streams this laptop's WiFi signal to the RuView sensing server"
+  $sc.Save()
+  Write-Host "  laptop WiFi node installed -> $nodeExe (starts at logon)"
+  # Let RuView Desktop's discovery broadcast (UDP 5006) and mDNS reach the node.
+  $fw = "RuView laptop node"
+  Remove-NetFirewallRule -DisplayName $fw -ErrorAction SilentlyContinue
+  New-NetFirewallRule -DisplayName $fw -Direction Inbound -Program $nodeExe -Protocol UDP -Action Allow -Profile Private,Domain | Out-Null
+
+  # Windows 11 24H2+ only shows WiFi details to desktop apps when location
+  # access is allowed. Without it the node falls back to RSSI-only mode.
+  $loc = "Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location"
+  $sys  = (Get-ItemProperty "HKLM:\$loc" -Name Value -ErrorAction SilentlyContinue).Value
+  $user = (Get-ItemProperty "HKCU:\$loc" -Name Value -ErrorAction SilentlyContinue).Value
+  $desk = (Get-ItemProperty "HKCU:\$loc\NonPackaged" -Name Value -ErrorAction SilentlyContinue).Value
+  if ($sys -eq "Deny" -or $user -eq "Deny" -or $desk -eq "Deny") {
+    Write-Warning "Location access is off. Windows hides WiFi scan details from desktop apps without it."
+    Write-Warning "Turn on 'Location services' and 'Let desktop apps access your location' in the window that opens."
+    Start-Process "ms-settings:privacy-location"
+  }
+}
+
+# Self-test 1: the server must start and answer on HTTP.
 Write-Host "`nSelf-test..."
 $exe = Join-Path $targets[0] "wifi-densepose-sensing-server.exe"
-$proc = Start-Process $exe -ArgumentList "--http-port","18080","--ws-port","18765","--udp-port","15005","--log-level","info","--source","simulated" -PassThru -WindowStyle Hidden
+$proc = Start-Process $exe -ArgumentList "--http-port","18080","--ws-port","18765","--udp-port","15005","--log-level","info" -PassThru -WindowStyle Hidden
 $ok = $false
 for ($i = 0; $i -lt 20 -and -not $ok; $i++) {
   Start-Sleep -Milliseconds 500
   try { Invoke-WebRequest "http://127.0.0.1:18080/health" -UseBasicParsing -TimeoutSec 2 | Out-Null; $ok = $true } catch {}
 }
-if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
-if ($ok) { Write-Host "Self-test passed: the sensing server runs on this PC." -ForegroundColor Green }
-else     { Write-Warning "Self-test did not get a response. Run '$exe --source simulated' in a terminal to see the error." }
+if ($ok) { Write-Host "  [OK] the sensing server runs on this PC." -ForegroundColor Green }
+else     { Write-Warning "The server did not answer. Run '$exe' in a terminal to see the error." }
 
-Write-Host "`nDone. Close RuView Desktop completely (also from the system tray) and open it again,"
-Write-Host "then go to Sensing -> Start Server."
+# Self-test 2: this laptop's WiFi must stream live into the server.
+if ($ok -and (Test-Path $nodeExe)) {
+  $testLog = Join-Path $env:TEMP "ruview-node-selftest.log"
+  Remove-Item $testLog -ErrorAction SilentlyContinue
+  $node = Start-Process $nodeExe -ArgumentList "--server","127.0.0.1:15005","--no-discovery","--log","`"$testLog`"" -PassThru
+  $src = ""
+  for ($i = 0; $i -lt 20 -and $src -ne "esp32"; $i++) {
+    Start-Sleep -Milliseconds 500
+    try {
+      $j = Invoke-RestMethod "http://127.0.0.1:18080/api/v1/sensing/latest" -TimeoutSec 2
+      $src = $j.source
+      $rssi = $j.features.mean_rssi
+    } catch {}
+  }
+  if (-not $node.HasExited) { Stop-Process -Id $node.Id -Force }
+  if ($src -eq "esp32") {
+    Write-Host "  [OK] your laptop WiFi is streaming live into RuView (RSSI $rssi dBm)." -ForegroundColor Green
+  } else {
+    Write-Warning "The laptop WiFi node did not stream. Its log says:"
+    if (Test-Path $testLog) { Get-Content $testLog | Select-Object -Last 5 | ForEach-Object { Write-Host "    $_" } }
+    Write-Warning "Make sure WiFi is on and connected to a network, then run the installer again."
+  }
+}
+if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+
+# Start the real node now (the Startup shortcut handles future logons).
+if (Test-Path $nodeExe) {
+  Get-Process -Name "ruview-laptop-node" -ErrorAction SilentlyContinue | Stop-Process -Force
+  Start-Process $nodeExe -WorkingDirectory $binDir
+}
+
+Write-Host "`nDone. Close RuView Desktop completely (also from the system tray) and open it again."
+Write-Host "  1. Sensing -> Start Server"
+Write-Host "  2. Dashboard -> Scan Network   (your laptop appears as an online node)"
+Write-Host "  3. Live view: http://localhost:8080/ui/index.html"
 Read-Host "Press Enter to close"
