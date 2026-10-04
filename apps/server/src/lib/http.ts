@@ -55,25 +55,36 @@ const STATIC_ORIGINS = new Set([
   "http://127.0.0.1:5173",
 ]);
 
+/** Origins named explicitly (static list, CORS_ORIGINS entries, APP_PUBLIC_URL). Only these may send cookies cross-origin. */
+export function trustedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (STATIC_ORIGINS.has(origin)) return true;
+  const extra = env().CORS_ORIGINS?.split(",").map((s) => s.trim()).filter(Boolean) ?? [];
+  if (extra.includes(origin)) return true;
+  const pub = env().APP_PUBLIC_URL;
+  return Boolean(pub && origin === new URL(pub).origin);
+}
+
 export function allowedOrigin(origin: string | null): string | null {
   if (!origin) return null;
-  if (STATIC_ORIGINS.has(origin)) return origin;
+  if (trustedOrigin(origin)) return origin;
   const extra = env().CORS_ORIGINS?.split(",").map((s) => s.trim()).filter(Boolean) ?? [];
-  if (extra.includes(origin) || extra.includes("*")) return origin;
-  const pub = env().APP_PUBLIC_URL;
-  if (pub && origin === new URL(pub).origin) return origin;
-  // Same-origin requests from the admin panel on Vercel.
+  if (extra.includes("*")) return origin;
+  // Preview deployments of the admin panel on Vercel (bearer tokens only — see withCors).
   if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
   return null;
 }
 
 export function withCors(req: NextRequest, res: Response): Response {
-  const origin = allowedOrigin(req.headers.get("origin"));
+  const requested = req.headers.get("origin");
+  const origin = allowedOrigin(requested);
   const headers = new Headers(res.headers);
   if (origin) {
     headers.set("Access-Control-Allow-Origin", origin);
     headers.set("Vary", "Origin");
-    headers.set("Access-Control-Allow-Credentials", "true");
+    // Wildcard matches (`*`, any *.vercel.app) never get credentials: an attacker-controlled
+    // origin must not be able to ride on the admin cookie. Mobile uses bearer tokens anyway.
+    if (trustedOrigin(requested)) headers.set("Access-Control-Allow-Credentials", "true");
   }
   headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Authorization,Content-Type,X-App-Version,X-Device-Id");

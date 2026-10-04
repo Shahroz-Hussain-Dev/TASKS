@@ -163,10 +163,12 @@ export async function updateOffer(customer: User, id: string, offeredFarePkr: nu
   if (r.status !== "open") throw conflict("This request is no longer open");
   if (!isWithinFareBounds(offeredFarePkr, r.minFarePkr, r.maxFarePkr)) throw badRequest(`Offer must be between PKR ${r.minFarePkr} and PKR ${r.maxFarePkr}`);
   const s = await getSettings();
-  await db
+  const updated = await db
     .update(rideRequests)
     .set({ offeredFarePkr, updatedAt: new Date(), expiresAt: new Date(Date.now() + s.requestTtlSeconds * 1000) })
-    .where(eq(rideRequests.id, id));
+    .where(and(eq(rideRequests.id, id), eq(rideRequests.status, "open")))
+    .returning({ id: rideRequests.id });
+  if (updated.length === 0) throw conflict("This request is no longer open");
   return getRequestById(id);
 }
 
@@ -177,7 +179,12 @@ export async function cancelRequest(customer: User, id: string, reason?: string)
   if (r.status !== "open") throw conflict("This request is no longer open");
   const now = new Date();
   await db.transaction(async (tx) => {
-    await tx.update(rideRequests).set({ status: "cancelled", cancelReason: reason ?? null, closedAt: now, updatedAt: now }).where(eq(rideRequests.id, id));
+    const cancelled = await tx
+      .update(rideRequests)
+      .set({ status: "cancelled", cancelReason: reason ?? null, closedAt: now, updatedAt: now })
+      .where(and(eq(rideRequests.id, id), eq(rideRequests.status, "open")))
+      .returning({ id: rideRequests.id });
+    if (cancelled.length === 0) throw conflict("This request is no longer open");
     const pending = await tx.update(bids).set({ status: "rejected", respondedAt: now }).where(and(eq(bids.requestId, id), eq(bids.status, "pending"))).returning({ driverId: bids.driverId });
     for (const b of pending) {
       const [d] = await tx.select({ userId: drivers.userId }).from(drivers).where(eq(drivers.id, b.driverId)).limit(1);
@@ -378,7 +385,12 @@ export async function withdrawBid(driver: Driver, bidId: string) {
   const [b] = await db.select().from(bids).where(and(eq(bids.id, bidId), eq(bids.driverId, driver.id))).limit(1);
   if (!b) throw notFound("Offer not found");
   if (b.status !== "pending") throw conflict("This offer is no longer pending");
-  await db.update(bids).set({ status: "withdrawn", respondedAt: new Date() }).where(eq(bids.id, bidId));
+  const withdrawn = await db
+    .update(bids)
+    .set({ status: "withdrawn", respondedAt: new Date() })
+    .where(and(eq(bids.id, bidId), eq(bids.status, "pending")))
+    .returning({ id: bids.id });
+  if (withdrawn.length === 0) throw conflict("This offer is no longer pending");
   await db.update(rideRequests).set({ updatedAt: new Date() }).where(eq(rideRequests.id, b.requestId));
   return { ok: true };
 }
@@ -540,7 +552,10 @@ export async function setDriverOnline(driver: Driver, online: boolean) {
 
 export async function recordDriverLocation(driver: Driver, p: { lat: number; lng: number; heading?: number | null; speedKmh?: number | null; recordedAt?: string }) {
   const db = await getDb();
-  const at = p.recordedAt ? new Date(p.recordedAt) : new Date();
+  const now = new Date();
+  const reported = p.recordedAt ? new Date(p.recordedAt) : null;
+  // A client-supplied timestamp may only be in the past: a future one would keep a ghost driver "online" forever.
+  const at = reported && Number.isFinite(reported.getTime()) && reported.getTime() <= now.getTime() ? reported : now;
   await db
     .update(drivers)
     .set({ lastLat: p.lat, lastLng: p.lng, lastHeading: p.heading ?? null, lastSpeedKmh: p.speedKmh ?? null, lastLocationAt: at })

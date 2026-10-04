@@ -6,7 +6,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { eq, sql } from "drizzle-orm";
 import { getDb, type Db } from "@/db";
-import { drivers, subscriptions, users, vehicles, files } from "@/db/schema";
+import { bids, drivers, subscriptions, users, vehicles, files } from "@/db/schema";
 import * as mp from "@/lib/marketplace";
 import { hashPassword } from "@/lib/auth";
 import { computeFare, DEFAULT_SETTINGS } from "@raahi/shared";
@@ -184,5 +184,29 @@ describe("marketplace", () => {
     expect(raised.offeredFarePkr).toBe(req.offeredFarePkr + 50);
     expect(new Date(raised.expiresAt).getTime()).toBeGreaterThanOrEqual(new Date(req.expiresAt).getTime());
     await expect(mp.updateOffer(customer, req.id, req.maxFarePkr + 10)).rejects.toMatchObject({ status: 400 });
+  });
+
+  run("a closed request cannot be cancelled or re-priced, a won bid cannot be withdrawn, and location pings never come from the future", async () => {
+    const customer = await mkCustomer(tag());
+    const { driver } = await mkDriver(tag());
+    const q = await mp.quote(LHR, JT);
+    const req = await mp.createRequest(customer, { pickup: LHR, dropoff: JT, category: "car", offeredFarePkr: q.fares.car.recommendedFarePkr, passengers: 1, distanceKm: q.distanceKm, durationMin: q.durationMin });
+    const bid = await mp.placeBid(driver, req.id, { amountPkr: req.offeredFarePkr, etaMin: 4 });
+    const ride = await mp.acceptBid(customer, req.id, bid.id);
+
+    // The guards are status-conditional UPDATEs, so a stale "open" read racing acceptBid can never flip the row.
+    await expect(mp.cancelRequest(customer, req.id, "Changed my plans")).rejects.toMatchObject({ status: 409 });
+    await expect(mp.updateOffer(customer, req.id, req.offeredFarePkr + 50)).rejects.toMatchObject({ status: 409 });
+    await expect(mp.withdrawBid(driver, bid.id)).rejects.toMatchObject({ status: 409 });
+    const after = await mp.getRequestById(req.id);
+    expect(after.status).toBe("accepted");
+    expect(after.rideId).toBe(ride.id);
+    const [bidRow] = await db.select().from(bids).where(eq(bids.id, bid.id));
+    expect(bidRow!.status).toBe("accepted");
+
+    const future = new Date(Date.now() + 6 * 3_600_000);
+    await mp.recordDriverLocation(driver, { lat: 31.5, lng: 74.33, recordedAt: future.toISOString() });
+    const [d] = await db.select().from(drivers).where(eq(drivers.id, driver.id));
+    expect(d!.lastLocationAt!.getTime()).toBeLessThanOrEqual(Date.now());
   });
 });

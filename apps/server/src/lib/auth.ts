@@ -44,7 +44,7 @@ export async function signAccessToken(claims: AccessClaims) {
 }
 
 export async function verifyAccessToken(token: string): Promise<AccessClaims> {
-  const { payload } = await jwtVerify(token, secret(), { issuer: "raahi", audience: "raahi-app" });
+  const { payload } = await jwtVerify(token, secret(), { issuer: "raahi", audience: "raahi-app", algorithms: ["HS256"] });
   if (!payload.sub || typeof payload.role !== "string" || typeof payload.sid !== "string") throw unauthorized();
   return { sub: payload.sub, role: payload.role as UserRole, sid: payload.sid };
 }

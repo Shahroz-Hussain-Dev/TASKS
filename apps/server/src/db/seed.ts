@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 import type { Db } from "./index";
 import { settings, users } from "./schema";
 import { DEFAULT_SETTINGS } from "@raahi/shared";
-import { env } from "@/lib/env";
+import { env, isProd } from "@/lib/env";
 
 /**
  * Idempotent seed: platform settings row and the first admin account.
@@ -18,11 +19,19 @@ export async function ensureSeed(db: Db) {
   const e = env();
   const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
   if (admins.length === 0) {
-    const password = e.ADMIN_PASSWORD ?? "ChangeMe-Raahi-2026!";
-    if (!e.ADMIN_PASSWORD) {
-      console.warn(
-        "[seed] ADMIN_PASSWORD not set — created admin with the default password. Change it immediately from the admin panel.",
-      );
+    let password = e.ADMIN_PASSWORD;
+    if (!password) {
+      if (isProd()) {
+        // Never ship a well-known default on a public deployment: mint a one-time random password
+        // and print it to the deployment logs (visible only to the project owner), like a first-boot token.
+        password = randomBytes(12).toString("base64url");
+        console.warn(
+          `[seed] ADMIN_PASSWORD is not set. Created ${e.ADMIN_EMAIL} with the one-time password "${password}" — sign in now and change it from the admin panel, or set ADMIN_PASSWORD and redeploy.`,
+        );
+      } else {
+        password = "ChangeMe-Raahi-2026!";
+        console.warn("[seed] ADMIN_PASSWORD not set — created admin with the development default password.");
+      }
     }
     await db.insert(users).values({
       role: "admin",

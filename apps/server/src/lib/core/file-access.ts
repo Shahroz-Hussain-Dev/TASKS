@@ -13,12 +13,14 @@ import { forbidden } from "@/lib/errors";
  *  - the counterpart of any ride shared with the owner (passenger ↔ driver),
  *    so each side can see the other's photo during and after a trip
  */
-export async function assertCanViewFile(req: NextRequest, file: Pick<FileRow, "ownerId" | "isPublic">): Promise<void> {
+export async function assertCanViewFile(req: NextRequest, file: Pick<FileRow, "ownerId" | "isPublic" | "kind">): Promise<void> {
   if (file.isPublic) return;
   const { user } = await requireAuth(req);
   if (user.role === "admin") return;
   if (!file.ownerId) throw forbidden("You do not have access to this file");
   if (file.ownerId === user.id) return;
+  // The ride counterpart may only see the other party's photo — never their CNIC, licence or receipts.
+  if (file.kind !== "avatar") throw forbidden("You do not have access to this file");
 
   const db = await getDb();
   const [shared] = await db
