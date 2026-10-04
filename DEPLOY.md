@@ -49,6 +49,7 @@ Name the Vercel project **`raahi-server`** if it is available — the pre-built 
   Without the secrets the workflow still produces an APK/AAB signed with a debug key (fine for sideloading and internal testing, not for Play Store upload).
 
 ### Build
+- A ready-to-install build is committed at `releases/raahi-1.0.0.apk` (and `releases/raahi-1.0.0.aab`), signed with a debug key and pointed at `https://raahi-server.vercel.app`. Use it for testing on real phones today; rebuild through CI with your upload key for the Play Store.
 - Push to `main` (or run the **Android** workflow manually) → download `raahi-release.apk` / `raahi-release.aab` from the workflow artifacts.
 - Tag a release (`git tag v1.0.0 && git push --tags`) → a GitHub Release is created with both files attached.
 - Locally: `pnpm install && pnpm android:build` (needs JDK 21 + Android SDK 36; output in `apps/mobile/android/app/build/outputs/`).

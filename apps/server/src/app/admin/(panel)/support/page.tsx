@@ -218,11 +218,9 @@ function Thread({ ticket, reply, onReply, resolve, onResolve, onSend, sending }:
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canSend) onSend();
         }} />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 text-[13.5px] text-ink-300">
-            <span className="w-[200px]">
-              <Toggle checked={resolve} onChange={onResolve} label="Mark as resolved" />
-            </span>
-          </label>
+          <div className="w-[220px]">
+            <Toggle checked={resolve} onChange={onResolve} label="Mark as resolved" />
+          </div>
           <div className="flex items-center gap-3">
             <span className="text-[12px] text-ink-500">{reply.length}/2000 · Ctrl+Enter to send</span>
             <Button icon={resolve ? <CheckCircle2 size={16} /> : <Send size={16} />} onClick={onSend} disabled={!canSend} loading={sending}>

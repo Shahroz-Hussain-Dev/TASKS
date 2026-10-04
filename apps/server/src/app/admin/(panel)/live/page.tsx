@@ -8,7 +8,7 @@ import { decodePolyline, type LatLng, type RideDto, type RideRequestDto } from "
 import { adminApi, type LiveDriver } from "@/lib/admin-client";
 import { AdminMap, type MapLineSpec, type MapMarkerSpec } from "@/components/admin/AdminMap";
 import { RideDrawer } from "@/components/admin/RideDrawer";
-import { categoryLabel, cn, fmtTime, km, pkr, RIDE_STATUS_LABEL, RIDE_STATUS_TONE, timeAgo } from "@/components/admin/format";
+import { categoryLabel, cn, fmtTime, km, pkr, RIDE_STATUS_LABEL, RIDE_STATUS_TONE, timeAgo, timeUntil } from "@/components/admin/format";
 import { spring } from "@/components/admin/motion";
 import { Avatar, Badge, Button, Card, Chips, ErrorState, PageHeader, Skeleton } from "@/components/admin/ui";
 
@@ -46,7 +46,6 @@ export default function LivePage() {
       m.push({ id: `ride-dropoff-${r.id}`, lat: r.dropoff.lat, lng: r.dropoff.lng, kind: "dropoff" });
     }
     return m;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const lines = useMemo<MapLineSpec[]>(() => {
@@ -218,7 +217,7 @@ function RequestList({ requests, focusKey, onFocus }: { requests: RideRequestDto
                     <p className="truncate text-[12.5px] text-ink-300">{r.pickup.name ?? r.pickup.address}</p>
                     <p className="truncate text-[12.5px] text-ink-500">→ {r.dropoff.name ?? r.dropoff.address}</p>
                     <p className="mt-1 text-[12px] text-ink-400">
-                      {categoryLabel(r.category)} · {km(r.distanceKm)} · {pendingBids.length} {pendingBids.length === 1 ? "bid" : "bids"} · expires {timeAgo(r.expiresAt).replace(" ago", "")}
+                      {categoryLabel(r.category)} · {km(r.distanceKm)} · {pendingBids.length} {pendingBids.length === 1 ? "bid" : "bids"} · expires {timeUntil(r.expiresAt)}
                     </p>
                   </div>
                   <span className="font-display text-[16px] font-semibold text-amber-300">{pkr(r.offeredFarePkr)}</span>

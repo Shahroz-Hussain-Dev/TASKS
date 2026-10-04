@@ -10,7 +10,8 @@ const schema = z.object({
   /** Optional comma-separated fallbacks (e.g. aws-1 pooler) tried when the primary refuses. */
   DATABASE_URL_FALLBACKS: z.string().optional(),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
-  GEMINI_API_KEY: z.string().min(10).optional(),
+  /** Empty or a placeholder such as "unset" disables the AI features instead of failing boot. */
+  GEMINI_API_KEY: z.preprocess((v) => (typeof v === "string" && (v.trim() === "" || v.trim().toLowerCase() === "unset") ? undefined : v), z.string().min(10).optional()),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
   GEMINI_VISION_MODEL: z.string().default("gemini-2.5-flash"),
   ADMIN_EMAIL: z.string().email().default("admin@raahi.pk"),

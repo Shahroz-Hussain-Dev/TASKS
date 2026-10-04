@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "preview": "vite preview --host",
     "cap:sync": "cap sync android",
     "android:release": "pnpm build && cap sync android && cd android && ./gradlew assembleRelease bundleRelease",

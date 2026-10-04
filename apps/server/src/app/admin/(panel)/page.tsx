@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { adminApi } from "@/lib/admin-client";
 import { CategoryDonut, RidesAreaChart } from "@/components/admin/charts";
 import { Counter } from "@/components/admin/Counter";
-import { cn, DRIVER_STATUS_LABEL, DRIVER_STATUS_TONE, fmtDateTime, pkr, timeAgo, TICKET_STATUS_LABEL, TICKET_STATUS_TONE } from "@/components/admin/format";
+import { cn, DRIVER_STATUS_LABEL, DRIVER_STATUS_TONE, fmtDateTime, fmtTime, pkr, TICKET_STATUS_LABEL, TICKET_STATUS_TONE } from "@/components/admin/format";
 import { item, stagger } from "@/components/admin/motion";
 import { Avatar, Badge, Card, EmptyState, ErrorState, PageHeader, Skeleton } from "@/components/admin/ui";
 
@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle={s ? `Live snapshot · updated ${timeAgo(new Date())}` : "Live snapshot of the Raahi marketplace"} />
+      <PageHeader title="Dashboard" subtitle={s ? `Live snapshot · updated ${fmtTime(stats.dataUpdatedAt)} · refreshes every 30 s` : "Live snapshot of the Raahi marketplace"} />
 
       {stats.isError ? (
         <Card>

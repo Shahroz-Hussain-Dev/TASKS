@@ -4,7 +4,7 @@
  * database is unreachable so CI without Postgres still passes.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb, type Db } from "@/db";
 import { drivers, subscriptions, users, vehicles, files } from "@/db/schema";
 import * as mp from "@/lib/marketplace";
@@ -54,12 +54,15 @@ async function mkDriver(tag: string, opts: { approved?: boolean; subscribed?: bo
 beforeAll(async () => {
   try {
     db = await getDb();
-    dbOk = true;
-    // clean slate
-    await db.delete(users);
   } catch (err) {
     console.warn("skipping marketplace integration tests — database unreachable:", err instanceof Error ? err.message : err);
+    return;
   }
+  // Clean slate. rides → users/drivers/requests/bids are ON DELETE RESTRICT, so a
+  // plain `delete from users` fails once a previous run has completed a ride;
+  // TRUNCATE ... CASCADE clears every dependent table in one statement.
+  await db.execute(sql`truncate table "rides", "ride_requests", "users" restart identity cascade`);
+  dbOk = true;
 });
 
 const run = (name: string, fn: () => Promise<void>) => it(name, async () => (dbOk ? fn() : undefined));

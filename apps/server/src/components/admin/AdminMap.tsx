@@ -165,10 +165,14 @@ export function AdminMap({ markers = [], lines = [], fit, fitKey, className, int
   useEffect(() => {
     let cancelled = false;
     let map: MLMap | null = null;
+    const markerStore = markerRefs.current;
     import("maplibre-gl")
       .then((lib) => {
         if (cancelled || !container.current) return;
         libRef.current = lib;
+        // MapLibre resolves its worker relative to import.meta.url, which the bundler cannot rewrite
+        // for a dependency; serve the worker from /public so tiles render in production.
+        lib.setWorkerUrl("/maplibre-gl-worker.js");
         map = new lib.Map({
           container: container.current,
           style: MAP_STYLE_URL,
@@ -205,8 +209,8 @@ export function AdminMap({ markers = [], lines = [], fit, fitKey, className, int
       .catch(() => setFailed(true));
     return () => {
       cancelled = true;
-      markerRefs.current.forEach(({ marker }) => marker.remove());
-      markerRefs.current.clear();
+      markerStore.forEach(({ marker }) => marker.remove());
+      markerStore.clear();
       mapRef.current = null;
       map?.remove();
       setReady(false);

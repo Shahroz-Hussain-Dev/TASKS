@@ -39,7 +39,7 @@ const dateFmt = new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short
 const timeFmt = new Intl.DateTimeFormat("en-PK", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: TZ });
 const shortDayFmt = new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", timeZone: TZ });
 
-function parseDate(value: string | Date | null | undefined): Date | null {
+function parseDate(value: string | Date | number | null | undefined): Date | null {
   if (!value) return null;
   const d = value instanceof Date ? value : new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
@@ -53,7 +53,7 @@ export const fmtDate = (v: string | Date | null | undefined) => {
   const d = parseDate(v);
   return d ? dateFmt.format(d) : "—";
 };
-export const fmtTime = (v: string | Date | null | undefined) => {
+export const fmtTime = (v: string | Date | number | null | undefined) => {
   const d = parseDate(v);
   return d ? timeFmt.format(d) : "—";
 };
@@ -76,6 +76,21 @@ export function timeAgo(v: string | Date | null | undefined, now = Date.now()): 
   const days = Math.floor(h / 24);
   if (days < 30) return `${days} d ago`;
   return fmtDate(d);
+}
+
+/** "in 4 min" / "in 2 h" for deadlines such as request expiry. */
+export function timeUntil(v: string | Date | null | undefined, now = Date.now()): string {
+  const d = parseDate(v);
+  if (!d) return "—";
+  const diff = d.getTime() - now;
+  if (diff <= 0) return "now";
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `in ${s} s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `in ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `in ${h} h`;
+  return `on ${fmtDate(d)}`;
 }
 
 export function daysUntil(v: string | null | undefined, now = Date.now()): number | null {
