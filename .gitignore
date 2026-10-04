@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+coverage/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+keystore.properties
+
+# android
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/build/
+apps/mobile/android/local.properties
+apps/mobile/android/.idea/
+apps/mobile/android/*.iml
+apps/mobile/android/app/*.iml
+apps/mobile/android/captures/
+apps/mobile/android/app/src/main/assets/public/
+
+# misc
+.DS_Store
+*.log
+.vercel
+.turbo
+e2e/shots/

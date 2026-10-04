@@ -1,0 +1,146 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  CI: true
+
+jobs:
+  build:
+    name: Build APK and AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('apps/mobile/android/gradle/wrapper/gradle-wrapper.properties', 'apps/mobile/android/**/*.gradle', 'apps/mobile/android/variables.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build mobile web bundle
+        working-directory: apps/mobile
+        env:
+          VITE_API_URL: ${{ vars.API_URL || 'https://raahi-server.vercel.app' }}
+        run: pnpm build
+
+      - name: Sync Capacitor Android project
+        working-directory: apps/mobile
+        run: pnpm exec cap sync android
+
+      - name: Configure release signing
+        id: signing
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/raahi-upload.jks
+            {
+              echo "storeFile=app/raahi-upload.jks"
+              echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+              echo "keyAlias=$ANDROID_KEY_ALIAS"
+              echo "keyPassword=$ANDROID_KEY_PASSWORD"
+            } > keystore.properties
+            echo "mode=upload-key" >> "$GITHUB_OUTPUT"
+            echo "Release artifacts will be signed with the upload keystore."
+          else
+            echo "mode=debug-key" >> "$GITHUB_OUTPUT"
+            echo "::warning::ANDROID_KEYSTORE_* secrets are not set; release artifacts are signed with the debug keystore and cannot be uploaded to Google Play."
+          fi
+
+      - name: Build release APK and AAB
+        working-directory: apps/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Collect artifacts
+        working-directory: apps/mobile/android
+        run: |
+          mkdir -p ../../../release
+          cp app/build/outputs/apk/release/app-release.apk ../../../release/raahi-release.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../../../release/raahi-release.aab
+          ls -la ../../../release
+
+      - name: Remove signing material
+        if: always()
+        working-directory: apps/mobile/android
+        run: rm -f app/raahi-upload.jks keystore.properties
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: raahi-release-apk
+          path: release/raahi-release.apk
+          if-no-files-found: error
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: raahi-release-aab
+          path: release/raahi-release.aab
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Raahi ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Raahi Android build for ${{ github.ref_name }}.
+
+            - `raahi-release.apk` — direct install (sideload)
+            - `raahi-release.aab` — Google Play upload bundle
+
+            Signing: ${{ steps.signing.outputs.mode }}
+          files: |
+            release/raahi-release.apk
+            release/raahi-release.aab
