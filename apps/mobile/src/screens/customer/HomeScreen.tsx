@@ -6,7 +6,7 @@ import { VEHICLE_CATEGORIES, VEHICLE_CATEGORY_META, type Place, type VehicleCate
 import { AssistantSheet, BuddyBubble } from "@/components/buddy";
 import { CategoryIcon } from "@/components/customer/CategoryIcon";
 import { CATEGORY_TONE } from "@/components/customer/categoryTone";
-import { TAB_BAR_CLEARANCE } from "@/components/customer/TabBar";
+import { TAB_BAR_SNUG } from "@/components/customer/TabBar";
 import { MapView, Marker, UserDot, useMap, type MapHandle } from "@/components/Map";
 import { Avatar, Button, IconButton } from "@/components/ui";
 import { useActiveTrip } from "@/hooks/customer/useActiveTrip";
@@ -125,7 +125,7 @@ export default function HomeScreen() {
           <BuddyBubble inline hint="Say where you want to go" />
         </motion.div>
 
-        <motion.section variants={item.up} className="relative px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_CLEARANCE}px)` }}>
+        <motion.section variants={item.up} className="relative px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_SNUG}px)` }}>
           <div className="glass rounded-[32px] p-3 flex flex-col gap-3 overflow-hidden">
             <div className="relative px-1 pt-1">
               <span aria-hidden className="blob bg-coral-100 -left-2 -top-3 w-[55%] h-[130%] opacity-80" />

@@ -7,8 +7,10 @@ import { springBouncy, springSoft } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { cn } from "@/lib/utils";
 
-/** Space screens must leave at the bottom so content clears the floating bar. */
+/** Space scrolling screens must leave at the bottom so content clears the floating bar. */
 export const TAB_BAR_CLEARANCE = 92;
+/** The bar is 60px tall and floats 14px up; a card that should hug it ends this far above the safe area (10px gap). */
+export const TAB_BAR_SNUG = 84;
 
 interface Tab {
   id: "home" | "rides" | "profile";
