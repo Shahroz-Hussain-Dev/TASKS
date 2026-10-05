@@ -52,9 +52,9 @@ request so the app goes straight through.
 
 ## 4. Install the matching APK
 
-`releases/raahi-1.0.0-laptop.apk` is built with the backend address
-`https://hooked-penny-unsanguinely.ngrok-free.dev`. If your ngrok address changes,
-either rebuild (`VITE_API_URL=https://<new-address> pnpm android:build`) or change
-the address inside the app: Profile → long-press the version number → Server.
+The committed `releases/raahi-1.0.1.apk` talks to the Vercel backend. For a laptop
+backend either build your own APK with the tunnel address
+(`VITE_API_URL=https://<your-ngrok-address> pnpm android:build`) or simply change
+the address inside the installed app: Profile → long-press the version number → Server.
 
 The admin panel is at `https://<your-ngrok-address>/admin`.
