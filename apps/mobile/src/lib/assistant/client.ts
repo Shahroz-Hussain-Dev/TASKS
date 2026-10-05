@@ -40,7 +40,7 @@ const MAX_TURNS = 16;
 async function post(body: unknown, apiKey: string, signal?: AbortSignal): Promise<Response> {
   const base = getApiBaseUrl();
   const url = new URL("/api/assistant/chat", base || window.location.origin);
-  const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json", "X-App-Version": "1.0.0" };
+  const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json", "X-App-Version": "1.0.0", "ngrok-skip-browser-warning": "1" };
   const t = getTokens();
   if (t?.accessToken) headers.Authorization = `Bearer ${t.accessToken}`;
   if (apiKey) headers["X-Assistant-Key"] = apiKey;

@@ -11,7 +11,9 @@
     "test": "vitest run --passWithNoTests",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "laptop": "next build && next start -p 5555",
+    "laptop:dev": "next dev -p 5555"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

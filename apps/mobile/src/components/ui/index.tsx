@@ -346,7 +346,7 @@ export function AuthImage({ src, alt, className, fallback }: { src: string | nul
     const abs = api.files.url(src);
     if (!abs) return;
     const t = getTokens();
-    fetch(abs, { headers: t?.accessToken ? { Authorization: `Bearer ${t.accessToken}` } : {} })
+    fetch(abs, { headers: { "ngrok-skip-browser-warning": "1", ...(t?.accessToken ? { Authorization: `Bearer ${t.accessToken}` } : {}) } })
       .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
       .then((b) => {
         const u = URL.createObjectURL(b);

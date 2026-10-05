@@ -64,7 +64,7 @@ async function refreshTokens(): Promise<Tokens> {
       try {
         const res = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "1" },
           body: JSON.stringify({ refreshToken: tokens!.refreshToken }),
         });
         if (!res.ok) {
@@ -97,7 +97,9 @@ export async function request<T>(path: string, opts: RequestOptions = {}, retry 
   const base = getApiBaseUrl();
   const url = new URL(`${base}${path}`, base || window.location.origin);
   if (opts.query) for (const [k, v] of Object.entries(opts.query)) if (v !== undefined) url.searchParams.set(k, String(v));
-  const headers: Record<string, string> = { Accept: "application/json", "X-App-Version": "1.0.0" };
+  // ngrok-skip-browser-warning: lets the app talk to a backend tunnelled through a free ngrok
+  // domain (which otherwise answers browser-like clients with an HTML warning page).
+  const headers: Record<string, string> = { Accept: "application/json", "X-App-Version": "1.0.0", "ngrok-skip-browser-warning": "1" };
   const isForm = typeof FormData !== "undefined" && opts.body instanceof FormData;
   if (opts.body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   if (opts.auth !== false && tokens?.accessToken) headers.Authorization = `Bearer ${tokens.accessToken}`;

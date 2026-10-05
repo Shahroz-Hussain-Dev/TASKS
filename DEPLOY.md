@@ -34,6 +34,8 @@ Why the pooler URL: Supabase's direct host (`db.<ref>.supabase.co`) is IPv6-only
 
 Name the Vercel project **`raahi-server`** if it is available — the pre-built APK points at `https://raahi-server.vercel.app` by default. Any other URL works too: set the repo variable `API_URL` (step 2 below) or change it inside the app (Profile → long-press the version → Server).
 
+> **Testing without Vercel?** `LAPTOP.md` explains how to run this same backend on your own laptop on port 5555 behind ngrok, and which APK to install for it.
+
 ## 2. Android app
 
 ### One-time setup (GitHub → Settings)
