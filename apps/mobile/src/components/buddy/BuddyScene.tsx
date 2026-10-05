@@ -2,11 +2,15 @@
  * Buddy in three.js — a procedural toy-like character. This file is the lazy
  * chunk that pulls in three / @react-three/fiber / drei, so the main bundle
  * stays small. All motion happens in a single useFrame driven by `state`.
+ *
+ * Performance notes (Android WebView): the canvas renders on demand at a
+ * capped frame rate (30 fps for the small launcher, 60 for the hero), DPR is
+ * clamped to 1.5, the ground shadow is a gradient sprite instead of a
+ * re-rendered ContactShadows pass, and lights are kept to three.
  */
-import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Shape } from "three";
+import { CanvasTexture, Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Shape } from "three";
 import { BUDDY_COLORS as C, type BuddyState } from "./types";
 import { prefersReducedMotion } from "./webgl";
 
@@ -388,6 +392,55 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
   );
 }
 
+/** A soft radial-gradient disc under Buddy — reads as a contact shadow for ~0 GPU cost. */
+function GroundShadow({ opacity }: { opacity: number }) {
+  const texture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const ctx = c.getContext("2d");
+    if (!ctx) return null;
+    const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
+    g.addColorStop(0, "rgba(90,59,30,0.55)");
+    g.addColorStop(0.55, "rgba(90,59,30,0.22)");
+    g.addColorStop(1, "rgba(90,59,30,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const t = new CanvasTexture(c);
+    t.needsUpdate = true;
+    return t;
+  }, []);
+  useEffect(() => () => texture?.dispose(), [texture]);
+  if (!texture) return null;
+  return (
+    <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[2.6, 1.6, 1]} renderOrder={-1}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={texture} transparent opacity={opacity} depthWrite={false} toneMapped={false} />
+    </mesh>
+  );
+}
+
+/** Drives a `frameloop="demand"` canvas at a fixed cadence so small Buddies don't burn 60 fps. */
+function FrameLimiter({ fps, active }: { fps: number; active: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    if (!active) return;
+    const interval = 1000 / fps;
+    let last = 0;
+    let raf = 0;
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      if (now - last >= interval - 1) {
+        last = now;
+        invalidate();
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [fps, active, invalidate]);
+  return null;
+}
+
 export default function BuddyScene({ state, size }: { state: BuddyState; size: number }) {
   const compact = size <= 80;
   const stateRef = useRef<BuddyState>(state);
@@ -403,10 +456,10 @@ export default function BuddyScene({ state, size }: { state: BuddyState; size: n
 
   return (
     <Canvas
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       flat
-      frameloop={visible ? "always" : "never"}
-      gl={{ alpha: true, antialias: true, powerPreference: "low-power", premultipliedAlpha: true }}
+      frameloop="demand"
+      gl={{ alpha: true, antialias: !compact, powerPreference: "low-power", premultipliedAlpha: true, stencil: false, depth: true }}
       camera={{ position: [0, compact ? 0.5 : 0.42, compact ? 5.2 : 6.1], fov: 33, near: 0.1, far: 40 }}
       onCreated={({ gl, camera }) => {
         gl.setClearColor(0x000000, 0);
@@ -416,12 +469,12 @@ export default function BuddyScene({ state, size }: { state: BuddyState; size: n
       aria-label="Buddy, the Raahi assistant"
       role="img"
     >
-      <ambientLight intensity={1.15} color="#fff6ea" />
+      <FrameLimiter fps={compact ? 30 : calm ? 30 : 60} active={visible} />
+      <ambientLight intensity={1.25} color="#fff6ea" />
       <hemisphereLight args={["#ffffff", "#ffd7c2", 1.1]} />
-      <directionalLight position={[3.2, 5, 5.5]} intensity={2.3} color="#fff9f0" />
-      <directionalLight position={[-4, 2.5, 2]} intensity={0.75} color="#dff5ff" />
+      <directionalLight position={[3.2, 5, 5.5]} intensity={2.4} color="#fff9f0" />
       <Character stateRef={stateRef} calm={calm} />
-      <ContactShadows position={[0, -1.12, 0]} opacity={0.42} scale={3.6} blur={2.8} far={2.6} color={C.shadow} resolution={256} frames={Infinity} />
+      <GroundShadow opacity={compact ? 0.5 : 0.7} />
     </Canvas>
   );
 }

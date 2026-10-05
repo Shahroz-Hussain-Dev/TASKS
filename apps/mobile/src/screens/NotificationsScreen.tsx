@@ -144,7 +144,7 @@ export default function NotificationsScreen() {
           <motion.div variants={item.up} className="flex flex-col gap-5 mt-1">
             {groups.map((g) => (
               <section key={g.label}>
-                <p className="sticky top-0 z-10 -mx-5 px-7 py-1.5 text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400 bg-paper-50/90 backdrop-blur">{g.label}</p>
+                <p className="sticky top-0 z-10 -mx-5 px-7 py-1.5 text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400 bg-paper-50/95">{g.label}</p>
                 <ul className="flex flex-col gap-2.5 mt-1">
                   <AnimatePresence initial={false}>
                     {g.items.map((n) => (

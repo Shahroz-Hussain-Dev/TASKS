@@ -25,8 +25,8 @@ const nextId = () => `m${Date.now().toString(36)}${(counter++).toString(36)}`;
 function greetingFor(role: "customer" | "driver" | undefined, name: string | undefined): { text: string; suggestions: string[] } {
   const first = name?.split(/\s+/)[0];
   const hi = first ? `Hi ${first}!` : "Hi!";
-  if (role === "driver") return { text: `${hi} I can take you online, check your ride or answer questions.`, suggestions: ["Go online", "Go offline", "Do I have a ride?"] };
-  return { text: `${hi} Tell me where you want to go and I'll find you a fair fare.`, suggestions: ["Book a ride", "Fare to Liberty Market?", "How do fares work?"] };
+  if (role === "driver") return { text: `${hi} Want me to take you online, or check on your ride?`, suggestions: ["Go online", "Go offline", "Do I have a ride?"] };
+  return { text: `${hi} Where should I pick you up, and where are you going?`, suggestions: ["Book a ride", "Fare to Liberty Market?", "How do fares work?"] };
 }
 
 const STATUS_COPY: Record<BuddyState, string> = {
@@ -41,8 +41,13 @@ const STATUS_COPY: Record<BuddyState, string> = {
 /**
  * Full-height voice assistant. Buddy on top reacts to the conversation,
  * transcript in the middle, mic + text input at the bottom.
+ *
+ * `autoVoice`: Buddy speaks his opening question out loud as soon as the sheet
+ * opens ("Where should I pick you up, and where are you going?") and then
+ * starts listening, so a tap on him is a whole hands-free booking. Only
+ * signed-in screens mount this sheet, so he never talks on the welcome page.
  */
-export function AssistantSheet({ open, onClose, initialPrompt }: { open: boolean; onClose: () => void; initialPrompt?: string }) {
+export function AssistantSheet({ open, onClose, initialPrompt, autoVoice = false }: { open: boolean; onClose: () => void; initialPrompt?: string; autoVoice?: boolean }) {
   return (
     <Sheet
       open={open}
@@ -50,12 +55,12 @@ export function AssistantSheet({ open, onClose, initialPrompt }: { open: boolean
       title="Buddy"
       className="h-[92vh] flex flex-col [&>div:last-child]:flex-1 [&>div:last-child]:min-h-0 [&>div:last-child]:max-h-none [&>div:last-child]:flex [&>div:last-child]:flex-col [&>div:last-child]:overflow-hidden"
     >
-      <Conversation onClose={onClose} initialPrompt={initialPrompt} />
+      <Conversation onClose={onClose} initialPrompt={initialPrompt} autoVoice={autoVoice} />
     </Sheet>
   );
 }
 
-function Conversation({ onClose, initialPrompt }: { onClose: () => void; initialPrompt?: string }) {
+function Conversation({ onClose, initialPrompt, autoVoice }: { onClose: () => void; initialPrompt?: string; autoVoice: boolean }) {
   const navigate = useNavigate();
   const toast = useToast();
   const { user } = useAuth();
@@ -80,6 +85,8 @@ function Conversation({ onClose, initialPrompt }: { onClose: () => void; initial
   const scrollRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const greetingRef = useRef(greeting);
+  greetingRef.current = greeting;
 
   const buddyState: BuddyState = mood ?? mode;
 
@@ -254,6 +261,28 @@ function Conversation({ onClose, initialPrompt }: { onClose: () => void; initial
     }
     stopListenRef.current = stop;
   }, [flashMood, mode, send, stopListening, supported, toast]);
+
+  // Buddy opens his mouth first: say the question, then listen for the answer.
+  const toggleMicRef = useRef(toggleMic);
+  toggleMicRef.current = toggleMic;
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoVoice || initialPrompt || autoStarted.current) return;
+    autoStarted.current = true;
+    const run = async () => {
+      // Let the sheet finish sliding in so the voice doesn't fight the animation.
+      await new Promise((r) => window.setTimeout(r, 350));
+      if (!alive.current) return;
+      if (settingsRef.current.speakReplies) {
+        setMode("speaking");
+        await speak(greetingRef.current.text, settingsRef.current.language);
+        if (!alive.current) return;
+        setMode("idle");
+      }
+      if (voiceSupported()) await toggleMicRef.current();
+    };
+    void run();
+  }, [autoVoice, initialPrompt]);
 
   const reset = () => {
     haptic.tick();

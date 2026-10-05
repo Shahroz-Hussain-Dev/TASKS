@@ -112,7 +112,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}, retry 
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiRequestError(0, "network", base ? "Can't reach Raahi servers. Check your connection." : "Server address is not configured.");
+    throw new ApiRequestError(0, "network", base ? "Can't reach Raahi servers. Check your internet, or the server address under Profile → Settings." : "Server address is not configured.");
   }
 
   if (res.status === 401 && retry && opts.auth !== false && tokens?.refreshToken) {

@@ -48,7 +48,7 @@ async function post(body: unknown, apiKey: string, signal?: AbortSignal): Promis
     return await fetch(url.toString(), { method: "POST", headers, body: JSON.stringify(body), signal });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiRequestError(0, "network", base ? "Can't reach Raahi servers. Check your connection." : "Server address is not configured.");
+    throw new ApiRequestError(0, "network", base ? "Can't reach Raahi servers. Check your internet, or the server address under Profile → Settings." : "Server address is not configured.");
   }
 }
 

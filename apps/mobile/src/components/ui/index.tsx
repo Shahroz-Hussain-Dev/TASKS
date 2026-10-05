@@ -528,7 +528,7 @@ export function Sheet({
             animate="show"
             exit="exit"
             onClick={dismissible ? onClose : undefined}
-            className="fixed inset-0 z-40 bg-ink-900/35 backdrop-blur-[2px]"
+            className="fixed inset-0 z-40 bg-ink-900/35"
           />
           <motion.div
             key="sheet"

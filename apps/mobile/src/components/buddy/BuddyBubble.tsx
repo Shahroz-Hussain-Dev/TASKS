@@ -13,6 +13,7 @@ const HINT_MS = 5000;
 /**
  * The floating coral jelly circle with a mini Buddy, bottom-right above the
  * tab bar. Owns the Assistant sheet; shows a one-time speech-bubble hint.
+ * Tapping Buddy opens the sheet and he speaks first, then listens.
  */
 export function BuddyBubble({ className, hint = "Say where you want to go" }: { className?: string; hint?: string }) {
   const { settings, ready } = useAssistantSettings();
@@ -90,7 +91,7 @@ export function BuddyBubble({ className, hint = "Say where you want to go" }: { 
           </motion.div>
         )}
       </AnimatePresence>
-      <AssistantSheet open={open && visible} onClose={() => setOpen(false)} />
+      <AssistantSheet open={open && visible} autoVoice onClose={() => setOpen(false)} />
     </>,
     document.body,
   );

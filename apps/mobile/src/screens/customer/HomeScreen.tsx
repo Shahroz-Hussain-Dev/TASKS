@@ -166,7 +166,7 @@ export default function HomeScreen() {
       </motion.div>
 
       <BuddyBubble hint="Say where you want to go" />
-      <AssistantSheet open={assistantOpen} onClose={() => setAssistantOpen(false)} />
+      <AssistantSheet open={assistantOpen} autoVoice onClose={() => setAssistantOpen(false)} />
     </div>
   );
 }

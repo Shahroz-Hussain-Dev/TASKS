@@ -216,7 +216,7 @@ export function SubscriptionForm({ driver, onSaved, mode, onContinue, className 
                 )}
                 <AnimatePresence>
                   {uploading && (
-                    <motion.div key="up" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-paper-50/85 backdrop-blur-[2px] flex items-center justify-center gap-2 text-[13px] font-extrabold text-ink-900">
+                    <motion.div key="up" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-paper-50/92 flex items-center justify-center gap-2 text-[13px] font-extrabold text-ink-900">
                       <motion.span className="size-5 rounded-full border-2 border-teal-200 border-t-teal-500" animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }} />
                       Uploading…
                     </motion.div>

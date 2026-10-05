@@ -161,17 +161,15 @@ h3,
 
 /* Frosted cream glass for cards floating over the map */
 .glass {
-  background: rgb(255 251 245 / 0.86);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  /* No backdrop-filter: blurring a live map every frame is the single most
+     expensive thing an Android WebView can do. A denser cream reads the same. */
+  background: rgb(255 251 245 / 0.94);
   border: 1px solid rgb(255 255 255 / 0.9);
   box-shadow: var(--shadow-pillow);
 }
 
 .glass-light {
-  background: rgb(255 255 255 / 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgb(255 255 255 / 0.88);
   border: 1px solid rgb(255 255 255 / 0.9);
 }
 
@@ -266,37 +264,38 @@ h3,
   color: transparent;
 }
 
-/* Morphing blobs behind heroes and empty states */
+/* Drifting blobs behind heroes and empty states. Transform-only keyframes so
+   they run on the compositor; the organic shape is a static border-radius. */
 @keyframes blob {
   0% {
-    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
   33% {
-    border-radius: 45% 55% 40% 60% / 60% 45% 55% 40%;
     transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.06);
   }
   66% {
-    border-radius: 55% 45% 60% 40% / 40% 55% 45% 60%;
     transform: translate3d(-3%, 4%, 0) rotate(-6deg) scale(0.96);
   }
   100% {
-    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
 }
 .blob {
   position: absolute;
-  animation: blob 14s ease-in-out infinite;
-  will-change: transform, border-radius;
+  border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  animation: blob 12s ease-in-out infinite;
+  will-change: transform;
   pointer-events: none;
 }
 .aurora {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.5;
-  animation: blob 18s ease-in-out infinite;
+  /* Soft edge via a mask instead of filter: blur(60px) — same glow, no per-frame blur pass. */
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  opacity: 0.55;
+  animation: blob 16s ease-in-out infinite;
+  will-change: transform;
   pointer-events: none;
 }
 

@@ -5,11 +5,13 @@
  */
 import type { Transition, Variants } from "framer-motion";
 
-export const spring: Transition = { type: "spring", stiffness: 380, damping: 30, mass: 0.9 };
-export const springSoft: Transition = { type: "spring", stiffness: 240, damping: 28, mass: 1 };
-export const springBouncy: Transition = { type: "spring", stiffness: 520, damping: 22, mass: 0.8 };
-export const springJelly: Transition = { type: "spring", stiffness: 600, damping: 18, mass: 0.7 };
-export const easeOut: Transition = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
+export const spring: Transition = { type: "spring", stiffness: 480, damping: 36, mass: 0.8 };
+export const springSoft: Transition = { type: "spring", stiffness: 340, damping: 33, mass: 0.9 };
+export const springBouncy: Transition = { type: "spring", stiffness: 620, damping: 26, mass: 0.7 };
+export const springJelly: Transition = { type: "spring", stiffness: 720, damping: 22, mass: 0.6 };
+export const easeOut: Transition = { duration: 0.3, ease: [0.16, 1, 0.3, 1] };
+/** Expo-out tween for full-screen layers (pages, sheets): cheap, predictable, snappy. */
+export const swift: Transition = { type: "tween", duration: 0.26, ease: [0.2, 0.9, 0.25, 1] };
 
 type Dir = "up" | "down" | "left" | "right" | "scale" | "fade" | "pop";
 
@@ -33,14 +35,14 @@ const offset = (dir: Dir, d = 32) => {
 };
 
 /** Enter from a direction. Use with `variants={fromDir("up")}` + initial="hidden" animate="show". */
-export const fromDir = (dir: Dir = "up", distance = 32, delay = 0): Variants => ({
+export const fromDir = (dir: Dir = "up", distance = 24, delay = 0): Variants => ({
   hidden: { opacity: 0, ...offset(dir, distance) },
   show: { opacity: 1, x: 0, y: 0, scale: 1, transition: { ...(dir === "pop" ? springBouncy : spring), delay } },
-  exit: { opacity: 0, ...offset(dir, distance / 2), transition: { duration: 0.18 } },
+  exit: { opacity: 0, ...offset(dir, distance / 2), transition: { duration: 0.14 } },
 });
 
 /** Parent container that staggers children. */
-export const stagger = (staggerChildren = 0.06, delayChildren = 0.05): Variants => ({
+export const stagger = (staggerChildren = 0.045, delayChildren = 0.03): Variants => ({
   hidden: {},
   show: { transition: { staggerChildren, delayChildren } },
   exit: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
@@ -48,36 +50,37 @@ export const stagger = (staggerChildren = 0.06, delayChildren = 0.05): Variants 
 
 /** Children of a stagger container — each may come from a different edge. */
 export const item = {
-  up: fromDir("up", 28),
-  down: fromDir("down", 28),
-  left: fromDir("left", 36),
-  right: fromDir("right", 36),
+  up: fromDir("up", 22),
+  down: fromDir("down", 22),
+  left: fromDir("left", 28),
+  right: fromDir("right", 28),
   scale: fromDir("scale"),
   pop: fromDir("pop"),
   fade: fromDir("fade"),
 } satisfies Record<Dir, Variants>;
 
 /**
- * Page transitions: the incoming page rises and settles with a soft overshoot,
- * the outgoing one sinks and fades. Direction flips on back navigation.
+ * Page transitions: the incoming page rises and settles, the outgoing one sinks
+ * and fades. Transform + opacity only (no scale), so the WebView composites it
+ * without repainting the map or 3D canvases underneath. Direction flips on back.
  */
 export const pageVariants: Variants = {
-  initial: (dir: number = 1) => ({ opacity: 0, y: 24 * Math.sign(dir || 1), scale: 0.97 }),
-  animate: { opacity: 1, y: 0, scale: 1, transition: { ...spring, opacity: { duration: 0.22 } } },
-  exit: (dir: number = 1) => ({ opacity: 0, y: -12 * Math.sign(dir || 1), scale: 0.985, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }),
+  initial: (dir: number = 1) => ({ opacity: 0, y: 18 * Math.sign(dir || 1) }),
+  animate: { opacity: 1, y: 0, transition: { ...swift, opacity: { duration: 0.16 } } },
+  exit: (dir: number = 1) => ({ opacity: 0, y: -10 * Math.sign(dir || 1), transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }),
 };
 
 /** Bottom sheets bounce in. */
 export const sheetVariants: Variants = {
   hidden: { y: "100%", opacity: 0.6 },
-  show: { y: 0, opacity: 1, transition: { ...springSoft } },
-  exit: { y: "100%", opacity: 0.6, transition: { duration: 0.24, ease: [0.4, 0, 1, 1] } },
+  show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 420, damping: 38, mass: 0.8 } },
+  exit: { y: "100%", opacity: 0.6, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } },
 };
 
 export const backdropVariants: Variants = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.25 } },
-  exit: { opacity: 0, transition: { duration: 0.2 } },
+  show: { opacity: 1, transition: { duration: 0.18 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
 /** Tactile press for buttons/cards. */

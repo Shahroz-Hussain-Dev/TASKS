@@ -70,7 +70,7 @@ export function DocumentTile({ type, doc, busy, onCapture, onOpen, index = 0 }: 
 
         <AnimatePresence>
           {busy && (
-            <motion.div key="busy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-paper-50/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 overflow-hidden">
+            <motion.div key="busy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-paper-50/90 flex flex-col items-center justify-center gap-2 overflow-hidden">
               <motion.span aria-hidden className="absolute inset-x-0 h-10 bg-gradient-to-b from-transparent via-teal-400/50 to-transparent" initial={{ top: "-20%" }} animate={{ top: ["-20%", "110%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
               <motion.span className="size-9 rounded-full border-[3px] border-teal-200 border-t-teal-500" animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }} />
               <p className="text-[12px] font-extrabold text-ink-900">{busy === "uploading" ? "Uploading…" : "Checking with AI…"}</p>

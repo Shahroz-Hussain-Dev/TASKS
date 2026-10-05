@@ -377,7 +377,7 @@ export default function DriverRideScreen() {
       {/* Completion celebration */}
       <AnimatePresence>
         {celebrate && ride && (
-          <motion.div key="celebrate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-paper-50/92 backdrop-blur-md flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+          <motion.div key="celebrate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-paper-50/97 flex flex-col items-center justify-center px-6 text-center overflow-hidden">
             <span aria-hidden className="blob bg-sun-100 w-80 h-80 -top-16 -right-24" />
             <span aria-hidden className="blob bg-teal-100 w-64 h-64 -bottom-12 -left-16" style={{ animationDelay: "-6s" }} />
             <Confetti count={90} seed={7} />
