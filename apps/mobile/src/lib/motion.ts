@@ -11,7 +11,7 @@ export const springBouncy: Transition = { type: "spring", stiffness: 620, dampin
 export const springJelly: Transition = { type: "spring", stiffness: 720, damping: 22, mass: 0.6 };
 export const easeOut: Transition = { duration: 0.3, ease: [0.16, 1, 0.3, 1] };
 /** Expo-out tween for full-screen layers (pages, sheets): cheap, predictable, snappy. */
-export const swift: Transition = { type: "tween", duration: 0.26, ease: [0.2, 0.9, 0.25, 1] };
+export const swift: Transition = { type: "tween", duration: 0.22, ease: [0.2, 0.9, 0.25, 1] };
 
 type Dir = "up" | "down" | "left" | "right" | "scale" | "fade" | "pop";
 
@@ -42,7 +42,7 @@ export const fromDir = (dir: Dir = "up", distance = 24, delay = 0): Variants => 
 });
 
 /** Parent container that staggers children. */
-export const stagger = (staggerChildren = 0.045, delayChildren = 0.03): Variants => ({
+export const stagger = (staggerChildren = 0.035, delayChildren = 0.02): Variants => ({
   hidden: {},
   show: { transition: { staggerChildren, delayChildren } },
   exit: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
@@ -66,8 +66,8 @@ export const item = {
  */
 export const pageVariants: Variants = {
   initial: (dir: number = 1) => ({ opacity: 0, y: 18 * Math.sign(dir || 1) }),
-  animate: { opacity: 1, y: 0, transition: { ...swift, opacity: { duration: 0.16 } } },
-  exit: (dir: number = 1) => ({ opacity: 0, y: -10 * Math.sign(dir || 1), transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }),
+  animate: { opacity: 1, y: 0, transition: { ...swift, opacity: { duration: 0.14 } } },
+  exit: (dir: number = 1) => ({ opacity: 0, y: -8 * Math.sign(dir || 1), transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }),
 };
 
 /** Bottom sheets bounce in. */

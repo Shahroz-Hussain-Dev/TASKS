@@ -8,34 +8,82 @@ import { LogoMark } from "./components/Brand";
 import { Redirect } from "./components/shared/Redirect";
 import { Spinner } from "./components/ui";
 
-/* Screens are lazy so the first paint is instant. */
-const WelcomeScreen = lazy(() => import("./screens/WelcomeScreen"));
-const LoginScreen = lazy(() => import("./screens/auth/LoginScreen"));
-const SignupCustomerScreen = lazy(() => import("./screens/auth/SignupCustomerScreen"));
-const SignupDriverScreen = lazy(() => import("./screens/auth/SignupDriverScreen"));
-const ProfileScreen = lazy(() => import("./screens/ProfileScreen"));
-const NotificationsScreen = lazy(() => import("./screens/NotificationsScreen"));
-const SupportScreen = lazy(() => import("./screens/SupportScreen"));
-const ServerSettingsScreen = lazy(() => import("./screens/ServerSettingsScreen"));
-const SettingsScreen = lazy(() => import("./screens/SettingsScreen"));
+/*
+ * Screens are lazy so the first paint is instant. Every chunk is then warmed
+ * in the background (see `warmRoutes`) so navigating never waits on a download
+ * and never shows the splash between two pages.
+ */
+const loaders = {
+  WelcomeScreen: () => import("./screens/WelcomeScreen"),
+  LoginScreen: () => import("./screens/auth/LoginScreen"),
+  SignupCustomerScreen: () => import("./screens/auth/SignupCustomerScreen"),
+  SignupDriverScreen: () => import("./screens/auth/SignupDriverScreen"),
+  ProfileScreen: () => import("./screens/ProfileScreen"),
+  NotificationsScreen: () => import("./screens/NotificationsScreen"),
+  SupportScreen: () => import("./screens/SupportScreen"),
+  ServerSettingsScreen: () => import("./screens/ServerSettingsScreen"),
+  SettingsScreen: () => import("./screens/SettingsScreen"),
+  CustomerShell: () => import("./screens/customer/CustomerShell"),
+  CustomerHome: () => import("./screens/customer/HomeScreen"),
+  PlanRideScreen: () => import("./screens/customer/PlanRideScreen"),
+  BiddingScreen: () => import("./screens/customer/BiddingScreen"),
+  CustomerRideScreen: () => import("./screens/customer/RideScreen"),
+  CustomerRidesScreen: () => import("./screens/customer/RidesHistoryScreen"),
+  RideDetailScreen: () => import("./screens/RideDetailScreen"),
+  RideChatScreen: () => import("./screens/RideChatScreen"),
+  DriverShell: () => import("./screens/driver/DriverShell"),
+  DriverOnboarding: () => import("./screens/driver/OnboardingWizard"),
+  DriverHome: () => import("./screens/driver/DriverHomeScreen"),
+  DriverRequestScreen: () => import("./screens/driver/RequestDetailScreen"),
+  DriverRideScreen: () => import("./screens/driver/DriverRideScreen"),
+  EarningsScreen: () => import("./screens/driver/EarningsScreen"),
+  DriverRidesScreen: () => import("./screens/driver/DriverRidesScreen"),
+  SubscriptionScreen: () => import("./screens/driver/SubscriptionScreen"),
+};
 
-const CustomerShell = lazy(() => import("./screens/customer/CustomerShell"));
-const CustomerHome = lazy(() => import("./screens/customer/HomeScreen"));
-const PlanRideScreen = lazy(() => import("./screens/customer/PlanRideScreen"));
-const BiddingScreen = lazy(() => import("./screens/customer/BiddingScreen"));
-const CustomerRideScreen = lazy(() => import("./screens/customer/RideScreen"));
-const CustomerRidesScreen = lazy(() => import("./screens/customer/RidesHistoryScreen"));
-const RideDetailScreen = lazy(() => import("./screens/RideDetailScreen"));
-const RideChatScreen = lazy(() => import("./screens/RideChatScreen"));
+/** Fetch + parse every screen chunk (and Buddy's 3D stack) while the UI is idle, one at a time. */
+function warmRoutes(role: "customer" | "driver" | null) {
+  const order = Object.entries(loaders).sort(([a], [b]) => {
+    const mine = (k: string) => (role === "driver" ? k.startsWith("Driver") || k === "EarningsScreen" || k === "SubscriptionScreen" : k.startsWith("Customer") || k.includes("Ride") || k === "PlanRideScreen" || k === "BiddingScreen");
+    return Number(mine(b)) - Number(mine(a));
+  });
+  const queue = [...order.map(([, load]) => load), () => import("./components/buddy/BuddyScene")];
+  const idle = (cb: () => void) => (typeof requestIdleCallback === "function" ? requestIdleCallback(cb, { timeout: 1500 }) : window.setTimeout(cb, 120));
+  const next = () => {
+    const load = queue.shift();
+    if (!load) return;
+    load().catch(() => undefined).finally(() => idle(next));
+  };
+  idle(next);
+}
 
-const DriverShell = lazy(() => import("./screens/driver/DriverShell"));
-const DriverOnboarding = lazy(() => import("./screens/driver/OnboardingWizard"));
-const DriverHome = lazy(() => import("./screens/driver/DriverHomeScreen"));
-const DriverRequestScreen = lazy(() => import("./screens/driver/RequestDetailScreen"));
-const DriverRideScreen = lazy(() => import("./screens/driver/DriverRideScreen"));
-const EarningsScreen = lazy(() => import("./screens/driver/EarningsScreen"));
-const DriverRidesScreen = lazy(() => import("./screens/driver/DriverRidesScreen"));
-const SubscriptionScreen = lazy(() => import("./screens/driver/SubscriptionScreen"));
+const WelcomeScreen = lazy(loaders.WelcomeScreen);
+const LoginScreen = lazy(loaders.LoginScreen);
+const SignupCustomerScreen = lazy(loaders.SignupCustomerScreen);
+const SignupDriverScreen = lazy(loaders.SignupDriverScreen);
+const ProfileScreen = lazy(loaders.ProfileScreen);
+const NotificationsScreen = lazy(loaders.NotificationsScreen);
+const SupportScreen = lazy(loaders.SupportScreen);
+const ServerSettingsScreen = lazy(loaders.ServerSettingsScreen);
+const SettingsScreen = lazy(loaders.SettingsScreen);
+
+const CustomerShell = lazy(loaders.CustomerShell);
+const CustomerHome = lazy(loaders.CustomerHome);
+const PlanRideScreen = lazy(loaders.PlanRideScreen);
+const BiddingScreen = lazy(loaders.BiddingScreen);
+const CustomerRideScreen = lazy(loaders.CustomerRideScreen);
+const CustomerRidesScreen = lazy(loaders.CustomerRidesScreen);
+const RideDetailScreen = lazy(loaders.RideDetailScreen);
+const RideChatScreen = lazy(loaders.RideChatScreen);
+
+const DriverShell = lazy(loaders.DriverShell);
+const DriverOnboarding = lazy(loaders.DriverOnboarding);
+const DriverHome = lazy(loaders.DriverHome);
+const DriverRequestScreen = lazy(loaders.DriverRequestScreen);
+const DriverRideScreen = lazy(loaders.DriverRideScreen);
+const EarningsScreen = lazy(loaders.EarningsScreen);
+const DriverRidesScreen = lazy(loaders.DriverRidesScreen);
+const SubscriptionScreen = lazy(loaders.SubscriptionScreen);
 
 function Splash() {
   return (
@@ -76,7 +124,7 @@ function AnimatedOutlet() {
   const outlet = useOutlet();
   return (
     <AnimatePresence mode="popLayout" initial={false} custom={dir}>
-      <motion.div key={key} custom={dir} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="absolute inset-0 bg-paper-50">
+      <motion.div key={key} custom={dir} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="absolute inset-0 bg-paper-50" style={{ willChange: "transform, opacity" }}>
         <FreezeOnExit>
           <Suspense fallback={<Splash />}>{outlet}</Suspense>
         </FreezeOnExit>
@@ -114,6 +162,17 @@ function GuestOnly() {
   return <Outlet />;
 }
 
+/** Warms every screen chunk once the session is known, so page changes never stall on a download. */
+function RouteWarmer() {
+  const { ready, user } = useAuth();
+  useEffect(() => {
+    if (!ready) return;
+    const t = window.setTimeout(() => warmRoutes(user?.role === "driver" ? "driver" : user ? "customer" : null), 900);
+    return () => window.clearTimeout(t);
+  }, [ready, user]);
+  return null;
+}
+
 function BackButtonBridge() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -132,6 +191,7 @@ export default function App() {
   return (
     <HashRouter>
       <BackButtonBridge />
+      <RouteWarmer />
       <div className="relative h-full w-full overflow-hidden bg-paper-50">
         <Routes>
           <Route element={<AnimatedOutlet />}>

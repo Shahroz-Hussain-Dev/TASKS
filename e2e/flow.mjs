@@ -239,7 +239,7 @@ try {
   await shot(d, "onboarding-documents-verdicts");
   // Open one tile to capture the full AI verdict sheet.
   await d.getByRole("button", { name: /^CNIC — front: / }).click();
-  await d.getByText("AI verification").waitFor();
+  await d.getByText("AI verification", { exact: true }).first().waitFor();
   await shot(d, "onboarding-document-sheet");
   await d.getByRole("button", { name: "Close" }).click();
   await d.getByRole("button", { name: "Continue" }).click();
@@ -247,6 +247,7 @@ try {
 
   // Step 4 — subscription. Test mode (the default) is a single "Pay now" tap;
   // with test mode off the receipt form is shown instead.
+  await d.getByRole("button", { name: /^Pay PKR|^JazzCash$/ }).first().waitFor({ timeout: 30_000 });
   const payNow = d.getByRole("button", { name: /^Pay PKR/ });
   if (await payNow.isVisible().catch(() => false)) {
     await shot(d, "onboarding-subscription-filled");

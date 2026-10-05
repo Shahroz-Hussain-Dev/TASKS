@@ -55,8 +55,18 @@ export const MapView = forwardRef<MapHandle, MapViewProps>(function MapView(
 
   useEffect(() => {
     if (!container.current) return;
+    // Creating a MapLibre map is the heaviest thing a screen does. Let the page
+    // transition finish first (it is ~220 ms) so the slide-in never stutters;
+    // the cream placeholder is on screen meanwhile.
+    let m: MLMap | null = null;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled || !container.current) return;
+      m = createMap(container.current);
+    }, 260);
+    const createMap = (el: HTMLDivElement) => {
     const m = new maplibregl.Map({
-      container: container.current,
+      container: el,
       style: MAP_STYLE_URL,
       center: [center.lng, center.lat],
       zoom,
@@ -79,8 +89,12 @@ export const MapView = forwardRef<MapHandle, MapViewProps>(function MapView(
     });
     m.on("movestart", () => callbacks.current.onMoveStart?.());
     m.on("click", (e: maplibregl.MapMouseEvent) => callbacks.current.onClick?.({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
+    return m;
+    };
     return () => {
-      m.remove();
+      cancelled = true;
+      window.clearTimeout(timer);
+      m?.remove();
       setMap(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
