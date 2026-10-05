@@ -1,0 +1,359 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* Raahi "Sunrise" design tokens — mirrors apps/mobile/src/styles/global.css */
+/* ------------------------------------------------------------------ */
+@theme {
+  --font-display: var(--font-fredoka), "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
+
+  /* Paper surfaces */
+  --color-paper-50: #fffbf5;
+  --color-paper-100: #fff4e8;
+  --color-paper-200: #f6e9d8;
+  --color-paper-300: #ead9c3;
+  --color-card: #ffffff;
+
+  /* Ink (text) — light scale: 900 headings, 700 body, 500 secondary, 300 placeholders */
+  --color-ink-950: #14111f;
+  --color-ink-900: #1f1b2d;
+  --color-ink-800: #2b2640;
+  --color-ink-700: #3c3650;
+  --color-ink-600: #524b66;
+  --color-ink-500: #6b6478;
+  --color-ink-400: #8a8398;
+  --color-ink-300: #a39cb0;
+  --color-ink-200: #cfc9d9;
+  --color-ink-100: #ebe7f1;
+  --color-ink-50: #f7f5fa;
+
+  /* Brand: coral (passenger), teal (driver) */
+  --color-coral-100: #ffe9e2;
+  --color-coral-200: #ffd0c2;
+  --color-coral-300: #ffab93;
+  --color-coral-400: #ff8a6c;
+  --color-coral-500: #ff6b4a;
+  --color-coral-600: #f2552f;
+  --color-coral-700: #cf4222;
+
+  --color-teal-100: #dcf4ef;
+  --color-teal-200: #b7e8df;
+  --color-teal-300: #7fd4c6;
+  --color-teal-400: #3fbdab;
+  --color-teal-500: #12a594;
+  --color-teal-600: #0e8a7b;
+  --color-teal-700: #0b6e63;
+
+  /* brand-* stays an alias of teal for existing components */
+  --color-brand-100: #dcf4ef;
+  --color-brand-300: #7fd4c6;
+  --color-brand-400: #3fbdab;
+  --color-brand-500: #12a594;
+  --color-brand-600: #0e8a7b;
+  --color-brand-700: #0b6e63;
+
+  --color-sun-100: #fff2cc;
+  --color-sun-200: #ffe49a;
+  --color-sun-300: #ffd666;
+  --color-sun-400: #ffcd4d;
+  --color-sun-500: #ffc53d;
+  --color-sun-600: #e8ad1f;
+  --color-sun-700: #8a6200;
+  --color-amber-100: #fff2cc;
+  --color-amber-300: #ffd666;
+  --color-amber-400: #ffcd4d;
+  --color-amber-500: #ffc53d;
+
+  --color-lavender-100: #ece9ff;
+  --color-lavender-300: #bcb3ff;
+  --color-lavender-500: #8b7cf6;
+  --color-lavender-600: #7363e3;
+  --color-lavender-700: #5a4bc7;
+  --color-violet-100: #ece9ff;
+  --color-violet-400: #a497ff;
+  --color-violet-500: #8b7cf6;
+
+  --color-sky-100: #e1f1ff;
+  --color-sky-300: #9dd3ff;
+  --color-sky-400: #5fb9ff;
+  --color-sky-500: #3da9fc;
+  --color-sky-600: #2c90e0;
+  --color-sky-700: #1b6fb5;
+
+  --color-mint-100: #dff7ea;
+  --color-mint-500: #2fbf71;
+  --color-mint-600: #25a35f;
+  --color-mint-700: #1f7a48;
+
+  --color-rose-100: #ffe3ea;
+  --color-rose-400: #f87a9c;
+  --color-rose-500: #f4537e;
+  --color-rose-600: #d93d68;
+  --color-rose-700: #b42a52;
+
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2.25rem;
+
+  --shadow-pillow: 0 10px 30px -12px rgb(63 42 20 / 0.18), 0 1px 0 0 rgb(255 255 255) inset;
+  --shadow-float: 0 24px 60px -20px rgb(63 42 20 / 0.28);
+  --shadow-card: 0 10px 30px -12px rgb(63 42 20 / 0.18), 0 1px 0 0 rgb(255 255 255) inset;
+  --shadow-bar: 0 1px 0 0 #f6e9d8, 0 10px 30px -18px rgb(63 42 20 / 0.25);
+  --shadow-glow: 0 0 0 1px rgb(255 107 74 / 0.18), 0 16px 40px -16px rgb(255 107 74 / 0.45);
+  --shadow-glow-teal: 0 0 0 1px rgb(18 165 148 / 0.18), 0 16px 40px -16px rgb(18 165 148 / 0.45);
+
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-jelly: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root {
+  --app-bg: #fffbf5;
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--app-bg);
+  color: #3c3650;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+h1,
+h2,
+h3 {
+  color: #1f1b2d;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ---------- Surfaces ---------- */
+
+/* Frosted cream glass for bars and cards floating over content */
+.glass {
+  background: rgb(255 251 245 / 0.86);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  box-shadow: var(--shadow-pillow);
+}
+
+.glass-light {
+  background: rgb(255 255 255 / 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 0.9);
+}
+
+/* Pillow card */
+.pillow {
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: var(--shadow-pillow);
+}
+
+/* Sticker: tilted card with a thick white outline over a tinted blob */
+.sticker {
+  outline: 4px solid #ffffff;
+  outline-offset: 0;
+  border-radius: 24px;
+  box-shadow: 0 14px 30px -16px rgb(63 42 20 / 0.35);
+}
+.sticker-tilt-l {
+  transform: rotate(-1.5deg);
+}
+.sticker-tilt-r {
+  transform: rotate(1.2deg);
+}
+
+/* Jelly buttons: solid colour with a chunky bottom edge that squashes on press */
+.jelly {
+  position: relative;
+  transition:
+    transform 120ms var(--ease-jelly),
+    box-shadow 120ms var(--ease-jelly),
+    filter 120ms;
+  box-shadow: 0 4px 0 0 var(--jelly-edge, #f2552f);
+}
+.jelly:active,
+.jelly[data-pressed="true"] {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 var(--jelly-edge, #f2552f);
+}
+.jelly:disabled {
+  transform: none;
+}
+.jelly-coral {
+  --jelly-edge: #f2552f;
+  background: #ff6b4a;
+  color: #fff;
+}
+.jelly-teal {
+  --jelly-edge: #0e8a7b;
+  background: #12a594;
+  color: #fff;
+}
+.jelly-sun {
+  --jelly-edge: #e8ad1f;
+  background: #ffc53d;
+  color: #1f1b2d;
+}
+.jelly-cream {
+  --jelly-edge: #ead9c3;
+  background: #fff4e8;
+  color: #1f1b2d;
+}
+.jelly-white {
+  --jelly-edge: #ead9c3;
+  background: #ffffff;
+  color: #1f1b2d;
+}
+.jelly-rose {
+  --jelly-edge: #d93d68;
+  background: #f4537e;
+  color: #fff;
+}
+.jelly-ink {
+  --jelly-edge: #14111f;
+  background: #2b2640;
+  color: #fff;
+}
+
+/* Brand gradients */
+.bg-sunrise {
+  background: linear-gradient(135deg, #ff6b4a 0%, #ff8a6c 55%, #ffc53d 100%);
+}
+.bg-lagoon {
+  background: linear-gradient(135deg, #12a594 0%, #3fbdab 55%, #3da9fc 100%);
+}
+.text-gradient {
+  background: linear-gradient(135deg, #ff6b4a 0%, #ff8a6c 45%, #ffc53d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-teal {
+  background: linear-gradient(135deg, #12a594 0%, #3fbdab 45%, #3da9fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Morphing blobs behind heroes and empty states */
+@keyframes blob {
+  0% {
+    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    border-radius: 45% 55% 40% 60% / 60% 45% 55% 40%;
+    transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.06);
+  }
+  66% {
+    border-radius: 55% 45% 60% 40% / 40% 55% 45% 60%;
+    transform: translate3d(-3%, 4%, 0) rotate(-6deg) scale(0.96);
+  }
+  100% {
+    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+.blob {
+  position: absolute;
+  animation: blob 14s ease-in-out infinite;
+  will-change: transform, border-radius;
+  pointer-events: none;
+}
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.5;
+  animation: blob 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgb(63 42 20 / 0.05) 0%, rgb(63 42 20 / 0.11) 50%, rgb(63 42 20 / 0.05) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Breathing CTA */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+.breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Focus */
+*:focus-visible {
+  outline: 2px solid #ff6b4a;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* MapLibre chrome */
+.maplibregl-ctrl-attrib {
+  font-size: 9px !important;
+  background: rgb(255 251 245 / 0.75) !important;
+  color: #8a8398 !important;
+  border-radius: 8px 0 0 0;
+}
+.maplibregl-ctrl-attrib a {
+  color: #8a8398 !important;
+}
+.maplibregl-ctrl-group {
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-pillow) !important;
+  background: #fff !important;
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid #f6e9d8 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob,
+  .aurora,
+  .shimmer,
+  .breathe {
+    animation: none !important;
+  }
+}

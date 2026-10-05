@@ -1,119 +1,43 @@
-Overview
+<p align="center">
+  <img src="apps/server/public/icon.svg" width="96" alt="Raahi" />
+</p>
+<h1 align="center">Raahi — Your ride. Your price.</h1>
+<p align="center">Fair-price ride hailing for Pakistan. Passengers name their fare, nearby drivers bid, the passenger picks. 100% of every fare goes to the driver.</p>
 
-This project demonstrates a set of features and functionalities I have implemented, including frontend UI enhancements, backend API development, MetaMask integration, and a Solidity smart contract.
+## What's inside
 
-The main tasks completed are:
+```
+apps/server     Next.js 15 — REST API + admin panel (Vercel)
+apps/mobile     React 19 + Vite + Capacitor 8 — Android app for passengers & drivers (APK/AAB)
+packages/shared Domain: fare engine, vehicle catalogue, zod schemas, DTO types
+docs/           API contract (API.md) and design/UX spec (DESIGN.md)
+legacy/         Previous unrelated project kept for reference
+```
 
-1. Scroll-Up Button
+### Features
+- **Bidding marketplace (inDrive model)** — passenger offers a fare inside an engine-computed fair range; drivers accept or counter-offer within 60 s; passenger chooses; atomic acceptance; live tracking; in-ride chat; two-way ratings; cancellations with reasons.
+- **Fare engine** — `distance ÷ vehicle km/L × OGRA petrol price + PKR 100 driver floor`; category averages for passengers, the driver's actual car for their personal break-even; admin-tunable multipliers and petrol price.
+- **Driver onboarding & KYC** — CNIC front/back, selfie, driving license, route permit, vehicle registration, vehicle photo. Every image is verified by **Gemini** (type match, legibility, extracted name/CNIC/expiry, issues) and surfaced to admins for the final call.
+- **Driver subscription** — PKR 1,000 / 30 days; receipt screenshot upload; auto-approved in test mode; zero commission on rides.
+- **Admin panel** — dashboard, approvals with document gallery + AI verdicts, live map, rides, customers, subscriptions, support inbox, settings, audit log.
+- **Buddy, the 3D voice assistant** — a cartoon character (react-three-fiber) that listens ("book me a ride from Liberty to Johar Town"), asks the missing questions (vehicle type, fare), books within the fair range and hands over to the bidding screen; Gemini function-calling on the server, speech recognition and text-to-speech on the device; users can plug in their own Gemini key from the Settings tab.
+- **AI support** — streaming Gemini assistant with user context, escalation to humans.
+- **Sunrise design system** — light, warm and friendly: cream paper surfaces, coral/teal/sun palette, Fredoka + Nunito, jelly buttons, pillow cards, Phosphor duotone icons, spring page transitions.
+- **Free map stack** — OpenFreeMap vector tiles, OSRM routing, Photon search, Nominatim reverse geocoding. No paid keys.
+- **Security** — bcrypt, rotating refresh tokens, DB-backed login lockout, zod validation everywhere, sharp re-encoding of uploads (EXIF stripped), owner-scoped file access, audit trail, strict security headers.
 
-Added a scroll-up button on the landing page.
+## Quick start
+See **[DEPLOY.md](DEPLOY.md)** for Vercel, Supabase and Play Store steps.
 
-Behavior:
+```bash
+pnpm install
+pnpm dev:server   # API + admin at http://localhost:3000
+pnpm dev:mobile   # app UI at http://localhost:5173
+pnpm test && pnpm typecheck && pnpm lint
+pnpm android:build
+```
 
-Visible only when the user scrolls down more than 100px.
-
-Fixed position at a corner of the viewport.
-
-Smoothly scrolls the page back to the top when clicked.
-
-Fully responsive and works across different devices and screen sizes.
-
-2. Notes CRUD API
-
-Implemented a basic CRUD API for a "Notes" application.
-
-Endpoints:
-
-POST /notes — create a new note.
-
-GET /notes — retrieve all notes.
-
-GET /notes/:id — retrieve a note by ID.
-
-PUT /notes/:id — update a note.
-
-DELETE /notes/:id — delete a note.
-
-Notes are stored in an in-memory data structure (no database required).
-
-Results are displayed either on the console or on a simple frontend page.
-
-3. MetaMask Wallet Integration
-
-Integrated MetaMask wallet into the application.
-
-Features:
-
-Connect to MetaMask wallet.
-
-Prompt user to install MetaMask if not detected.
-
-Display connected wallet address in the UI.
-
-Handle account changes (switching accounts in MetaMask).
-
-Handle network changes (switching Ethereum networks in MetaMask).
-
-4. Investment Smart Contract
-
-Developed a secure and efficient investment smart contract in Solidity.
-
-Features:
-
-Users can invest ETH.
-
-Records investor information.
-
-Tracks total investments.
-
-Simulates distribution of returns.
-
-Contract code is located in the smart-contract directory.
-
-Getting Started
-Prerequisites
-
-Node.js and npm installed
-
-MetaMask (for wallet integration)
-
-Ethereum test network (e.g., Rinkeby or Ropsten) for smart contract testing
-
-Installation
-
-Clone the project:
-
-git clone <project-repo-link>
-cd <project-folder>
-
-
-Install dependencies:
-
-npm install
-
-
-If using legacy peer dependencies:
-
-npm install --legacy-peer-deps
-
-Running the Project
-npm start
-
-
-This will start the frontend application.
-
-The Notes API and scroll-up button features will be accessible in the browser.
-
-MetaMask wallet integration will be available for Ethereum interactions.
-
-
-Loom video link: <insert-link-here>
-
-Project Structure
-project-root/
-│
-├─ smart-contract/      # Solidity investment smart contract
-├─ src/                 # Frontend React application
-├─ backend/             # Notes API
-├─ package.json
-└─ README.md
+## Architecture notes
+- Serverless-friendly Postgres access (`postgres.js`, no prepared statements) with automatic Supabase pooler resolution and self-migration on first request.
+- Realtime is implemented with adaptive short polling (2.5–5 s) — reliable on Vercel's request/response model and cheap at this scale; no websockets or third-party realtime keys required.
+- Images are stored in Postgres by default (zero-config) and in Supabase Storage when `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set.

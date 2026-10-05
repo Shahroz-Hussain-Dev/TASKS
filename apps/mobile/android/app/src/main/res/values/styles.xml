@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base application theme: always dark, deep-ink system bars (docs/DESIGN.md). -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/raahi_ink</item>
+        <item name="android:colorBackground">@color/raahi_ink</item>
+        <item name="android:textColorPrimary">@color/raahi_text</item>
+        <item name="android:statusBarColor">@color/raahi_ink</item>
+        <item name="android:navigationBarColor">@color/raahi_ink</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+    </style>
+
+    <!-- Launch theme: Android 12+ system splash (core-splashscreen backports it to older versions).
+         Mirrors the Capacitor SplashScreen plugin config: #FFFBF5 background, centred logo. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/raahi_ink</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor">@color/raahi_ink</item>
+        <item name="android:navigationBarColor">@color/raahi_ink</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
