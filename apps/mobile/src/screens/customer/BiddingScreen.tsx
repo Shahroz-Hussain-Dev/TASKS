@@ -26,6 +26,8 @@ import { haptic, localNotify } from "@/lib/native";
 import { cn, errorMessage, pkr, secondsLeft } from "@/lib/utils";
 
 const POLL_MS = 2_500;
+/** Frosted cream, a touch more opaque than `.glass` so map labels never fight the cards. */
+const PANEL_STYLE = { background: "rgb(255 251 245 / 0.94)" } as const;
 
 /**
  * Waiting room for offers. Polls the request every 2.5 s, shows a radar
@@ -230,7 +232,7 @@ export default function BiddingScreen() {
 
       {/* Bottom panel */}
       <div ref={panelRef} className="absolute inset-x-0 bottom-0 z-10 flex flex-col max-h-[66%]">
-        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0">
+        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0" style={PANEL_STYLE}>
           <div className="flex justify-center pt-3">
             <span className="h-1.5 w-12 rounded-full bg-paper-300" />
           </div>
@@ -239,11 +241,11 @@ export default function BiddingScreen() {
             <motion.header variants={item.down} className="px-5 pt-3 pb-2 flex items-end justify-between gap-3">
               <div>
                 <p className="text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400">Your offer</p>
-                {request ? <Money value={request.offeredFarePkr} className="text-[32px] text-coral-600 leading-none" /> : <span className="block h-8 w-28 rounded-lg shimmer bg-paper-200" />}
+                {request ? <Money value={request.offeredFarePkr} className="text-[32px] text-coral-600! leading-none" /> : <span className="block h-8 w-28 rounded-lg shimmer bg-paper-200" />}
               </div>
               <div className="text-right">
                 <p className="text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400">Expires in</p>
-                <p className={cn("font-display text-[22px] font-semibold tabular-nums leading-none mt-0.5", left <= 60 ? "text-rose-500" : left <= 180 ? "text-sun-600" : "text-ink-900")}>{request ? (left > 0 ? formatCountdown(left) : "Wrapping up…") : "—:——"}</p>
+                <p className={cn("font-display text-[22px] font-semibold tabular-nums leading-none mt-0.5", left <= 60 ? "text-rose-500!" : left <= 180 ? "text-sun-600!" : "text-ink-900!")}>{request ? (left > 0 ? formatCountdown(left) : "Wrapping up…") : "—:——"}</p>
               </div>
             </motion.header>
 
@@ -310,7 +312,7 @@ export default function BiddingScreen() {
                   )}
                 </AnimatePresence>
               </div>
-              <Button full size="md" variant="ghost" icon={X} disabled={!request} className="text-rose-500" onClick={() => setCancelOpen(true)}>
+              <Button full size="md" variant="ghost" icon={X} disabled={!request} className="text-rose-500!" onClick={() => setCancelOpen(true)}>
                 Cancel request
               </Button>
             </motion.footer>

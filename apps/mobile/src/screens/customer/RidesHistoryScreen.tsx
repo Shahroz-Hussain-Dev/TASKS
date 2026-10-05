@@ -118,13 +118,13 @@ export default function RidesHistoryScreen() {
             <EmptyState icon={ClockCounterClockwise} tone="coral" title="Couldn't load your rides" body={errorMessage(query.error, "Check your connection and try again.")} action={<Button variant="secondary" size="md" onClick={() => void query.refetch()}>Try again</Button>} />
           </motion.div>
         ) : rides.length === 0 ? (
-          <motion.div variants={item.scale} className="flex-1 flex flex-col items-center justify-center text-center gap-4 px-6 pb-10">
-            <div className="relative flex items-center justify-center">
-              <span aria-hidden className="blob bg-coral-100 w-56 h-40 -top-6 left-1/2 -translate-x-1/2" />
-              <span aria-hidden className="blob bg-teal-100 w-40 h-32 top-6 left-1/2 -translate-x-1/3 opacity-80" style={{ animationDelay: "-8s" }} />
+          <motion.div variants={item.scale} className="relative isolate flex-1 flex flex-col items-center justify-center text-center gap-4 px-6 pb-10">
+            <div className="relative isolate flex items-center justify-center py-4">
+              <span aria-hidden className="blob -z-10 bg-coral-100 w-60 h-44 -top-8 left-1/2 -translate-x-1/2" />
+              <span aria-hidden className="blob -z-10 bg-teal-100 w-36 h-24 top-14 right-0 opacity-80" style={{ animationDelay: "-8s" }} />
               <AnimatedCar size={170} className="relative" />
             </div>
-            <div>
+            <div className="relative">
               <h2 className="font-display text-[24px] font-semibold text-ink-900">No rides yet</h2>
               <p className="text-[14.5px] text-ink-500 leading-relaxed mt-1 max-w-[30ch] font-medium">Your trips will appear here with the route, fare and your rating of the driver.</p>
             </div>
@@ -139,7 +139,7 @@ export default function RidesHistoryScreen() {
             <AnimatePresence initial={false}>
               {groups.map((g) => (
                 <motion.section key={g.label} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="flex flex-col gap-2.5">
-                  <h2 className="px-1 font-display text-[15px] font-semibold text-ink-500">{g.label}</h2>
+                  <h2 className="px-1 font-display text-[15px] font-semibold text-ink-500!">{g.label}</h2>
                   <motion.ul variants={stagger(0.05, 0)} initial="hidden" animate="show" className="flex flex-col gap-2.5">
                     {g.rides.map((r) => (
                       <RideRow key={r.id} ride={r} onClick={() => navigate(`/rides/${r.id}`)} />

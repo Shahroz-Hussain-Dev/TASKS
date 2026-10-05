@@ -61,7 +61,7 @@ export default function EarningsScreen() {
               <div className="relative flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-white/80">Today</p>
-                  <Money value={e.todayPkr} className="block text-[42px] text-white leading-none mt-1" />
+                  <Money value={e.todayPkr} className="block text-[42px] text-white! leading-none mt-1" />
                   <p className="mt-2 text-[13.5px] font-bold text-white/85">
                     {e.ridesToday} ride{e.ridesToday === 1 ? "" : "s"} today · {e.ridesWeek} this week
                   </p>

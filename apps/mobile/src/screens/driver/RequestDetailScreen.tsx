@@ -236,7 +236,7 @@ export default function RequestDetailScreen() {
                   </CountdownRing>
                   <div className="flex-1 min-w-0">
                     <p className="font-display text-[16px] font-semibold text-ink-900">
-                      Offer sent · <Money value={pending.amountPkr} className="text-teal-600" />
+                      Offer sent · <Money value={pending.amountPkr} className="text-teal-600!" />
                     </p>
                     <p className="text-[12.5px] font-semibold text-ink-500 leading-snug">Waiting for {req.customer.fullName.split(" ")[0]}. Withdraw to send a different price.</p>
                   </div>
@@ -282,7 +282,7 @@ export default function RequestDetailScreen() {
                         <div className="col-span-3 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.12em] text-ink-500">
                           <GasPump className="size-4" weight="duotone" /> Your economics
                         </div>
-                        <Econ label="You keep" value={<Money value={Math.max(0, eco.netEarningPkr)} className={cn("text-[24px]", eco.belowBreakEven ? "text-sun-600" : "text-teal-600")} />} />
+                        <Econ label="You keep" value={<Money value={Math.max(0, eco.netEarningPkr)} className={cn("text-[24px]", eco.belowBreakEven ? "text-sun-600!" : "text-teal-600!")} />} />
                         <Econ label="Per minute" value={<span className="text-[17px] font-display font-semibold text-ink-900 tabular-nums">PKR {eco.earningPerMinutePkr.toFixed(1)}</span>} />
                         <Econ label="Fuel" value={<span className="text-[17px] font-display font-semibold text-ink-900 tabular-nums">PKR {eco.fuelCostPkr.toLocaleString("en-PK")}</span>} />
                         <AnimatePresence initial={false}>

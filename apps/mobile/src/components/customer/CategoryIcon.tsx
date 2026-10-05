@@ -9,7 +9,7 @@ function RickshawGlyph({ className, weight = "duotone" }: { className?: string; 
   const filled = weight === "fill";
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <path d="M4 15V9.5A3.5 3.5 0 0 1 7.5 6H14l4 5h2.5a1.5 1.5 0 0 1 1.5 1.5V15Z" fill="currentColor" opacity={filled ? 1 : 0.2} />
+      <path d="M4 15V9.5A3.5 3.5 0 0 1 7.5 6H14l4 5h2.5a1.5 1.5 0 0 1 1.5 1.5V15Z" fill="currentColor" opacity={filled ? 0.45 : 0.2} />
       <path d="M4 15V9.5A3.5 3.5 0 0 1 7.5 6H14l4 5h2.5a1.5 1.5 0 0 1 1.5 1.5V15" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       <path d="M14 6v5h4M4 11h10M9 17h6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="7" cy="17" r="2" fill={filled ? "currentColor" : "#fff"} stroke="currentColor" strokeWidth={2} />

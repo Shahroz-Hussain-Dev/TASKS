@@ -76,7 +76,7 @@ export function BidCard({ bid, offeredFarePkr, bidTtlSeconds, onAccept, onDeclin
           {bid.message && <p className="text-[13px] text-ink-500 italic truncate font-medium">“{bid.message}”</p>}
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <Money value={bid.amountPkr} className={cn("text-[26px] leading-none", diff > 0 ? "text-sun-600" : "text-coral-600")} />
+          <Money value={bid.amountPkr} className={cn("text-[26px] leading-none", diff > 0 ? "text-sun-600!" : "text-coral-600!")} />
           {diff === 0 ? (
             <Badge tone="teal">Your price</Badge>
           ) : diff > 0 ? (

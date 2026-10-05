@@ -383,14 +383,14 @@ export default function DriverRideScreen() {
             <Confetti count={90} seed={7} />
             <motion.div variants={stagger(0.1, 0.15)} initial="hidden" animate="show" className="relative w-full flex flex-col items-center gap-4">
               <motion.div variants={item.scale} className="relative w-full">
-                <span aria-hidden className="blob bg-sun-100 w-56 h-56 left-1/2 -translate-x-1/2 -top-10 -z-10" />
+                <span aria-hidden className="blob bg-sun-100 w-56 h-56 left-1/2 -translate-x-1/2 -top-10" />
                 <div className="sticker sticker-tilt-l bg-white p-6 flex flex-col items-center gap-3">
                   <motion.span initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={springBouncy} className="size-20 rounded-[28px] bg-sun-500 text-ink-900 flex items-center justify-center shadow-pillow">
                     <HandCoins className="size-10" weight="duotone" />
                   </motion.span>
                   <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-teal-600">Trip completed</p>
                   <h2 className="font-display text-[32px] font-semibold text-ink-900 leading-tight">
-                    Collect <Money value={ride.farePkr} className="text-coral-500" /> in cash
+                    Collect <Money value={ride.farePkr} className="text-coral-500!" /> in cash
                   </h2>
                   <p className="text-[14.5px] font-semibold text-ink-500 leading-relaxed">
                     from {ride.customer.fullName.split(" ")[0]}. {formatKm(ride.distanceKm)} · {formatDuration(ride.durationMin)}. Every rupee is yours.

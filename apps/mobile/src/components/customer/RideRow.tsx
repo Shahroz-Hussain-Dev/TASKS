@@ -44,7 +44,7 @@ export function RideRow({ ride, onClick }: { ride: RideDto; onClick: () => void 
           </span>
         </span>
         <span className="flex flex-col items-end gap-1.5 shrink-0">
-          <Money value={ride.farePkr} className={cn("text-[17px]", cancelled ? "text-ink-400" : "text-ink-900")} />
+          <Money value={ride.farePkr} className={cn("text-[17px]", cancelled ? "text-ink-400!" : "text-ink-900")} />
           <RideStatusBadge status={ride.status} />
         </span>
         <CaretRight className="size-4 text-ink-300 shrink-0 -ml-1" weight="bold" />

@@ -53,9 +53,9 @@ export function CategoryCarousel({ value, onChange, fares, loading, className }:
             className={cn("relative snap-center shrink-0 w-[126px] rounded-[24px] p-3 text-left transition-shadow", tone.bg, active ? "sticker" : "shadow-pillow")}
           >
             {active && <motion.span layoutId="category-ring" transition={spring} className={cn("absolute inset-0 rounded-[24px] border-[3px] pointer-events-none", tone.border)} />}
-            <span className="relative flex flex-col gap-2.5">
-              <motion.span animate={active ? { scale: [1, 1.12, 1] } : { scale: 1 }} transition={springBouncy} className={cn("size-11 rounded-full flex items-center justify-center shadow-pillow", active ? tone.solid : cn("bg-white", tone.text))}>
-                <CategoryIcon category={id} className="size-[24px]" weight={active ? "fill" : "duotone"} badgeClassName={active ? "text-white" : undefined} />
+            <span className="relative flex flex-col gap-2">
+              <motion.span animate={active ? { scale: [1, 1.12, 1] } : { scale: 1 }} transition={springBouncy} className={cn("size-10 rounded-full flex items-center justify-center shadow-pillow", active ? tone.solid : cn("bg-white", tone.text))}>
+                <CategoryIcon category={id} className="size-[22px]" weight={active ? "fill" : "duotone"} badgeClassName={active ? "text-white" : undefined} />
               </motion.span>
               <span>
                 <span className="block font-display text-[16px] font-semibold text-ink-900 leading-tight">{meta.label}</span>
@@ -65,7 +65,7 @@ export function CategoryCarousel({ value, onChange, fares, loading, className }:
               </span>
               <span className="min-h-5 flex items-center">
                 {fare ? (
-                  <Money value={fare.recommendedFarePkr} className={cn("text-[15px]", active ? tone.text : "text-ink-700")} />
+                  <Money value={fare.recommendedFarePkr} className={cn("text-[15px]", active ? tone.money : "text-ink-700!")} />
                 ) : loading ? (
                   <Skeleton className="h-4 w-16 bg-white/70" />
                 ) : (

@@ -44,7 +44,7 @@ export function StatusView({ driver, refreshing, onRefresh, onFixDocuments, onGo
         <Confetti count={80} />
         <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="relative flex-1 flex flex-col items-center justify-center text-center gap-5 px-2 pb-6">
           <motion.div variants={item.scale} className="relative">
-            <span aria-hidden className="blob bg-teal-100 w-56 h-56 -inset-10 -z-10" />
+            <span aria-hidden className="blob bg-teal-100 w-56 h-56 -inset-10" />
             <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ ...springBouncy, delay: 0.2 }} className="relative">
               <Buddy state="happy" size={180} />
             </motion.div>
@@ -123,7 +123,7 @@ export function StatusView({ driver, refreshing, onRefresh, onFixDocuments, onGo
   return (
     <motion.div variants={stagger(0.08, 0.05)} initial="hidden" animate="show" className="relative flex-1 flex flex-col gap-5 pb-6">
       <motion.div variants={item.scale} className="relative self-center mt-4">
-        <span aria-hidden className="blob bg-rose-100 w-40 h-40 -inset-8 -z-10" />
+        <span aria-hidden className="blob bg-rose-100 w-40 h-40 -inset-8" />
         <span className="relative size-24 rounded-[32px] bg-rose-100 text-rose-500 flex items-center justify-center">
           <ShieldSlash className="size-12" weight="duotone" />
         </span>

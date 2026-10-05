@@ -111,7 +111,7 @@ export function RequestCard({ item, now, bidTtlSeconds, requestTtlSeconds, onAcc
               </CountdownRing>
               <div className="flex-1 min-w-0">
                 <p className="text-[13.5px] font-extrabold text-ink-900">
-                  Offer sent · <Money value={myBid.amountPkr} className="text-teal-600" />
+                  Offer sent · <Money value={myBid.amountPkr} className="text-teal-600!" />
                 </p>
                 <p className="text-[12px] font-semibold text-ink-500 truncate">Waiting for {request.customer.fullName.split(" ")[0]} to choose…</p>
               </div>

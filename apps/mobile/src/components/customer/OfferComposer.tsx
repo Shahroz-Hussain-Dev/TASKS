@@ -71,21 +71,6 @@ export function OfferComposer({ fare, value, onChange, step = 10, className }: {
         <Stepper icon={Plus} label="Raise offer" disabled={value >= max} onClick={() => set(value + step)} />
       </div>
 
-      <div className="relative flex items-center justify-center gap-2 flex-wrap">
-        {QUICK_CHIPS.map((d) => {
-          const target = value + d;
-          const blocked = target < min || target > max;
-          return (
-            <Chip key={d} tone="sun" onClick={() => set(target)} className={cn("bg-white/80", blocked && "opacity-40")}>
-              {d > 0 ? `+${d}` : d}
-            </Chip>
-          );
-        })}
-        <Chip tone="teal" active={value === rec} onClick={() => set(rec)} className={cn(value !== rec && "bg-white/80")}>
-          Fair {pkr(rec)}
-        </Chip>
-      </div>
-
       <div className="relative pt-1">
         <motion.div ref={track} onPan={onPan} onPanStart={onPan} onTap={(_, info) => setFromPointer(info.point.x - window.scrollX)} className="relative h-9 touch-none cursor-pointer select-none" role="slider" aria-label="Offer" aria-valuemin={min} aria-valuemax={max} aria-valuenow={value}>
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3 rounded-full overflow-hidden bg-white/70">
@@ -106,6 +91,21 @@ export function OfferComposer({ fare, value, onChange, step = 10, className }: {
             Max <span className="text-ink-800 font-extrabold">{pkr(max)}</span>
           </span>
         </div>
+      </div>
+
+      <div className="relative flex items-center justify-center gap-2 flex-wrap">
+        {QUICK_CHIPS.map((d) => {
+          const target = value + d;
+          const blocked = target < min || target > max;
+          return (
+            <Chip key={d} tone="sun" onClick={() => set(target)} className={cn("bg-white/80", blocked && "opacity-40")}>
+              {d > 0 ? `+${d}` : d}
+            </Chip>
+          );
+        })}
+        <Chip tone="teal" active={value === rec} onClick={() => set(rec)} className={cn(value !== rec && "bg-white/80")}>
+          Fair {pkr(rec)}
+        </Chip>
       </div>
 
       <div className="relative flex items-start gap-2.5 rounded-2xl bg-white/80 px-3 py-2.5">

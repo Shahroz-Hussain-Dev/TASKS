@@ -29,6 +29,8 @@ import { haptic } from "@/lib/native";
 import { cn, errorMessage, formatDuration, formatKm, pkr } from "@/lib/utils";
 
 const OFFER_STEP = 10;
+/** Frosted cream, a touch more opaque than `.glass` so map labels never fight the cards. */
+const PANEL_STYLE = { background: "rgb(255 251 245 / 0.94)" } as const;
 const NOTE_MAX = 200;
 
 /**
@@ -237,7 +239,7 @@ export default function PlanRideScreen() {
 
       {/* Bottom panel */}
       <div ref={panelRef} className="absolute inset-x-0 bottom-0 z-10 flex flex-col max-h-[74%]">
-        <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0 relative">
+        <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0 relative" style={PANEL_STYLE}>
           <div className="flex justify-center pt-3">
             <span className="h-1.5 w-12 rounded-full bg-paper-300" />
           </div>

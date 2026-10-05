@@ -25,6 +25,8 @@ import { haptic } from "@/lib/native";
 import { cn, errorMessage, formatDuration, formatKm, pkr } from "@/lib/utils";
 
 const POLL_MS = 3_000;
+/** Frosted cream, a touch more opaque than `.glass` so map labels never fight the cards. */
+const PANEL_BG = "rgb(255 251 245 / 0.94)";
 /** How often the camera re-frames the driver while the ride is live. */
 const FOLLOW_MS = 25_000;
 const POLICE = "15";
@@ -245,7 +247,7 @@ export default function RideScreen() {
 
       {/* Bottom panel */}
       <div ref={panelRef} className="absolute inset-x-0 bottom-0 z-10 flex flex-col max-h-[70%]">
-        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0 overflow-y-auto no-scrollbar px-4 pt-3" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
+        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0 overflow-y-auto no-scrollbar px-4 pt-3" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)", background: PANEL_BG }}>
           <div className="flex justify-center">
             <span className="h-1.5 w-12 rounded-full bg-paper-300" />
           </div>
@@ -315,7 +317,7 @@ export default function RideScreen() {
                       </Button>
                     </>
                   ) : canCancel ? (
-                    <Button full variant="ghost" icon={X} className="text-rose-500" onClick={() => setCancelOpen(true)}>
+                    <Button full variant="ghost" icon={X} className="text-rose-500!" onClick={() => setCancelOpen(true)}>
                       Cancel ride
                     </Button>
                   ) : (

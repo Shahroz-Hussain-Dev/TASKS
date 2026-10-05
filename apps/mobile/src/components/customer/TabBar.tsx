@@ -72,7 +72,7 @@ export function TabBar() {
                 haptic.tick();
                 if (!active) navigate(t.to);
               }}
-              className={cn("relative flex-1 h-12 rounded-full flex items-center justify-center gap-2 text-[14px] font-display font-semibold transition-colors", active ? "text-white" : "text-ink-500")}
+              className={cn("relative flex-1 h-12 rounded-full flex items-center justify-center gap-2 text-[14px] font-display font-semibold transition-colors", active ? "text-white!" : "text-ink-500!")}
             >
               {active && <motion.span layoutId="customer-tab-pill" transition={springSoft} className="absolute inset-0 rounded-full bg-coral-500 shadow-glow" />}
               <span className="relative inline-flex items-center gap-2">

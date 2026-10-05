@@ -55,7 +55,7 @@ function FieldRow({ label, place, placeholder, loading, accent, onClick }: { lab
           {secondary && <span className="text-[12px] text-ink-500 truncate font-medium">{secondary}</span>}
         </>
       ) : (
-        <span className={cn("text-[15.5px] font-extrabold truncate", accent ? "font-display text-coral-600" : "text-ink-300")}>{placeholder}</span>
+        <span className={cn("text-[15.5px] font-extrabold truncate", accent ? "font-display text-coral-600!" : "text-ink-300")}>{placeholder}</span>
       )}
     </motion.button>
   );

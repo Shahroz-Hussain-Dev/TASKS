@@ -268,7 +268,7 @@ export default function DriverHomeScreen() {
               </motion.div>
             ) : (
               <motion.div key="searching" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full relative">
-                <span aria-hidden className="blob bg-teal-100 w-40 h-40 -left-6 -top-10 -z-10 opacity-90" />
+                <span aria-hidden className="blob bg-teal-100 w-40 h-40 -left-6 -top-10 opacity-90" />
                 <div className="sticker sticker-tilt-l bg-teal-100 p-4 flex items-center gap-4">
                   <RadarSearch size={76} className="shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -295,7 +295,7 @@ export default function DriverHomeScreen() {
                 </motion.div>
               </div>
               <div className="relative mt-3 grid grid-cols-3 gap-2">
-                <Stat label="Today" value={earnings.data ? <Money value={earnings.data.todayPkr} className="text-[15px] text-teal-600" /> : "—"} />
+                <Stat label="Today" value={earnings.data ? <Money value={earnings.data.todayPkr} className="text-[15px] text-teal-600!" /> : "—"} />
                 <Stat label="Rides today" value={earnings.data ? String(earnings.data.ridesToday) : "—"} />
                 <Stat
                   label="Rating"

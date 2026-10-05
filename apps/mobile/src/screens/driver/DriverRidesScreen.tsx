@@ -112,7 +112,7 @@ export default function DriverRidesScreen() {
           </motion.div>
         ) : rides.length === 0 ? (
           <motion.div variants={item.scale} className="relative flex-1 flex flex-col items-center justify-center text-center gap-4 px-6 pb-10">
-            <span aria-hidden className="blob bg-teal-100 w-56 h-56 -z-10 opacity-90" style={{ top: "18%" }} />
+            <span aria-hidden className="blob bg-teal-100 w-56 h-56 opacity-90" style={{ top: "18%" }} />
             <AnimatedCar size={150} className="relative" />
             <div className="relative">
               <h2 className="font-display text-[22px] font-semibold text-ink-900">No trips yet</h2>
@@ -129,7 +129,7 @@ export default function DriverRidesScreen() {
                 <motion.section key={g.label} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="flex flex-col gap-2">
                   <div className="flex items-baseline justify-between px-1">
                     <h2 className="text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400">{g.label}</h2>
-                    {g.earnedPkr > 0 && <Money value={g.earnedPkr} className="text-[13px] text-teal-600" />}
+                    {g.earnedPkr > 0 && <Money value={g.earnedPkr} className="text-[13px] text-teal-600!" />}
                   </div>
                   <motion.ul variants={stagger(0.05, 0)} initial="hidden" animate="show" className="flex flex-col gap-2.5">
                     {g.rides.map((r) => (
