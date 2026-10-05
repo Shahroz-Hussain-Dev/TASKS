@@ -7,7 +7,8 @@ import { timeOfDay } from "@/components/shared/meta";
 import { item, spring } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { cn, formatKm } from "@/lib/utils";
-import { CATEGORY_TONE, CategoryIcon } from "./CategoryIcon";
+import { CategoryIcon } from "./CategoryIcon";
+import { CATEGORY_TONE } from "./categoryTone";
 
 /** One pillow row in the rides history: mini route dots, places, fare in Fredoka. */
 export function RideRow({ ride, onClick }: { ride: RideDto; onClick: () => void }) {

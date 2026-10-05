@@ -149,12 +149,12 @@ export default function ServerSettingsScreen() {
             hint={check.warning ?? "Enter the root of your Raahi deployment, then test before saving."}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button type="button" variant="secondary" icon={Pulse} loading={test.isPending} disabled={check.url === null} onClick={() => test.mutate()}>
-              Test connection
-            </Button>
-            <Button type="submit" icon={FloppyDisk} loading={save.isPending} disabled={check.url === null || !dirty}>
+          <div className="flex flex-col gap-3">
+            <Button type="submit" icon={FloppyDisk} full loading={save.isPending} disabled={check.url === null || !dirty}>
               Save
+            </Button>
+            <Button type="button" variant="secondary" icon={Pulse} full loading={test.isPending} disabled={check.url === null} onClick={() => test.mutate()}>
+              Test connection
             </Button>
           </div>
 

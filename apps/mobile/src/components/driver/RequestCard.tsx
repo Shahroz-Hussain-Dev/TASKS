@@ -31,7 +31,7 @@ export function RequestCard({ item, now, bidTtlSeconds, requestTtlSeconds, onAcc
     <motion.div
       layout
       initial={{ x: 160, opacity: 0, scale: 0.94 }}
-      animate={{ x: 0, opacity: 1, scale: 1, rotate: wiggle.rotate }}
+      animate={{ x: 0, opacity: 1, scale: 1, rotate: [...wiggle.rotate] }}
       exit={{ x: -220, opacity: 0, scale: 0.9, transition: { duration: 0.22 } }}
       transition={{ ...spring, rotate: { ...wiggle.transition, delay: 0.3 } }}
       className="relative"

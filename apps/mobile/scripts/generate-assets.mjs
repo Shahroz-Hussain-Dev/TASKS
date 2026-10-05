@@ -24,8 +24,8 @@ const mobileRoot = resolve(here, "..");
 const serverRoot = resolve(mobileRoot, "../server");
 const androidRes = resolve(mobileRoot, "android/app/src/main/res");
 
-const BRAND_BG = "#0B0F1A";
-const BRAND_BG_RGB = { r: 0x0b, g: 0x0f, b: 0x1a, alpha: 1 };
+const BRAND_BG = "#FFFBF5";
+const BRAND_BG_RGB = { r: 0xff, g: 0xfb, b: 0xf5, alpha: 1 };
 
 const logoSvg = await readFile(resolve(mobileRoot, "public/icon.svg"));
 
@@ -58,15 +58,17 @@ const markOnlySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 12
   <defs>
     <linearGradient id="road" x1="0" y1="1" x2="1" y2="0">
       <stop offset="0" stop-color="#6ee7b7"/>
-      <stop offset="0.6" stop-color="#10b981"/>
-      <stop offset="1" stop-color="#34d399"/>
+      <stop offset="0.55" stop-color="#ff8a6c"/>
+      <stop offset="1" stop-color="#ffc53d"/>
     </linearGradient>
   </defs>
   <path d="${ROAD_PATH}" fill="none" stroke="url(#road)" stroke-width="14" stroke-linecap="round"/>
-  <path d="${ROAD_PATH}" fill="none" stroke="#0b0f1a" stroke-width="2.5" stroke-dasharray="6 9" stroke-linecap="round" opacity="0.9"/>
-  <circle cx="90" cy="30" r="15" fill="#34d399"/>
-  <circle cx="90" cy="30" r="6.5" fill="#0b0f1a"/>
-  <circle cx="30" cy="104" r="7" fill="#6ee7b7"/>
+  <path d="${ROAD_PATH}" fill="none" stroke="#ffc53d" stroke-width="2.5" stroke-dasharray="6 9" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="90" cy="30" r="16" fill="#ffffff"/>
+  <circle cx="90" cy="30" r="12" fill="#12a594"/>
+  <circle cx="90" cy="30" r="5" fill="#ffffff"/>
+  <circle cx="30" cy="104" r="8" fill="#ffffff"/>
+  <circle cx="30" cy="104" r="4" fill="#1f1b2d"/>
 </svg>`;
 
 /** Pure white silhouette of the road + pin for the status bar notification icon. */
@@ -77,30 +79,30 @@ const monochromeSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 
   <circle cx="30" cy="104" r="7" fill="#ffffff"/>
 </svg>`;
 
-/** Open Graph artwork: dark gradient, soft brand glow, the logo tile and the tagline. */
+/** Open Graph artwork: cream gradient, soft brand glow, the logo tile and the tagline. */
 function ogSvg(width, height) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a24"/>
-      <stop offset="0.55" stop-color="#0B0F1A"/>
-      <stop offset="1" stop-color="#0B0F1A"/>
+      <stop offset="0" stop-color="#FFE9E2"/>
+      <stop offset="0.55" stop-color="#FFFBF5"/>
+      <stop offset="1" stop-color="#FFF4E8"/>
     </linearGradient>
     <radialGradient id="glow" cx="0.78" cy="0.2" r="0.6">
-      <stop offset="0" stop-color="#10b981" stop-opacity="0.32"/>
-      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+      <stop offset="0" stop-color="#ff6b4a" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ff6b4a" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="amber" cx="0.15" cy="0.95" r="0.45">
-      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+      <stop offset="0" stop-color="#ffc53d" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffc53d" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${width}" height="${height}" fill="url(#bg)"/>
   <rect width="${width}" height="${height}" fill="url(#glow)"/>
   <rect width="${width}" height="${height}" fill="url(#amber)"/>
-  <text x="400" y="296" font-family="Sora, Manrope, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="112" font-weight="700" letter-spacing="-4" fill="#f8fafc">Raahi</text>
-  <text x="404" y="372" font-family="Manrope, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="46" font-weight="500" letter-spacing="-0.5" fill="#a7f3d0">Your ride. Your price.</text>
-  <text x="404" y="432" font-family="Manrope, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="26" font-weight="500" fill="#94a3b8">Fair-price ride hailing for Pakistan. Name your fare, pick your driver.</text>
+  <text x="400" y="296" font-family="Fredoka, Nunito, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="112" font-weight="600" letter-spacing="-2" fill="#1f1b2d">Raahi</text>
+  <text x="404" y="372" font-family="Nunito, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="46" font-weight="600" letter-spacing="-0.5" fill="#ff6b4a">Your ride. Your price.</text>
+  <text x="404" y="432" font-family="Nunito, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#6b6478">Fair-price rides for Pakistan. Name your fare, pick your driver.</text>
 </svg>`;
 }
 

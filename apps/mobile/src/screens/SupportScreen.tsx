@@ -172,15 +172,10 @@ export default function SupportScreen() {
           <span className={cn("absolute right-0.5 bottom-0.5 size-3 rounded-full border-2 border-white", ticket?.escalated ? "bg-lavender-500" : "bg-mint-500")} />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="font-display text-[19px] font-semibold text-ink-900 leading-tight">Raahi Support</h1>
+          <h1 className="font-display text-[19px] font-semibold text-ink-900 leading-tight truncate">Raahi Support</h1>
           <p className="text-[12.5px] text-ink-500 truncate font-bold">{ticket?.escalated ? "Human agent assigned · replies here" : "AI assistant · answers in seconds"}</p>
         </div>
-        {supportPhone && <IconButton icon={Phone} label="Call support" variant="ghost" onClick={() => window.open(`tel:${supportPhone.replace(/\s+/g, "")}`, "_self")} />}
-        {!ticket?.escalated && (
-          <Button size="sm" variant="outline" icon={Headset} loading={escalate.isPending} disabled={busy} onClick={() => escalate.mutate()}>
-            Human
-          </Button>
-        )}
+        {supportPhone && <IconButton icon={Phone} label="Call support" variant="solid" size={44} onClick={() => window.open(`tel:${supportPhone.replace(/\s+/g, "")}`, "_self")} />}
       </motion.header>
 
       <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 pb-4">
@@ -191,7 +186,7 @@ export default function SupportScreen() {
             <Skeleton className="h-20 w-4/5 rounded-3xl" />
           </div>
         ) : (
-          <div className="flex flex-col">
+          <div className={cn("flex flex-col", messages.length === 0 && !pending && "min-h-full justify-center")}>
             <AnimatePresence initial={false}>
               {ticket?.escalated && (
                 <motion.div key="esc" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="mt-3 flex items-center gap-2.5 rounded-[20px] bg-lavender-100 px-3.5 py-2.5 shadow-[0_3px_0_0_#d8d2ff]">
@@ -243,6 +238,13 @@ export default function SupportScreen() {
       <div className="relative bg-paper-50" style={{ paddingBottom: keyboard.open ? 8 : "calc(var(--safe-bottom) + 10px)" }}>
         <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-paper-50 to-transparent" />
         <AnimatePresence initial={false}>
+          {!ticket?.escalated && !tickets.isPending && (
+            <motion.div key="human" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={spring} className="flex justify-center px-4 pb-2">
+              <Button size="sm" variant="outline" icon={Headset} loading={escalate.isPending} disabled={busy} onClick={() => escalate.mutate()}>
+                Talk to a human
+              </Button>
+            </motion.div>
+          )}
           {showSuggestions && (
             <motion.div key="sugg" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="overflow-hidden">
               <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="flex gap-2 overflow-x-auto no-scrollbar px-4 pt-2 pb-2">
@@ -303,7 +305,7 @@ function AssistantLabel() {
 function Intro({ name }: { name: string }) {
   const buddyFloat = float(6, 4);
   return (
-    <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="relative flex flex-col items-center text-center gap-3 pt-6 pb-6 px-4">
+    <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="relative flex flex-col items-center text-center gap-3 py-6 px-4">
       <motion.div variants={item.pop} className="relative">
         <span aria-hidden className="blob absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-40 bg-coral-100" />
         <span aria-hidden className="blob absolute left-[60%] top-[55%] -translate-x-1/2 -translate-y-1/2 size-28 bg-sun-100" style={{ animationDelay: "-7s" }} />

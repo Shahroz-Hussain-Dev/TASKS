@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bank, Buildings, CalendarCheck, CheckCircle, Copy, DeviceMobile, Hash, Hourglass, Image as ImageIcon, Receipt, Wallet } from "@phosphor-icons/react";
 import { useState } from "react";
 import { subscriptionReceiptSchema, type DriverDto } from "@raahi/shared";
+import { Breathe } from "@/components/driver/Breathe";
 import { AuthImage, Badge, Button, Input, Money, Segmented, useToast, type IconComponent } from "@/components/ui";
 import { formatDay, SUBSCRIPTION_METHODS, type SubscriptionMethod } from "@/hooks/driver/onboarding";
 import { useConfig } from "@/hooks/driver/useConfig";
@@ -248,9 +249,11 @@ export function SubscriptionForm({ driver, onSaved, mode, onContinue, className 
 
       {!showForm && onContinue && (
         <motion.div variants={item.up}>
-          <Button full size="xl" variant="teal" className="breathe" onClick={onContinue}>
-            Continue
-          </Button>
+          <Breathe>
+            <Button full size="xl" variant="teal" onClick={onContinue}>
+              Continue
+            </Button>
+          </Breathe>
         </motion.div>
       )}
     </motion.div>

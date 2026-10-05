@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DriverDto, DriverRequestFeedItem } from "@raahi/shared";
 import { BuddyBubble } from "@/components/buddy";
+import { Breathe } from "@/components/driver/Breathe";
 import { OnlineToggle } from "@/components/driver/OnlineToggle";
 import { RequestCard } from "@/components/driver/RequestCard";
 import { AnimatedCar, RadarSearch } from "@/components/Illustrations";
@@ -311,7 +312,9 @@ export default function DriverHomeScreen() {
         </AnimatePresence>
 
         <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...spring, delay: 0.1 }} className="pointer-events-auto">
-          <OnlineToggle online={pres.online} busy={toggle.isPending} nearby={items.length} onToggle={() => toggle.mutate(!pres.online)} />
+          <Breathe active={!pres.online && !toggle.isPending}>
+            <OnlineToggle online={pres.online} busy={toggle.isPending} nearby={items.length} onToggle={() => toggle.mutate(!pres.online)} />
+          </Breathe>
         </motion.div>
       </div>
     </div>

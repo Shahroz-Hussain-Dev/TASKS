@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check } from "@phosphor-icons/react";
+import { Buddy } from "@/components/buddy";
 import { spring, springBouncy } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { cn } from "@/lib/utils";
@@ -9,19 +10,29 @@ export interface RailStep {
   label: string;
 }
 
+const NODE = 32;
+
 /**
- * Horizontal progress rail for the onboarding wizard: a track that fills up to
- * the active step, completed nodes flip to a check, and the active node wears
- * a breathing ring. Completed steps are tappable to jump back.
+ * Progress rail for the onboarding wizard drawn as a dotted path: teal
+ * circles for each step (completed ones flip to a check), a solid teal trail
+ * up to the active step, and a small Buddy sitting on the current step.
+ * Completed steps are tappable to jump back.
  */
 export function ProgressRail({ steps, current, completed, onSelect, className }: { steps: readonly RailStep[]; current: string; completed: ReadonlySet<string>; onSelect?: (id: string) => void; className?: string }) {
   const currentIndex = Math.max(0, steps.findIndex((s) => s.id === current));
-  const fill = steps.length > 1 ? (currentIndex / (steps.length - 1)) * 100 : 0;
+  const n = Math.max(1, steps.length);
+  const centre = (i: number) => `${((i + 0.5) / n) * 100}%`;
+  const fill = `${((currentIndex + 0.5) / n) * 100}%`;
   return (
-    <div className={cn("relative px-3", className)} role="list" aria-label="Onboarding progress">
-      <div className="absolute left-7 right-7 top-4 h-1 rounded-full bg-white/8 overflow-hidden" aria-hidden>
-        <motion.div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400 shadow-glow" initial={false} animate={{ width: `${fill}%` }} transition={spring} />
+    <div className={cn("relative pt-9", className)} role="list" aria-label="Onboarding progress">
+      {/* Dotted path */}
+      <div className="absolute inset-x-0 pointer-events-none" style={{ top: 36 + NODE / 2 - 2, height: 4 }} aria-hidden>
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+          <line x1={centre(0)} x2={centre(n - 1)} y1="2" y2="2" stroke="#ead9c3" strokeWidth="3" strokeLinecap="round" strokeDasharray="1 9" />
+        </svg>
+        <motion.div className="absolute top-0 h-full rounded-full bg-teal-400" style={{ left: centre(0) }} initial={false} animate={{ width: `calc(${fill} - ${centre(0)})` }} transition={spring} />
       </div>
+
       <div className="relative grid" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
         {steps.map((s, i) => {
           const done = completed.has(s.id) && s.id !== current;
@@ -40,27 +51,35 @@ export function ProgressRail({ steps, current, completed, onSelect, className }:
                 haptic.tick();
                 onSelect?.(s.id);
               }}
-              className="flex flex-col items-center gap-2 disabled:cursor-default"
+              className="relative flex flex-col items-center gap-1.5 disabled:cursor-default"
             >
-              <span className="relative size-9 flex items-center justify-center">
-                {active && <motion.span layoutId="rail-ring" className="absolute inset-0 rounded-full border-2 border-brand-400/70" transition={spring} />}
-                {active && <motion.span className="absolute inset-0 rounded-full bg-brand-500/25" animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} />}
+              {active && (
+                <motion.span layoutId="rail-buddy" transition={spring} className="absolute -top-9 left-1/2 -translate-x-1/2 pointer-events-none" aria-hidden>
+                  <motion.span className="block" animate={{ y: [0, -3, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}>
+                    <Buddy size={44} state="idle" />
+                  </motion.span>
+                </motion.span>
+              )}
+              <span className="relative flex items-center justify-center" style={{ width: NODE, height: NODE }}>
+                {active && <motion.span layoutId="rail-ring" className="absolute -inset-1.5 rounded-full bg-teal-100" transition={spring} />}
+                {active && <motion.span className="absolute inset-0 rounded-full bg-teal-400/40" animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} />}
                 <motion.span
                   initial={false}
-                  animate={{ backgroundColor: done || active ? "#10b981" : "#1a2235", color: done || active ? "#06080f" : "#94a3b8", scale: active ? 1 : 0.86 }}
+                  animate={{ backgroundColor: done || active ? "#12a594" : "#ffffff", color: done || active ? "#ffffff" : "#a39cb0", scale: active ? 1 : 0.84, borderColor: done || active ? "#12a594" : "#ead9c3" }}
                   transition={spring}
-                  className="relative size-7 rounded-full flex items-center justify-center font-display text-[12.5px] font-bold border border-white/8"
+                  className="relative rounded-full flex items-center justify-center font-display text-[13px] font-semibold border-[2.5px] shadow-pillow"
+                  style={{ width: NODE, height: NODE }}
                 >
                   {done ? (
                     <motion.span key="check" initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={springBouncy}>
-                      <Check className="size-3.5" strokeWidth={3} />
+                      <Check className="size-4" weight="bold" />
                     </motion.span>
                   ) : (
                     <span>{i + 1}</span>
                   )}
                 </motion.span>
               </span>
-              <span className={cn("text-[11px] font-semibold tracking-wide transition-colors", active ? "text-brand-300" : done ? "text-ink-200" : "text-ink-500")}>{s.label}</span>
+              <span className={cn("text-[11px] font-extrabold tracking-wide transition-colors", active ? "text-teal-600" : done ? "text-ink-700" : "text-ink-400")}>{s.label}</span>
             </motion.button>
           );
         })}

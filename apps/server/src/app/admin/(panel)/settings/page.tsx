@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowCounterClockwise, Calculator, FloppyDisk, GasPump, Money, ShieldCheck, Timer, Wallet } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Banknote, Calculator, Fuel, RotateCcw, Save, ShieldCheck, Timer, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { adminSettingsSchema, VEHICLE_CATEGORIES, VEHICLE_CATEGORY_META, type FareBreakdown, type PlatformSettings, type VehicleCategory } from "@raahi/shared";
 import { adminApi, errorMessage, type SettingsPatch } from "@/lib/admin-client";
@@ -162,19 +162,19 @@ export default function SettingsPage() {
   const numField = (k: NumericKey, label: string, opts: { hint?: string; step?: string; prefix?: string; suffix?: string } = {}) => (
     <Field label={label} hint={opts.hint} error={errors[k]} htmlFor={k}>
       <div className="relative">
-        {opts.prefix ? <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-ink-500">{opts.prefix}</span> : null}
-        <Input id={k} inputMode="decimal" step={opts.step ?? "any"} type="number" value={form.numbers[k]} onChange={(e) => setNumber(k, e.target.value)} className={cn(opts.prefix && "pl-12", opts.suffix && "pr-14", errors[k] && "border-rose-500/60")} />
-        {opts.suffix ? <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-ink-500">{opts.suffix}</span> : null}
+        {opts.prefix ? <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-ink-500">{opts.prefix}</span> : null}
+        <Input id={k} inputMode="decimal" step={opts.step ?? "any"} type="number" value={form.numbers[k]} onChange={(e) => setNumber(k, e.target.value)} className={cn(opts.prefix && "pl-12", opts.suffix && "pr-14", errors[k] && "border-rose-500")} />
+        {opts.suffix ? <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-ink-500">{opts.suffix}</span> : null}
       </div>
     </Field>
   );
 
   const actions = (
     <>
-      <Button variant="ghost" icon={<RotateCcw size={16} />} disabled={!dirty || save.isPending} onClick={() => settings.data && setForm(toForm(settings.data))}>
+      <Button variant="ghost" icon={<ArrowCounterClockwise size={16} weight="bold" />} disabled={!dirty || save.isPending} onClick={() => settings.data && setForm(toForm(settings.data))}>
         Discard
       </Button>
-      <Button icon={<Save size={16} />} onClick={submit} loading={save.isPending} disabled={!dirty}>
+      <Button icon={<FloppyDisk size={17} weight="duotone" />} onClick={submit} loading={save.isPending} disabled={!dirty}>
         Save changes
       </Button>
     </>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
       <PageHeader title="Settings" subtitle="Platform-wide pricing, subscriptions and matching rules. Every change is written to the audit log." actions={actions} />
       <motion.div variants={stagger(0.07)} initial="hidden" animate="show" className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <motion.div variants={item.up} className="space-y-6 xl:col-span-2">
-          <Section icon={<Fuel size={18} />} title="Fare engine" subtitle="minimum = fuel cost + driver flat · recommended = fuel × multiplier + flat + per-minute · maximum = recommended × ceiling">
+          <Section icon={<GasPump size={18} weight="duotone" />} title="Fare engine" subtitle="minimum = fuel cost + driver flat · recommended = fuel × multiplier + flat + per-minute · maximum = recommended × ceiling">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {numField("petrolPricePkr", "Petrol price", { prefix: "PKR", suffix: "/ L", hint: "OGRA retail price per litre. Changes fares instantly.", step: "0.01" })}
               {numField("driverFlatPkr", "Driver flat amount", { prefix: "PKR", hint: "Every ride earns the driver at least this on top of fuel." })}
@@ -197,7 +197,7 @@ export default function SettingsPage() {
             </div>
           </Section>
 
-          <Section icon={<Wallet size={18} />} title="Driver subscription" subtitle="Raahi takes no commission. Drivers pay a flat monthly fee.">
+          <Section icon={<Wallet size={18} weight="duotone" />} title="Driver subscription" subtitle="Raahi takes no commission. Drivers pay a flat monthly fee.">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {numField("driverSubscriptionPkr", "Subscription price", { prefix: "PKR" })}
               {numField("subscriptionDays", "Subscription length", { suffix: "days" })}
@@ -212,7 +212,7 @@ export default function SettingsPage() {
             </div>
           </Section>
 
-          <Section icon={<Banknote size={18} />} title="Payment instructions" subtitle="Shown to drivers in the app when they pay their subscription.">
+          <Section icon={<Money size={18} weight="duotone" />} title="Payment instructions" subtitle="Shown to drivers in the app when they pay their subscription.">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <PayField k="accountTitle" label="Account title" value={form.paymentInstructions.accountTitle} onChange={setPay} error={errors["paymentInstructions.accountTitle"]} />
               <PayField k="bankName" label="Bank" value={form.paymentInstructions.bankName} onChange={setPay} error={errors["paymentInstructions.bankName"]} />
@@ -227,14 +227,14 @@ export default function SettingsPage() {
           </Section>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Section icon={<Timer size={18} />} title="Matching" subtitle="How requests reach drivers and how long offers live.">
+            <Section icon={<Timer size={18} weight="duotone" />} title="Matching" subtitle="How requests reach drivers and how long offers live.">
               <div className="space-y-4">
                 {numField("matchRadiusKm", "Match radius", { suffix: "km", hint: "Drivers within this distance of the pickup see the request." })}
                 {numField("requestTtlSeconds", "Request lifetime", { suffix: "sec", hint: "Open requests expire after this." })}
                 {numField("bidTtlSeconds", "Bid lifetime", { suffix: "sec", hint: "How long a passenger has to accept an offer." })}
               </div>
             </Section>
-            <Section icon={<ShieldCheck size={18} />} title="Verification & support" subtitle="AI document checks and the contacts shown in the app.">
+            <Section icon={<ShieldCheck size={18} weight="duotone" />} title="Verification & support" subtitle="AI document checks and the contacts shown in the app.">
               <div className="space-y-4">
                 {numField("autoVerifyConfidence", "Auto-verify confidence", { suffix: "0–1", hint: "Documents at or above this Gemini confidence are verified without a human.", step: "0.05" })}
                 <Field label="Support phone" error={errors.supportPhone} htmlFor="supportPhone">
@@ -255,7 +255,7 @@ export default function SettingsPage() {
 
       <div className="sticky bottom-4 mt-6 flex justify-end">
         <motion.div initial={false} animate={{ y: dirty ? 0 : 12, opacity: dirty ? 1 : 0 }} className={cn("glass flex items-center gap-3 rounded-2xl px-4 py-3 shadow-float", !dirty && "pointer-events-none")}>
-          <span className="text-[13.5px] text-ink-300">You have unsaved changes</span>
+          <span className="text-[13.5px] font-semibold text-ink-800">You have unsaved changes</span>
           {actions}
         </motion.div>
       </div>
@@ -268,7 +268,7 @@ function Section({ icon, title, subtitle, children }: { icon: ReactNode; title: 
     <Card
       title={
         <span className="inline-flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand-500/15 text-brand-400">{icon}</span>
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-coral-100 text-coral-600">{icon}</span>
           {title}
         </span>
       }
@@ -343,8 +343,8 @@ function FarePreview({ form, saved }: { form: FormState; saved: PlatformSettings
     <Card
       title={
         <span className="inline-flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-amber-400/15 text-amber-300">
-            <Calculator size={18} />
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-sun-100 text-sun-700">
+            <Calculator size={18} weight="duotone" />
           </span>
           Fare preview
         </span>
@@ -379,7 +379,7 @@ function FarePreview({ form, saved }: { form: FormState; saved: PlatformSettings
       </div>
 
       {!valid ? (
-        <p className="mt-5 text-[13.5px] text-ink-400">Enter a distance and duration to see what a passenger would pay.</p>
+        <p className="mt-5 text-[13.5px] text-ink-500">Enter a distance and duration to see what a passenger would pay.</p>
       ) : preview.isError ? (
         <ErrorState error={preview.error} onRetry={() => preview.refetch()} className="py-6" />
       ) : !fare ? (
@@ -390,13 +390,13 @@ function FarePreview({ form, saved }: { form: FormState; saved: PlatformSettings
       ) : (
         <motion.div className={cn("mt-5 space-y-4 transition-opacity", preview.isPlaceholderData && "opacity-60")}>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <Tile label="Minimum" value={fare.minimumFarePkr} tone="text-ink-100" />
-            <Tile label="Recommended" value={fare.recommendedFarePkr} tone="text-brand-300" big />
-            <Tile label="Maximum" value={fare.maximumFarePkr} tone="text-ink-100" />
+            <Tile label="Minimum" value={fare.minimumFarePkr} tone="text-ink-900" />
+            <Tile label="Recommended" value={fare.recommendedFarePkr} tone="text-ink-900" big />
+            <Tile label="Maximum" value={fare.maximumFarePkr} tone="text-ink-900" />
           </div>
-          <div className="relative h-2 rounded-full bg-ink-700">
-            <motion.div layout className="absolute inset-y-0 rounded-full bg-gradient-to-r from-brand-500 via-brand-400 to-amber-400" style={{ left: 0, right: 0 }} />
-            <span className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink-800 bg-brand-300" style={{ left: `${Math.min(100, Math.max(0, ((fare.recommendedFarePkr - fare.minimumFarePkr) / Math.max(1, fare.maximumFarePkr - fare.minimumFarePkr)) * 100))}%` }} />
+          <div className="relative h-2.5 rounded-full bg-paper-200">
+            <motion.div layout className="absolute inset-y-0 rounded-full bg-gradient-to-r from-teal-500 via-sun-500 to-coral-500" style={{ left: 0, right: 0 }} />
+            <span className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-coral-500 shadow-pillow" style={{ left: `${Math.min(100, Math.max(0, ((fare.recommendedFarePkr - fare.minimumFarePkr) / Math.max(1, fare.maximumFarePkr - fare.minimumFarePkr)) * 100))}%` }} />
           </div>
           <dl className="space-y-1.5 text-[13.5px]">
             <Row label={`Fuel · ${fare.litresNeeded.toFixed(2)} L at ${fare.kmPerLitre} km/L × ${pkr(fare.petrolPricePkr)}`} value={pkr(fare.fuelCostPkr)} />
@@ -415,11 +415,11 @@ function FarePreview({ form, saved }: { form: FormState; saved: PlatformSettings
 
 function Tile({ label, value, tone, big }: { label: string; value: number; tone: string; big?: boolean }) {
   return (
-    <div className={cn("rounded-2xl bg-ink-900/60 px-2 py-3", big && "ring-1 ring-brand-500/40")}>
+    <div className={cn("rounded-2xl bg-paper-100 px-2 py-3", big && "sticker bg-sun-100")}>
       <p className={cn("font-display font-semibold tabular-nums", tone, big ? "text-[22px]" : "text-[17px]")}>
         <Counter value={value} format={(n) => pkr(n)} duration={0.6} />
       </p>
-      <p className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-500">{label}</p>
+      <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-500">{label}</p>
     </div>
   );
 }
@@ -427,8 +427,8 @@ function Tile({ label, value, tone, big }: { label: string; value: number; tone:
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-ink-400">{label}</dt>
-      <dd className="font-semibold text-ink-100">{value}</dd>
+      <dt className="text-ink-600">{label}</dt>
+      <dd className="font-bold tabular-nums text-ink-900">{value}</dd>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { ChatCircleDots, GasPump, PaperPlaneTilt, Star, Timer, Users } from "@ph
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { decodePolyline, driverEconomics, MARKET_RULES, placeBidSchema, roundTo, type DriverRequestFeedItem, type LatLng } from "@raahi/shared";
+import { Breathe } from "@/components/driver/Breathe";
 import { CountdownRing } from "@/components/driver/CountdownRing";
 import { Stepper } from "@/components/driver/Stepper";
 import { FitCamera } from "@/components/driver/FitCamera";
@@ -299,9 +300,11 @@ export default function RequestDetailScreen() {
                     </motion.div>
 
                     <motion.div variants={item.up} className="pt-1">
-                      <Button full size="xl" variant={amount === req.offeredFarePkr ? "amber" : "teal"} icon={PaperPlaneTilt} loading={place.isPending} onClick={send} className="breathe">
-                        {amount === req.offeredFarePkr ? "Accept at" : "Send offer"} <Money value={amount} className="font-bold" />
-                      </Button>
+                      <Breathe tone={amount === req.offeredFarePkr ? "sun" : "teal"}>
+                        <Button full size="xl" variant={amount === req.offeredFarePkr ? "amber" : "teal"} icon={PaperPlaneTilt} loading={place.isPending} onClick={send}>
+                          {amount === req.offeredFarePkr ? "Accept at" : "Send offer"} <Money value={amount} className="font-bold" />
+                        </Button>
+                      </Breathe>
                     </motion.div>
                   </>
                 )

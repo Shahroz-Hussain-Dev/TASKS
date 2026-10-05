@@ -26,8 +26,8 @@ export const haptic = {
 export async function setupNativeChrome() {
   if (!isNative) return;
   try {
-    await StatusBar.setStyle({ style: Style.Dark });
-    await StatusBar.setBackgroundColor({ color: "#0B0F1A" });
+    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setBackgroundColor({ color: "#FFFBF5" });
     await StatusBar.setOverlaysWebView({ overlay: true });
   } catch {
     /* web */

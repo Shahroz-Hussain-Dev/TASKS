@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowCounterClockwise, Car, IdentificationCard, Phone, Prohibit, Receipt, SealCheck, Star, Wallet, XCircle } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Ban, BadgeCheck, Car, CircleX, IdCard, Phone, Receipt, RotateCcw, Star, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -19,7 +19,7 @@ interface DecisionConfig {
   title: string;
   description: string;
   confirmLabel: string;
-  tone: "primary" | "danger" | "amber" | "secondary";
+  tone: "primary" | "teal" | "danger" | "amber" | "secondary";
   reasonRequired: boolean;
   placeholder: string;
 }
@@ -29,7 +29,7 @@ const DECISIONS: Record<DriverDecision, DecisionConfig> = {
     title: "Approve this driver?",
     description: "They will be able to go online immediately. Approval requires an active subscription.",
     confirmLabel: "Approve driver",
-    tone: "primary",
+    tone: "teal",
     reasonRequired: false,
     placeholder: "Optional note for the audit log",
   },
@@ -53,7 +53,7 @@ const DECISIONS: Record<DriverDecision, DecisionConfig> = {
     title: "Reinstate this driver?",
     description: "Their account returns to approved. They still need an active subscription to go online.",
     confirmLabel: "Reinstate",
-    tone: "primary",
+    tone: "teal",
     reasonRequired: false,
     placeholder: "Optional note for the audit log",
   },
@@ -164,22 +164,22 @@ export default function DriverDetailPage() {
   const actions = (
     <>
       {status === "under_review" || status === "rejected" || status === "onboarding" ? (
-        <Button icon={<BadgeCheck size={16} />} onClick={() => setDecision("approve")}>
+        <Button variant="teal" icon={<SealCheck size={17} weight="fill" />} onClick={() => setDecision("approve")}>
           Approve
         </Button>
       ) : null}
       {status !== "rejected" && status !== "suspended" ? (
-        <Button variant="danger" icon={<CircleX size={16} />} onClick={() => setDecision("reject")}>
+        <Button variant="danger" icon={<XCircle size={17} weight="fill" />} onClick={() => setDecision("reject")}>
           Reject
         </Button>
       ) : null}
       {status === "approved" ? (
-        <Button variant="amber" icon={<Ban size={16} />} onClick={() => setDecision("suspend")}>
+        <Button variant="amber" icon={<Prohibit size={17} weight="bold" />} onClick={() => setDecision("suspend")}>
           Suspend
         </Button>
       ) : null}
       {status === "suspended" ? (
-        <Button icon={<RotateCcw size={16} />} onClick={() => setDecision("reinstate")}>
+        <Button variant="teal" icon={<ArrowCounterClockwise size={17} weight="bold" />} onClick={() => setDecision("reinstate")}>
           Reinstate
         </Button>
       ) : null}
@@ -204,27 +204,27 @@ export default function DriverDetailPage() {
                     <Badge tone={DRIVER_STATUS_TONE[status]} dot={d.isOnline}>
                       {DRIVER_STATUS_LABEL[status]}
                     </Badge>
-                    {d.isOnline ? <span className="text-[12.5px] font-semibold text-brand-400">Online</span> : null}
+                    {d.isOnline ? <Badge tone="teal" dot>Online</Badge> : null}
                     {d.user.isBlocked ? <Badge tone="rose">Account blocked</Badge> : null}
                   </div>
-                  <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-ink-200">
-                    <Star size={14} className="fill-amber-400 text-amber-400" /> {d.user.ratingAvg.toFixed(1)} <span className="text-ink-500">({d.user.ratingCount} ratings)</span>
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-semibold text-ink-800">
+                    <Star size={15} weight="fill" className="text-sun-500" /> {d.user.ratingAvg.toFixed(1)} <span className="font-normal text-ink-500">({d.user.ratingCount} ratings)</span>
                   </p>
                   {d.user.phone ? (
-                    <a href={`tel:${d.user.phone}`} className="mt-1 inline-flex items-center gap-1.5 text-[14px] text-brand-400 hover:text-brand-300">
-                      <Phone size={14} /> {d.user.phone}
+                    <a href={`tel:${d.user.phone}`} className="mt-1 inline-flex items-center gap-1.5 text-[14px] font-bold text-coral-600 hover:text-coral-700">
+                      <Phone size={15} weight="duotone" /> {d.user.phone}
                     </a>
                   ) : null}
                 </div>
               </div>
               {d.statusReason ? (
-                <p className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-3.5 py-2.5 text-[13px] text-amber-200">
-                  <span className="font-semibold">Status reason:</span> {d.statusReason}
+                <p className="mt-4 rounded-2xl bg-sun-100 px-3.5 py-2.5 text-[13px] text-ink-700">
+                  <span className="font-bold text-sun-700">Status reason:</span> {d.statusReason}
                 </p>
               ) : null}
               <div className="mt-5">
-                <h3 className="mb-3 flex items-center gap-2 text-[12.5px] font-semibold uppercase tracking-wide text-ink-400">
-                  <IdCard size={14} /> Identity
+                <h3 className="mb-3 flex items-center gap-2 text-[12.5px] font-bold uppercase tracking-wide text-ink-500">
+                  <IdentificationCard size={16} weight="duotone" className="text-coral-500" /> Identity
                 </h3>
                 <KeyValue
                   items={[
@@ -240,8 +240,8 @@ export default function DriverDetailPage() {
               <div className="mt-5 grid grid-cols-5 gap-1.5">
                 {(["details", "vehicle", "documents", "subscription", "submitted"] as const).map((step) => (
                   <div key={step} className="text-center">
-                    <div className={`h-1.5 rounded-full ${d.onboarding[step] ? "bg-brand-400" : "bg-ink-600"}`} />
-                    <p className="mt-1 text-[10.5px] capitalize text-ink-500">{step}</p>
+                    <div className={`h-1.5 rounded-full ${d.onboarding[step] ? "bg-teal-500" : "bg-paper-200"}`} />
+                    <p className="mt-1 text-[10.5px] font-semibold capitalize text-ink-500">{step}</p>
                   </div>
                 ))}
               </div>
@@ -249,12 +249,12 @@ export default function DriverDetailPage() {
           </motion.div>
 
           <motion.div variants={item.left}>
-            <Card title="Vehicle" action={<Car size={18} className="text-ink-500" />}>
+            <Card title="Vehicle" action={<Car size={22} weight="duotone" className="text-coral-500" />}>
               {d.vehicle ? (
                 <KeyValue
                   items={[
                     { label: "Category", value: categoryLabel(d.vehicle.category) },
-                    { label: "Plate", value: <span className="font-display text-[17px] font-semibold tracking-wide text-ink-50">{d.vehicle.plate}</span> },
+                    { label: "Plate", value: <span className="inline-block rounded-lg bg-paper-100 px-2 py-0.5 font-display text-[17px] font-semibold tracking-wide text-ink-900 ring-1 ring-paper-300">{d.vehicle.plate}</span> },
                     { label: "Make & model", value: `${d.vehicle.make} ${d.vehicle.model}` },
                     { label: "Year · colour", value: `${d.vehicle.year} · ${d.vehicle.color}` },
                     { label: "Fuel economy", value: `${d.vehicle.kmPerLitre} km/L` },
@@ -262,18 +262,18 @@ export default function DriverDetailPage() {
                   ]}
                 />
               ) : (
-                <p className="text-[14px] text-ink-400">No vehicle registered yet.</p>
+                <p className="text-[14px] text-ink-500">No vehicle registered yet.</p>
               )}
             </Card>
           </motion.div>
 
           <motion.div variants={item.left}>
-            <Card title="Subscription" subtitle={`${pkr(settings.data?.driverSubscriptionPkr ?? 1000)} every ${settings.data?.subscriptionDays ?? 30} days`} action={<Wallet size={18} className="text-ink-500" />}>
+            <Card title="Subscription" subtitle={`${pkr(settings.data?.driverSubscriptionPkr ?? 1000)} every ${settings.data?.subscriptionDays ?? 30} days`} action={<Wallet size={22} weight="duotone" className="text-teal-600" />}>
               {d.subscription ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge tone={SUB_STATUS_TONE[d.subscription.status]}>{SUB_STATUS_LABEL[d.subscription.status]}</Badge>
-                    {d.subscriptionActive && subDays !== null ? <span className={`text-[13px] font-semibold ${subDays <= 5 ? "text-amber-300" : "text-ink-300"}`}>{subDays <= 0 ? "Expires today" : `${subDays} days left`}</span> : null}
+                    {d.subscriptionActive && subDays !== null ? <span className={`text-[13px] font-bold ${subDays <= 5 ? "text-sun-700" : "text-ink-600"}`}>{subDays <= 0 ? "Expires today" : `${subDays} days left`}</span> : null}
                   </div>
                   <KeyValue
                     items={[
@@ -289,24 +289,24 @@ export default function DriverDetailPage() {
                       setLightboxSet("receipts");
                       setLightbox(0);
                     }}
-                    className="group relative block h-32 w-full overflow-hidden rounded-2xl border border-white/6 bg-ink-900"
+                    className="group relative block h-32 w-full overflow-hidden rounded-2xl bg-paper-100 ring-1 ring-paper-200"
                     aria-label="Open receipt"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={fileUrl(d.subscription.receiptFileId)} alt="Payment receipt" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-ink-950/70 px-2 py-0.5 text-[11.5px] font-semibold text-ink-100">
-                      <Receipt size={12} /> Receipt
+                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11.5px] font-bold text-ink-900 shadow-pillow">
+                      <Receipt size={13} weight="duotone" className="text-coral-500" /> Receipt
                     </span>
                   </button>
-                  {d.subscription.reviewerNote ? <p className="text-[13px] text-ink-400">{d.subscription.reviewerNote}</p> : null}
+                  {d.subscription.reviewerNote ? <p className="text-[13px] text-ink-600">{d.subscription.reviewerNote}</p> : null}
                   {d.subscription.status === "pending" ? (
-                    <Link href="/admin/subscriptions" className="inline-flex text-[13px] font-semibold text-brand-400 hover:text-brand-300">
+                    <Link href="/admin/subscriptions" className="inline-flex text-[13px] font-bold text-coral-600 hover:text-coral-700">
                       Review receipt in Subscriptions →
                     </Link>
                   ) : null}
                 </div>
               ) : (
-                <p className="text-[14px] text-ink-400">No payment uploaded yet. Approval is blocked until a subscription is active.</p>
+                <p className="text-[14px] text-ink-500">No payment uploaded yet. Approval is blocked until a subscription is active.</p>
               )}
             </Card>
           </motion.div>
@@ -329,19 +329,19 @@ export default function DriverDetailPage() {
               {d.rides.length === 0 ? (
                 <EmptyState title="No rides yet" description="Completed and cancelled trips will be listed here." className="py-8" />
               ) : (
-                <ul className="divide-y divide-white/5">
+                <ul className="divide-y divide-paper-200">
                   {d.rides.map((r) => (
                     <li key={r.id} className="flex items-center gap-4 px-5 py-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14px] text-ink-50">
-                          {r.pickup.name ?? r.pickup.address} <span className="text-ink-500">→</span> {r.dropoff.name ?? r.dropoff.address}
+                        <p className="truncate text-[14px] text-ink-900">
+                          {r.pickup.name ?? r.pickup.address} <span className="text-ink-400">→</span> {r.dropoff.name ?? r.dropoff.address}
                         </p>
-                        <p className="text-[12.5px] text-ink-400">
+                        <p className="text-[12.5px] text-ink-500">
                           {fmtDateTime(r.createdAt)} · {km(r.distanceKm)} · {r.customer.fullName}
                         </p>
                       </div>
                       <Badge tone={RIDE_STATUS_TONE[r.status]}>{RIDE_STATUS_LABEL[r.status]}</Badge>
-                      <span className="w-24 text-right font-display font-semibold text-ink-50">{pkr(r.farePkr)}</span>
+                      <span className="w-24 text-right font-display font-semibold tabular-nums text-ink-900">{pkr(r.farePkr)}</span>
                     </li>
                   ))}
                 </ul>
@@ -354,12 +354,12 @@ export default function DriverDetailPage() {
               {d.audit.length === 0 ? (
                 <EmptyState title="No activity yet" className="py-8" />
               ) : (
-                <ul className="divide-y divide-white/5">
+                <ul className="divide-y divide-paper-200">
                   {d.audit.map((a) => (
                     <li key={a.id} className="flex items-center gap-3 px-5 py-3 text-[13.5px]">
                       <span className="w-36 shrink-0 text-ink-500">{fmtDateTime(a.createdAt)}</span>
-                      <Badge tone={a.action.includes("reject") || a.action.includes("suspend") ? "rose" : a.action.includes("approve") || a.action.includes("verified") ? "brand" : "neutral"}>{a.action}</Badge>
-                      <span className="truncate text-ink-300">
+                      <Badge tone={a.action.includes("reject") || a.action.includes("suspend") ? "rose" : a.action.includes("approve") || a.action.includes("verified") ? "mint" : "neutral"}>{a.action}</Badge>
+                      <span className="truncate text-ink-600">
                         {a.actorName ?? a.actorRole ?? "system"}
                         {a.meta && typeof a.meta.reason === "string" ? ` — ${a.meta.reason}` : ""}
                       </span>
@@ -406,7 +406,7 @@ export default function DriverDetailPage() {
           title={docAction.kind === "verify" ? `Verify ${DOCUMENT_META[docAction.doc.type].label}?` : `Reject ${DOCUMENT_META[docAction.doc.type].label}`}
           description={docAction.kind === "verify" ? "Marks this document as checked by a human. If every required document is verified and the subscription is active, the driver is approved automatically." : "The driver is asked to upload a new photo. If they are currently approved they are taken off the road until it is fixed."}
           confirmLabel={docAction.kind === "verify" ? "Mark verified" : "Reject document"}
-          tone={docAction.kind === "verify" ? "primary" : "danger"}
+          tone={docAction.kind === "verify" ? "teal" : "danger"}
           reasonLabel="Note for the driver"
           reasonPlaceholder={docAction.kind === "verify" ? "Optional" : "e.g. The back side is cut off — include the whole card."}
           reason={docNote}

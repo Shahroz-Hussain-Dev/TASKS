@@ -1,8 +1,8 @@
 "use client";
 
+import { Car } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Car } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { RIDE_STATUSES, type RideDto, type RideStatus } from "@raahi/shared";
 import { adminApi } from "@/lib/admin-client";
@@ -50,7 +50,7 @@ export default function RidesPage() {
     <>
       <PageHeader title="Rides" subtitle="Every trip on the platform. Open a row to see the route, the people and the money." />
       <Card padded={false}>
-        <div className="flex flex-col gap-3 border-b border-white/5 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 border-b border-paper-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <Chips<Filter> value={filter} onChange={setFilter} options={FILTERS} layoutId="rides-filter" />
           <SearchInput value={q} onChange={setQ} placeholder="Passenger, driver, address or id" className="lg:w-80" />
         </div>
@@ -59,7 +59,7 @@ export default function RidesPage() {
         ) : list.isError ? (
           <ErrorState error={list.error} onRetry={() => list.refetch()} />
         ) : rows.length === 0 ? (
-          <EmptyState icon={<Car size={24} />} title={filter === "active" ? "No rides in progress" : "No rides found"} description={filter === "active" ? "Trips will appear here the moment a passenger accepts a bid." : debouncedQ ? "Try another name, address or id." : "Completed and cancelled trips are listed here."} />
+          <EmptyState icon={<Car size={26} weight="duotone" />} title={filter === "active" ? "No rides in progress" : "No rides found"} description={filter === "active" ? "Trips will appear here the moment a passenger accepts a bid." : debouncedQ ? "Try another name, address or id." : "Completed and cancelled trips are listed here."} />
         ) : (
           <>
             <Table>
@@ -76,14 +76,14 @@ export default function RidesPage() {
               </thead>
               <motion.tbody key={`${filter}-${page}-${debouncedQ}`} variants={stagger(0.03, 0)} initial="hidden" animate="show" className={list.isPlaceholderData ? "opacity-60 transition-opacity" : "transition-opacity"}>
                 {rows.map((r) => (
-                  <motion.tr key={r.id} variants={item.fade} className="cursor-pointer hover:bg-white/3" onClick={() => setSelected(r)}>
+                  <motion.tr key={r.id} variants={item.fade} className="cursor-pointer transition-colors hover:bg-paper-50" onClick={() => setSelected(r)}>
                     <Td className="whitespace-nowrap">
-                      <p className="text-ink-100">{fmtDateTime(r.createdAt)}</p>
+                      <p className="text-ink-900">{fmtDateTime(r.createdAt)}</p>
                       <p className="text-[12px] text-ink-500">{timeAgo(r.createdAt)}</p>
                     </Td>
                     <Td className="max-w-[300px]">
-                      <p className="truncate text-ink-100">{r.pickup.name ?? r.pickup.address}</p>
-                      <p className="truncate text-[12.5px] text-ink-400">→ {r.dropoff.name ?? r.dropoff.address}</p>
+                      <p className="truncate text-ink-900">{r.pickup.name ?? r.pickup.address}</p>
+                      <p className="truncate text-[12.5px] text-ink-600">→ {r.dropoff.name ?? r.dropoff.address}</p>
                       <p className="text-[12px] text-ink-500">
                         {km(r.distanceKm)} · {minutes(r.durationMin)}
                       </p>
@@ -91,14 +91,14 @@ export default function RidesPage() {
                     <Td>
                       <div className="flex items-center gap-2">
                         <Avatar name={r.customer.fullName} src={r.customer.avatarUrl} size={28} />
-                        <span className="truncate text-ink-100">{r.customer.fullName}</span>
+                        <span className="truncate text-ink-900">{r.customer.fullName}</span>
                       </div>
                     </Td>
                     <Td>
                       <div className="flex items-center gap-2">
                         <Avatar name={r.driver.fullName} src={r.driver.avatarUrl} size={28} />
                         <div className="min-w-0">
-                          <p className="truncate text-ink-100">{r.driver.fullName}</p>
+                          <p className="truncate text-ink-900">{r.driver.fullName}</p>
                           <p className="truncate text-[12px] text-ink-500">{r.driver.vehicle?.plate ?? "—"}</p>
                         </div>
                       </div>
@@ -109,7 +109,7 @@ export default function RidesPage() {
                         {RIDE_STATUS_LABEL[r.status]}
                       </Badge>
                     </Td>
-                    <Td className="text-right font-display font-semibold text-ink-50">{pkr(r.farePkr)}</Td>
+                    <Td className="text-right font-display font-semibold tabular-nums text-ink-900">{pkr(r.farePkr)}</Td>
                   </motion.tr>
                 ))}
               </motion.tbody>

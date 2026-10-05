@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { VEHICLE_CATEGORIES, VEHICLE_CATEGORY_META, type Place, type VehicleCategory } from "@raahi/shared";
 import { AssistantSheet, BuddyBubble } from "@/components/buddy";
-import { CATEGORY_TONE, CategoryIcon } from "@/components/customer/CategoryIcon";
+import { CategoryIcon } from "@/components/customer/CategoryIcon";
+import { CATEGORY_TONE } from "@/components/customer/categoryTone";
 import { TAB_BAR_CLEARANCE } from "@/components/customer/TabBar";
 import { MapView, Marker, UserDot, useMap, type MapHandle } from "@/components/Map";
 import { Avatar, Button, IconButton } from "@/components/ui";
@@ -23,6 +24,8 @@ import { cn } from "@/lib/utils";
 
 const MAP_PADDING = { bottom: 300 };
 const RECENTS_SHOWN = 3;
+/** Buddy floats bottom-right above the tab bar; the panel leaves this much room for him. */
+const BUDDY_CLEARANCE = 72;
 
 function greetingFor(hour: number): string {
   if (hour < 5) return "Good night";
@@ -116,32 +119,27 @@ export default function HomeScreen() {
 
         <div className="flex-1" />
 
-        <div className="px-4 mb-3 flex items-end justify-between">
-          <motion.div variants={item.left} className="pointer-events-auto">
-            <IconButton icon={GpsFix} label="Centre on my location" variant="solid" size={48} className={cn("text-sky-600", device.status === "locating" && "animate-pulse")} onClick={recentre} />
-          </motion.div>
-          <motion.div variants={item.right} className="pointer-events-auto">
-            <BuddyBubble hint="Say where you want to go" />
-          </motion.div>
-        </div>
+        <motion.div variants={item.right} className="self-end px-4 mb-3 pointer-events-auto">
+          <IconButton icon={GpsFix} label="Centre on my location" variant="solid" size={48} className={cn("text-sky-600", device.status === "locating" && "animate-pulse")} onClick={recentre} />
+        </motion.div>
 
-        <motion.section variants={item.up} className="px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_CLEARANCE}px)` }}>
-          <div className="glass rounded-[32px] p-3 flex flex-col gap-3">
+        <motion.section variants={item.up} className="px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_CLEARANCE + BUDDY_CLEARANCE}px)` }}>
+          <div className="glass rounded-[32px] p-3 flex flex-col gap-3 overflow-hidden">
             <div className="relative px-1 pt-1">
               <span aria-hidden className="blob bg-coral-100 -left-2 -top-3 w-[55%] h-[130%] opacity-80" />
               <span aria-hidden className="blob bg-sun-100 right-0 -bottom-4 w-[40%] h-[110%] opacity-80" style={{ animationDelay: "-6s" }} />
               <div className="relative sticker sticker-tilt-l bg-white rounded-[24px] p-2 flex items-center gap-2">
                 <motion.button type="button" whileTap={{ scale: 0.98, y: 2 }} transition={spring} onClick={() => plan()} className="flex-1 min-w-0 flex items-center gap-3 text-left rounded-[20px] py-1.5 pl-1">
-                  <span className="jelly jelly-coral size-12 rounded-full flex items-center justify-center shrink-0">
-                    <MagnifyingGlass className="size-6" weight="bold" />
+                  <span className="jelly jelly-coral size-11 rounded-full flex items-center justify-center shrink-0">
+                    <MagnifyingGlass className="size-[22px]" weight="bold" />
                   </span>
                   <span className="flex-1 min-w-0">
                     <span className="block font-display text-[20px] font-semibold text-ink-900 leading-tight">{trip.target ? "Back to your trip" : "Where to?"}</span>
-                    <span className="block text-[12.5px] text-ink-500 truncate font-semibold">{trip.target ? "You have a ride in progress" : "Name your fare · drivers compete for you"}</span>
+                    <span className="block text-[12.5px] text-ink-500 truncate font-semibold">{trip.target ? "You have a ride in progress" : "Name your fare, drivers compete"}</span>
                   </span>
                   <ArrowRight className="size-5 text-ink-300 shrink-0" weight="bold" />
                 </motion.button>
-                <IconButton icon={Microphone} label="Voice booking" variant="solid" size={48} className="text-coral-600 shrink-0" onClick={() => {
+                <IconButton icon={Microphone} label="Voice booking" variant="solid" size={44} className="text-coral-600 shrink-0" onClick={() => {
                   haptic.light();
                   setAssistantOpen(true);
                 }} />
@@ -167,6 +165,7 @@ export default function HomeScreen() {
         </motion.section>
       </motion.div>
 
+      <BuddyBubble hint="Say where you want to go" />
       <AssistantSheet open={assistantOpen} onClose={() => setAssistantOpen(false)} />
     </div>
   );

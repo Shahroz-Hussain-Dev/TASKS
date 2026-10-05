@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { CalendarDays, IdCard, MapPin, ShieldCheck } from "lucide-react";
+import { CalendarDots, IdentificationCard, MapPin, ShieldCheck } from "@phosphor-icons/react";
 import { useCallback, type FormEvent } from "react";
 import { driverDetailsSchema, formatCnic, type DriverDetailsInput, type DriverDto } from "@raahi/shared";
+import { Breathe } from "@/components/driver/Breathe";
 import { PhoneInput } from "@/components/shared/PhoneInput";
 import { Button, Chip, Input, useToast } from "@/components/ui";
 import { PK_CITIES, toDateInput } from "@/hooks/driver/onboarding";
@@ -89,24 +90,24 @@ export function DetailsStep({ driver, onNext }: { driver: DriverDto; onNext: () 
 
   return (
     <motion.form variants={stagger(0.06)} initial="hidden" animate="show" onSubmit={submit} noValidate className="flex flex-col gap-4 pb-4">
-      <motion.div variants={item.left} className="flex items-start gap-3 rounded-2xl bg-brand-500/8 border border-brand-500/15 px-3.5 py-3">
-        <ShieldCheck className="size-5 text-brand-400 shrink-0 mt-0.5" />
-        <p className="text-[13px] text-ink-200 leading-snug">Your details are checked against your documents by AI and never shown to passengers. Only your first name, photo and vehicle are visible.</p>
+      <motion.div variants={item.left} className="flex items-start gap-3 rounded-[22px] bg-teal-100 px-3.5 py-3">
+        <ShieldCheck className="size-6 text-teal-600 shrink-0 mt-0.5" weight="duotone" />
+        <p className="text-[13px] font-semibold text-ink-700 leading-snug">Your details are checked against your documents by AI and never shown to passengers. Only your first name, photo and vehicle are visible.</p>
       </motion.div>
 
       <motion.div variants={item.up}>
-        <Input label="CNIC number" icon={IdCard} inputMode="numeric" autoComplete="off" placeholder="35202-1234567-1" value={cnicField.value} error={cnicField.error} onBlur={cnicField.onBlur} onChange={(e) => onCnic(e.target.value)} hint="13 digits, as printed on your national ID card." />
+        <Input label="CNIC number" icon={IdentificationCard} inputMode="numeric" autoComplete="off" placeholder="35202-1234567-1" value={cnicField.value} error={cnicField.error} onBlur={cnicField.onBlur} onChange={(e) => onCnic(e.target.value)} hint="13 digits, as printed on your national ID card." />
       </motion.div>
 
       <motion.div variants={item.up}>
-        <Input label="Date of birth (optional)" icon={CalendarDays} type="date" max={yearsAgo(18)} min="1940-01-01" {...form.bind("dateOfBirth")} />
+        <Input label="Date of birth (optional)" icon={CalendarDots} type="date" max={yearsAgo(18)} min="1940-01-01" {...form.bind("dateOfBirth")} />
       </motion.div>
 
       <motion.div variants={item.up} className="flex flex-col gap-2">
         <Input label="City" icon={MapPin} autoComplete="address-level2" autoCapitalize="words" placeholder="Where you'll drive most" {...form.bind("city")} />
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
           {PK_CITIES.map((c) => (
-            <Chip key={c} active={form.values.city.trim().toLowerCase() === c.toLowerCase()} onClick={() => form.set("city", c)} className="shrink-0">
+            <Chip key={c} tone="teal" active={form.values.city.trim().toLowerCase() === c.toLowerCase()} onClick={() => form.set("city", c)} className="shrink-0">
               {c}
             </Chip>
           ))}
@@ -123,9 +124,11 @@ export function DetailsStep({ driver, onNext }: { driver: DriverDto; onNext: () 
       </motion.div>
 
       <motion.div variants={item.up} className="pt-2">
-        <Button type="submit" full size="xl" loading={save.isPending}>
-          Save & continue
-        </Button>
+        <Breathe>
+          <Button type="submit" full size="xl" variant="teal" loading={save.isPending}>
+            Save & continue
+          </Button>
+        </Breathe>
       </motion.div>
     </motion.form>
   );

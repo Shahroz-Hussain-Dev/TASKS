@@ -25,7 +25,9 @@ export function BuddyFallback({ state = "idle", size = 160, className }: { state
           <stop offset="100%" stopColor={C.shadow} stopOpacity="0" />
         </radialGradient>
       </defs>
-      <motion.ellipse cx="100" cy="182" rx="50" ry="9" fill="url(#buddy-shadow)" animate={{ rx: [50, 44, 50] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.g style={{ originX: "100px", originY: "182px" }} animate={{ scaleX: [1, 0.88, 1] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}>
+        <ellipse cx="100" cy="182" rx="50" ry="9" fill="url(#buddy-shadow)" />
+      </motion.g>
       <motion.g
         style={{ originX: "100px", originY: "120px" }}
         animate={{ y: [0, -bob, 0], rotate: [tilt, tilt + (sad ? 0 : 1.5), tilt] }}

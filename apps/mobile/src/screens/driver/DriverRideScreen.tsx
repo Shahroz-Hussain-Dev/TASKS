@@ -4,6 +4,7 @@ import { ChatCircleDots, Crosshair, Flag, HandCoins, NavigationArrow, Siren, Sta
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { decodePolyline, estimateDurationMin, estimateRoadKm, haversineKm, type LatLng, type RideDto, type RideStatus, type RouteQuote } from "@raahi/shared";
+import { Breathe } from "@/components/driver/Breathe";
 import { Confetti } from "@/components/driver/Confetti";
 import { FitCamera } from "@/components/driver/FitCamera";
 import { CarMarker, MapView, Marker, PinMarker, RouteLine, type MapHandle } from "@/components/Map";
@@ -191,6 +192,11 @@ export default function DriverRideScreen() {
       else {
         haptic.success();
         setCelebrate(true);
+        import("@/lib/confetti")
+          .then((m) => m.celebrate({ intensity: "big" }))
+          .catch(() => {
+            /* confetti is a delight, never a dependency */
+          });
       }
     } else if (ride.status === "cancelled_by_customer") {
       toast({ title: "Passenger cancelled", body: "Sorry about that. You're back on the request feed.", tone: "neutral" });
@@ -347,15 +353,15 @@ export default function DriverRideScreen() {
                   <Button variant="outline" size="xl" icon={NavigationArrow} style={SKY_JELLY} onClick={() => openNavigation(step.target, toPickup ? "Pickup" : "Drop-off")} aria-label={step.navLabel}>
                     Navigate
                   </Button>
-                  <motion.div layout transition={spring}>
-                    <Button full size="xl" variant={step.ctaVariant} icon={ride.status === "in_progress" ? Flag : undefined} loading={advance.isPending} onClick={() => advance.mutate(ride.status)} className="breathe">
+                  <Breathe tone={step.ctaVariant === "amber" ? "sun" : step.ctaVariant === "teal" ? "teal" : "coral"}>
+                    <Button full size="xl" variant={step.ctaVariant} icon={ride.status === "in_progress" ? Flag : undefined} loading={advance.isPending} onClick={() => advance.mutate(ride.status)}>
                       <AnimatePresence mode="wait" initial={false}>
                         <motion.span key={step.cta} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring} className="inline-block">
                           {step.cta}
                         </motion.span>
                       </AnimatePresence>
                     </Button>
-                  </motion.div>
+                  </Breathe>
                 </div>
                 {canCancel && (
                   <Button variant="ghost" size="md" icon={X} className="text-ink-500" onClick={() => setCancelOpen(true)}>
@@ -392,19 +398,20 @@ export default function DriverRideScreen() {
                 </div>
               </motion.div>
               <motion.div variants={item.up} className="w-full pt-2">
-                <Button
-                  full
-                  size="xl"
-                  variant="amber"
-                  className="breathe"
-                  onClick={() => {
-                    haptic.medium();
-                    setCelebrate(false);
-                    setRatingOpen(true);
-                  }}
-                >
-                  Cash collected · rate passenger
-                </Button>
+                <Breathe tone="sun">
+                  <Button
+                    full
+                    size="xl"
+                    variant="amber"
+                    onClick={() => {
+                      haptic.medium();
+                      setCelebrate(false);
+                      setRatingOpen(true);
+                    }}
+                  >
+                    Cash collected · rate passenger
+                  </Button>
+                </Breathe>
               </motion.div>
             </motion.div>
           </motion.div>

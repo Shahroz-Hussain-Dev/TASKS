@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowRight, Broadcast, Car, Lifebuoy, Money, Pulse, Taxi, UsersThree, Wallet, type Icon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, Banknote, Car, CarTaxiFront, LifeBuoy, Radio, Users, Wallet } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { adminApi } from "@/lib/admin-client";
@@ -17,7 +17,7 @@ interface Kpi {
   value: number;
   format?: (n: number) => string;
   sub?: string;
-  icon: typeof Users;
+  icon: Icon;
   tone: string;
   href?: string;
 }
@@ -30,14 +30,14 @@ export default function DashboardPage() {
   const s = stats.data;
   const kpis: Kpi[] = s
     ? [
-        { label: "Rides today", value: s.ridesToday, sub: `${s.ridesWeek.toLocaleString("en-PK")} this week`, icon: Car, tone: "text-brand-400 bg-brand-500/15", href: "/admin/rides" },
-        { label: "GMV today", value: s.gmvTodayPkr, format: (n) => pkr(n), sub: `${pkr(s.gmvWeekPkr)} this week · 100% to drivers`, icon: Banknote, tone: "text-amber-300 bg-amber-400/15", href: "/admin/rides" },
-        { label: "Drivers online", value: s.driversOnline, sub: `${s.drivers.toLocaleString("en-PK")} registered`, icon: Radio, tone: "text-sky-400 bg-sky-400/15", href: "/admin/live" },
-        { label: "Active rides", value: s.activeRides, sub: `${s.openRequests} open requests`, icon: Activity, tone: "text-violet-400 bg-violet-400/15", href: "/admin/live" },
-        { label: "Pending review", value: s.driversPendingReview, sub: "drivers waiting for a decision", icon: CarTaxiFront, tone: "text-amber-300 bg-amber-400/15", href: "/admin/drivers" },
-        { label: "Customers", value: s.customers, sub: "passenger accounts", icon: Users, tone: "text-ink-100 bg-white/8", href: "/admin/customers" },
-        { label: "Subscriptions", value: s.subscriptionRevenueMonthPkr, format: (n) => pkr(n), sub: "collected this month", icon: Wallet, tone: "text-brand-400 bg-brand-500/15", href: "/admin/subscriptions" },
-        { label: "Open tickets", value: s.openTickets, sub: "need a human reply", icon: LifeBuoy, tone: "text-rose-400 bg-rose-500/15", href: "/admin/support" },
+        { label: "Rides today", value: s.ridesToday, sub: `${s.ridesWeek.toLocaleString("en-PK")} this week`, icon: Car, tone: "text-coral-600 bg-coral-100", href: "/admin/rides" },
+        { label: "GMV today", value: s.gmvTodayPkr, format: (n) => pkr(n), sub: `${pkr(s.gmvWeekPkr)} this week · 100% to drivers`, icon: Money, tone: "text-sun-700 bg-sun-100", href: "/admin/rides" },
+        { label: "Drivers online", value: s.driversOnline, sub: `${s.drivers.toLocaleString("en-PK")} registered`, icon: Broadcast, tone: "text-teal-700 bg-teal-100", href: "/admin/live" },
+        { label: "Active rides", value: s.activeRides, sub: `${s.openRequests} open requests`, icon: Pulse, tone: "text-lavender-700 bg-lavender-100", href: "/admin/live" },
+        { label: "Pending review", value: s.driversPendingReview, sub: "drivers waiting for a decision", icon: Taxi, tone: "text-sun-700 bg-sun-100", href: "/admin/drivers" },
+        { label: "Customers", value: s.customers, sub: "passenger accounts", icon: UsersThree, tone: "text-sky-700 bg-sky-100", href: "/admin/customers" },
+        { label: "Subscriptions", value: s.subscriptionRevenueMonthPkr, format: (n) => pkr(n), sub: "collected this month", icon: Wallet, tone: "text-teal-700 bg-teal-100", href: "/admin/subscriptions" },
+        { label: "Open tickets", value: s.openTickets, sub: "need a human reply", icon: Lifebuoy, tone: "text-rose-700 bg-rose-100", href: "/admin/support" },
       ]
     : [];
 
@@ -53,8 +53,8 @@ export default function DashboardPage() {
         <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.isPending
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-3xl border border-white/6 bg-ink-800 p-5">
-                  <Skeleton className="h-9 w-9 rounded-xl" />
+                <div key={i} className="pillow p-5">
+                  <Skeleton className="h-10 w-10 rounded-full" />
                   <Skeleton className="mt-5 h-8 w-24" />
                   <Skeleton className="mt-2 h-3 w-32" />
                 </div>
@@ -83,8 +83,8 @@ export default function DashboardPage() {
             title="Pending approvals"
             subtitle="Oldest submissions first"
             action={
-              <Link href="/admin/drivers?status=under_review" className="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-400 hover:text-brand-300">
-                Review queue <ArrowRight size={14} />
+              <Link href="/admin/drivers?status=under_review" className="inline-flex items-center gap-1 text-[13px] font-bold text-coral-600 hover:text-coral-700">
+                Review queue <ArrowRight size={14} weight="bold" />
               </Link>
             }
           >
@@ -95,14 +95,14 @@ export default function DashboardPage() {
             ) : pending.data.items.length === 0 ? (
               <EmptyState title="Queue is clear" description="No drivers are waiting for review right now." className="py-10" />
             ) : (
-              <ul className="divide-y divide-white/5">
+              <ul className="divide-y divide-paper-200">
                 {pending.data.items.map((d) => (
                   <li key={d.id}>
-                    <Link href={`/admin/drivers/${d.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/3">
+                    <Link href={`/admin/drivers/${d.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-50">
                       <Avatar name={d.user.fullName} src={d.user.avatarUrl} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14px] font-semibold text-ink-50">{d.user.fullName}</p>
-                        <p className="truncate text-[12.5px] text-ink-400">
+                        <p className="truncate text-[14px] font-bold text-ink-900">{d.user.fullName}</p>
+                        <p className="truncate text-[12.5px] text-ink-500">
                           {d.vehicle ? `${d.vehicle.make} ${d.vehicle.model} · ${d.vehicle.plate}` : "No vehicle yet"} · {d.documents.filter((x) => x.status === "verified").length}/{d.documents.length} docs verified
                         </p>
                       </div>
@@ -121,8 +121,8 @@ export default function DashboardPage() {
             title="Open tickets"
             subtitle="Escalated conversations first"
             action={
-              <Link href="/admin/support" className="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-400 hover:text-brand-300">
-                Support inbox <ArrowRight size={14} />
+              <Link href="/admin/support" className="inline-flex items-center gap-1 text-[13px] font-bold text-coral-600 hover:text-coral-700">
+                Support inbox <ArrowRight size={14} weight="bold" />
               </Link>
             }
           >
@@ -133,16 +133,16 @@ export default function DashboardPage() {
             ) : tickets.data.items.length === 0 ? (
               <EmptyState title="Inbox is empty" description="Every support conversation has been answered." className="py-10" />
             ) : (
-              <ul className="divide-y divide-white/5">
+              <ul className="divide-y divide-paper-200">
                 {tickets.data.items.map((t) => {
                   const last = t.messages[t.messages.length - 1];
                   return (
                     <li key={t.id}>
-                      <Link href={`/admin/support?ticket=${t.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/3">
+                      <Link href={`/admin/support?ticket=${t.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-paper-50">
                         <Avatar name={t.user?.fullName} src={t.user?.avatarUrl} />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-semibold text-ink-50">{t.subject}</p>
-                          <p className="truncate text-[12.5px] text-ink-400">
+                          <p className="truncate text-[14px] font-bold text-ink-900">{t.subject}</p>
+                          <p className="truncate text-[12.5px] text-ink-500">
                             {t.user?.fullName ?? "Unknown user"} · {last ? last.body : "No messages yet"}
                           </p>
                         </div>
@@ -168,19 +168,19 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
   const body: ReactNode = (
     <>
       <div className="flex items-start justify-between">
-        <span className={cn("grid h-10 w-10 place-items-center rounded-xl", kpi.tone)}>
-          <Icon size={20} strokeWidth={2.1} />
+        <span className={cn("grid h-11 w-11 place-items-center rounded-full", kpi.tone)}>
+          <Icon size={24} weight="duotone" />
         </span>
-        {kpi.href ? <ArrowRight size={16} className="text-ink-600 transition-transform group-hover:translate-x-0.5 group-hover:text-ink-300" /> : null}
+        {kpi.href ? <ArrowRight size={16} weight="bold" className="text-ink-300 transition-all group-hover:translate-x-0.5 group-hover:text-coral-600" /> : null}
       </div>
-      <p className="mt-4 font-display text-[28px] font-semibold leading-none tracking-tight text-ink-50">
+      <p className="mt-4 font-display text-[30px] font-semibold leading-none tracking-tight tabular-nums text-ink-900">
         <Counter value={kpi.value} format={kpi.format} />
       </p>
-      <p className="mt-1.5 text-[12.5px] font-semibold uppercase tracking-wide text-ink-400">{kpi.label}</p>
+      <p className="mt-1.5 text-[12.5px] font-bold uppercase tracking-wide text-ink-600">{kpi.label}</p>
       {kpi.sub ? <p className="mt-1 text-[12.5px] text-ink-500">{kpi.sub}</p> : null}
     </>
   );
-  const className = "group block rounded-3xl border border-white/6 bg-ink-800 p-5 shadow-card transition-colors hover:border-white/10";
+  const className = "group pillow block p-5 transition-shadow hover:shadow-float";
   return (
     <motion.div variants={item.up} whileHover={{ y: -2 }}>
       {kpi.href ? (
@@ -196,7 +196,7 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
 
 function ListSkeleton() {
   return (
-    <div className="divide-y divide-white/5">
+    <div className="divide-y divide-paper-200">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-5 py-3">
           <Skeleton className="h-9 w-9 rounded-full" />

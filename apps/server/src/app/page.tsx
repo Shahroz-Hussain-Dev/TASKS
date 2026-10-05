@@ -4,7 +4,7 @@ import { DownloadCta, DriverSection, FareSection, Hero, HowItWorks } from "@/com
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-ink-900 text-ink-100">
+    <main className="min-h-screen overflow-x-hidden bg-paper-50 text-ink-700">
       <Nav />
       <Hero />
       <HowItWorks />

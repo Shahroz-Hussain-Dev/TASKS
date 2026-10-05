@@ -38,7 +38,7 @@ export function Buddy({ state = "idle", size = 160, className }: { state?: Buddy
       {webgl ? (
         <SceneBoundary fallback={fallback}>
           <Suspense fallback={fallback}>
-            <BuddyScene state={state} />
+            <BuddyScene state={state} size={size} />
           </Suspense>
         </SceneBoundary>
       ) : (

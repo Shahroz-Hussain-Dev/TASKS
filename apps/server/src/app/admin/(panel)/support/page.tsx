@@ -1,8 +1,8 @@
 "use client";
 
+import { CheckCircle, Lifebuoy, PaperPlaneTilt, Phone, Robot, ShieldCheck, User } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, CheckCircle2, LifeBuoy, Phone, Send, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -78,7 +78,7 @@ function SupportInbox() {
       <PageHeader title="Support" subtitle="Conversations the Gemini assistant handed over, plus anything still open. Escalated tickets come first." />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[400px_1fr]">
         <Card padded={false} className="flex max-h-[78vh] min-h-[520px] flex-col">
-          <div className="space-y-3 border-b border-white/5 p-3">
+          <div className="space-y-3 border-b border-paper-200 p-3">
             <Chips<Filter>
               value={filter}
               onChange={setFilter}
@@ -103,24 +103,24 @@ function SupportInbox() {
             ) : list.isError ? (
               <ErrorState error={list.error} onRetry={() => list.refetch()} />
             ) : list.data.items.length === 0 ? (
-              <EmptyState icon={<LifeBuoy size={22} />} title="Nothing here" description={filter === "all" ? "No support conversations yet." : "No tickets match this filter."} className="py-10" />
+              <EmptyState icon={<Lifebuoy size={26} weight="duotone" />} title="Nothing here" description={filter === "all" ? "No support conversations yet." : "No tickets match this filter."} className="py-10" />
             ) : (
-              <ul className="divide-y divide-white/5">
+              <ul className="divide-y divide-paper-200">
                 {list.data.items.map((t) => {
                   const last = t.messages[t.messages.length - 1];
                   const active = t.id === selectedId;
                   return (
                     <li key={t.id}>
-                      <button type="button" onClick={() => select(t.id)} className={cn("relative w-full px-4 py-3 text-left transition-colors hover:bg-white/3", active && "bg-brand-500/10")}>
-                        {active ? <motion.span layoutId="support-active" transition={spring} className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-brand-400" /> : null}
+                      <button type="button" onClick={() => select(t.id)} className={cn("relative w-full px-4 py-3 text-left transition-colors hover:bg-paper-50", active && "bg-coral-100/60 hover:bg-coral-100/60")}>
+                        {active ? <motion.span layoutId="support-active" transition={spring} className="absolute left-0 top-2 bottom-2 w-1.5 rounded-full bg-coral-500" /> : null}
                         <div className="flex items-center gap-3">
                           <Avatar name={t.user?.fullName} src={t.user?.avatarUrl} size={34} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <p className="truncate text-[14px] font-semibold text-ink-50">{t.user?.fullName ?? "Unknown user"}</p>
+                              <p className="truncate text-[14px] font-bold text-ink-900">{t.user?.fullName ?? "Unknown user"}</p>
                               <span className="shrink-0 text-[11.5px] text-ink-500">{timeAgo(t.updatedAt)}</span>
                             </div>
-                            <p className="truncate text-[13px] text-ink-300">{t.subject}</p>
+                            <p className="truncate text-[13px] text-ink-700">{t.subject}</p>
                             <p className="truncate text-[12.5px] text-ink-500">{last ? `${last.sender === "admin" ? "You: " : last.sender === "assistant" ? "Assistant: " : ""}${last.body}` : "No messages"}</p>
                           </div>
                         </div>
@@ -141,7 +141,7 @@ function SupportInbox() {
 
         <Card padded={false} className="flex max-h-[78vh] min-h-[520px] flex-col">
           {!selectedId ? (
-            <EmptyState icon={<LifeBuoy size={24} />} title="Pick a conversation" description="Select a ticket on the left to read the thread and reply as Raahi support." className="my-auto" />
+            <EmptyState icon={<Lifebuoy size={26} weight="duotone" />} title="Pick a conversation" description="Select a ticket on the left to read the thread and reply as Raahi support." className="my-auto" />
           ) : !ticket ? (
             single.isPending || list.isPending ? (
               <div className="space-y-3 p-5">
@@ -172,18 +172,18 @@ function Thread({ ticket, reply, onReply, resolve, onResolve, onSend, sending }:
 
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-5 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-paper-200 px-5 py-4">
         <div className="flex items-center gap-3">
           <Avatar name={ticket.user?.fullName} src={ticket.user?.avatarUrl} size={40} />
           <div className="min-w-0">
-            <h2 className="truncate font-display text-[16px] font-semibold text-ink-50">{ticket.subject}</h2>
-            <p className="text-[12.5px] text-ink-400">
+            <h2 className="truncate font-display text-[16px] font-semibold text-ink-900">{ticket.subject}</h2>
+            <p className="text-[12.5px] text-ink-500">
               {ticket.user?.fullName ?? "Unknown user"}
               {ticket.user?.phone ? (
                 <>
                   {" · "}
-                  <a href={`tel:${ticket.user.phone}`} className="inline-flex items-center gap-1 text-brand-400 hover:text-brand-300">
-                    <Phone size={11} /> {ticket.user.phone}
+                  <a href={`tel:${ticket.user.phone}`} className="inline-flex items-center gap-1 font-bold text-coral-600 hover:text-coral-700">
+                    <Phone size={12} weight="duotone" /> {ticket.user.phone}
                   </a>
                 </>
               ) : null}
@@ -196,7 +196,7 @@ function Thread({ ticket, reply, onReply, resolve, onResolve, onSend, sending }:
           {ticket.escalated && ticket.status !== "resolved" ? <Badge tone="rose" dot>Escalated</Badge> : null}
           <Badge tone={TICKET_STATUS_TONE[ticket.status]}>{TICKET_STATUS_LABEL[ticket.status]}</Badge>
           {ticket.user?.role === "driver" ? (
-            <Link href={`/admin/drivers?q=${encodeURIComponent(ticket.user.phone ?? ticket.user.fullName)}`} className="text-[12.5px] font-semibold text-brand-400 hover:text-brand-300">
+            <Link href={`/admin/drivers?q=${encodeURIComponent(ticket.user.phone ?? ticket.user.fullName)}`} className="text-[12.5px] font-bold text-coral-600 hover:text-coral-700">
               Driver profile
             </Link>
           ) : null}
@@ -213,7 +213,7 @@ function Thread({ ticket, reply, onReply, resolve, onResolve, onSend, sending }:
         <div ref={bottom} />
       </div>
 
-      <footer className="space-y-3 border-t border-white/6 p-4">
+      <footer className="space-y-3 border-t border-paper-200 bg-paper-50 p-4">
         <Textarea value={reply} onChange={(e) => onReply(e.target.value.slice(0, 2000))} placeholder={ticket.status === "resolved" ? "Reopen the conversation with a reply…" : "Write a reply as Raahi support…"} className="min-h-[88px]" onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canSend) onSend();
         }} />
@@ -223,7 +223,7 @@ function Thread({ ticket, reply, onReply, resolve, onResolve, onSend, sending }:
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[12px] text-ink-500">{reply.length}/2000 · Ctrl+Enter to send</span>
-            <Button icon={resolve ? <CheckCircle2 size={16} /> : <Send size={16} />} onClick={onSend} disabled={!canSend} loading={sending}>
+            <Button variant={resolve ? "teal" : "primary"} icon={resolve ? <CheckCircle size={17} weight="fill" /> : <PaperPlaneTilt size={17} weight="fill" />} onClick={onSend} disabled={!canSend} loading={sending}>
               {resolve ? "Send & resolve" : "Send reply"}
             </Button>
           </div>
@@ -239,18 +239,18 @@ function Bubble({ message }: { message: SupportMessageDto }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={springSoft} className={cn("flex items-end gap-2", mine ? "justify-end" : "justify-start")}>
       {!mine ? (
-        <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full", bot ? "bg-violet-400/15 text-violet-400" : "bg-ink-700 text-ink-300")}>{bot ? <Bot size={14} /> : <UserRound size={14} />}</span>
+        <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full", bot ? "bg-lavender-100 text-lavender-600" : "bg-paper-200 text-ink-600")}>{bot ? <Robot size={15} weight="duotone" /> : <User size={15} weight="duotone" />}</span>
       ) : null}
-      <div className={cn("max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed", mine ? "rounded-br-md bg-brand-500 text-ink-950" : bot ? "glass rounded-bl-md text-ink-200" : "rounded-bl-md bg-ink-700 text-ink-100")}>
+      <div className={cn("max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed", mine ? "rounded-br-md bg-teal-500 text-white shadow-[0_3px_0_0_#0e8a7b]" : bot ? "rounded-bl-md bg-lavender-100 text-ink-800" : "rounded-bl-md bg-white text-ink-800 shadow-pillow")}>
         <p className="whitespace-pre-wrap break-words">{message.body}</p>
-        <p className={cn("mt-1 text-[11px]", mine ? "text-ink-950/70" : "text-ink-500")}>
+        <p className={cn("mt-1 text-[11px] font-semibold", mine ? "text-white/80" : "text-ink-500")}>
           {bot ? "Assistant · " : mine ? "Raahi support · " : ""}
           {fmtTime(message.createdAt)}
         </p>
       </div>
       {mine ? (
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-500/20 text-brand-300">
-          <ShieldCheck size={14} />
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-100 text-teal-700">
+          <ShieldCheck size={15} weight="duotone" />
         </span>
       ) : null}
     </motion.div>

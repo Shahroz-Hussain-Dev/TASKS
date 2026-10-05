@@ -4,6 +4,7 @@ import { Clock, MagnifyingGlass, Minus, NotePencil, Path, Plus, Users, Warning }
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { VEHICLE_CATEGORY_META, createRideRequestSchema, decodePolyline, isWithinFareBounds, type LatLng, type Place, type VehicleCategory } from "@raahi/shared";
+import { BreathingCta } from "@/components/customer/BreathingCta";
 import { CategoryCarousel } from "@/components/customer/CategoryCarousel";
 import { FitCamera } from "@/components/customer/FitCamera";
 import { MapPicker } from "@/components/customer/MapPicker";
@@ -347,11 +348,11 @@ export default function PlanRideScreen() {
 
           {/* Sticky CTA */}
           <div className="absolute inset-x-0 bottom-0 px-4 pt-8 bg-gradient-to-t from-paper-50 via-paper-50/95 to-transparent rounded-b-none" style={{ paddingBottom: "calc(var(--safe-bottom) + 14px)" }}>
-            <div className={cn(ready && !create.isPending && "breathe")}>
+            <BreathingCta active={ready && !create.isPending}>
               <Button full size="xl" disabled={!ready} loading={create.isPending} onClick={() => create.mutate()}>
                 {ctaLabel}
               </Button>
-            </div>
+            </BreathingCta>
           </div>
         </motion.div>
       </div>

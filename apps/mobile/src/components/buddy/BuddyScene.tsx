@@ -49,10 +49,10 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
   // Cap peak: a ring segment with a little thickness, extruded from a 2D shape.
   const peakShape = useMemo(() => {
     const s = new Shape();
-    const inner = 0.62;
-    const outer = 1.02;
-    const a0 = Math.PI * 0.08;
-    const a1 = Math.PI * 0.92;
+    const inner = 0.6;
+    const outer = 1.08;
+    const a0 = Math.PI * 0.22;
+    const a1 = Math.PI * 0.78;
     s.absarc(0, 0, outer, a0, a1, false);
     s.absarc(0, 0, inner, a1, a0, true);
     s.closePath();
@@ -84,15 +84,15 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
     let capZ = 0;
     let antennaX = 0;
     let haloScale = 0;
-    let armLRot = 0.85;
-    let armRRot = -0.85;
+    let armLRot = -0.85;
+    let armRRot = 0.85;
     let pupilX = 0;
     let pupilY = 0;
     let eyeScaleY = 1;
     let eyeScaleX = 1;
     let mouthOpen = false;
     let smileScale = 1;
-    let smileFlip = 0;
+    let frown = false;
     let direct = false; // write posY directly (fast bounces)
 
     switch (s) {
@@ -106,8 +106,8 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
             a.tiltDir = Math.random() > 0.5 ? 1 : -1;
           } else rotZ += bump(p) * 0.16 * a.tiltDir * amp;
         }
-        armLRot += Math.sin(t * 1.7) * 0.08 * amp;
-        armRRot -= Math.sin(t * 1.7) * 0.08 * amp;
+        armLRot -= Math.sin(t * 1.7) * 0.08 * amp;
+        armRRot += Math.sin(t * 1.7) * 0.08 * amp;
         break;
       }
       case "listening": {
@@ -115,13 +115,13 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
         posZ = 0.22;
         posY = Math.sin(t * 2.4) * 0.02 * amp;
         const pulse = (Math.sin(t * 6.5) + 1) / 2;
-        pinGlow = 1.2 + pulse * 2.2;
+        pinGlow = 1.0 + pulse * 1.5;
         pinScale = 1 + pulse * 0.22;
         capZ = Math.sin(t * 11) * 0.06 * amp;
         eyeScaleX = 1.08;
         eyeScaleY = 1.12;
-        armLRot = 0.55;
-        armRRot = -0.55;
+        armLRot = -0.6;
+        armRRot = 0.6;
         break;
       }
       case "thinking": {
@@ -130,8 +130,8 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
         pupilX = 0.035;
         pupilY = 0.05;
         haloScale = 1;
-        armLRot = 0.5;
-        armRRot = -1.9; // hand up to the chin
+        armLRot = -0.5;
+        armRRot = 2.0; // hand up to the chin
         smileScale = 0.7;
         break;
       }
@@ -140,23 +140,23 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
         posY = Math.abs(Math.sin(t * 8.5)) * 0.055 * amp;
         rotZ = Math.sin(t * 4.2) * 0.035 * amp;
         mouthOpen = true;
-        armLRot = 0.7 + Math.sin(t * 8.5) * 0.12 * amp;
-        armRRot = -0.7 - Math.sin(t * 8.5 + 1) * 0.12 * amp;
+        armLRot = -0.75 - Math.sin(t * 8.5) * 0.14 * amp;
+        armRRot = 0.75 + Math.sin(t * 8.5 + 1) * 0.14 * amp;
         break;
       }
       case "happy": {
         direct = true;
         const p = clamp(since / 1.05, 0, 1);
         if (p < 1) {
-          posY = bump(p) * 0.62 * (calm ? 0.5 : 1);
+          posY = bump(p) * 0.42 * (calm ? 0.5 : 1);
           rotY = easeInOut(p) * TAU;
           squash = p < 0.12 ? 1 - bump(p / 0.12) * 0.12 : 1 + bump(p) * 0.06;
         } else {
           posY = Math.abs(Math.sin((since - 1.05) * 5)) * 0.045 * amp;
           rotY = 0;
         }
-        armLRot = 2.5;
-        armRRot = -2.5;
+        armLRot = -2.4;
+        armRRot = 2.4;
         eyeScaleY = 0.78;
         smileScale = 1.45;
         pinGlow = 1.4;
@@ -168,12 +168,12 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
         squash = 0.965;
         antennaX = 0.6;
         capZ = 0.1;
-        armLRot = 0.25;
-        armRRot = -0.25;
+        armLRot = -0.3;
+        armRRot = 0.3;
         eyeScaleY = 0.62;
         pupilY = -0.035;
-        smileFlip = Math.PI;
-        smileScale = 0.8;
+        frown = true;
+        smileScale = 0.85;
         pinGlow = 0.1;
         break;
       }
@@ -224,13 +224,14 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
     if (smile.current) {
       smile.current.visible = !mouthOpen;
       const sc = damp(smile.current.scale.x, smileScale, 12, dt);
-      smile.current.scale.set(sc, sc, sc);
-      smile.current.rotation.z = damp(smile.current.rotation.z, Math.PI * 1.5 - Math.PI * 0.38 + smileFlip, 8, dt);
+      const sy = damp(smile.current.scale.y, frown ? -sc : sc, 10, dt);
+      smile.current.scale.set(sc, sy, sc);
+      smile.current.position.y = damp(smile.current.position.y, frown ? -0.36 : -0.2, 10, dt);
     }
     bars.current.forEach((bar, i) => {
       if (!bar) return;
       bar.visible = mouthOpen;
-      if (mouthOpen) bar.scale.y = 0.45 + Math.abs(Math.sin(t * 13 + i * 1.3) * Math.sin(t * 5.1 + i)) * 1.5;
+      if (mouthOpen) bar.scale.y = 0.5 + Math.abs(Math.sin(t * 13 + i * 1.3) * Math.sin(t * 5.1 + i)) * 2.2;
     });
     if (halo.current) {
       const sc = damp(halo.current.scale.x, haloScale, 8, dt);
@@ -264,14 +265,14 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
       ))}
 
       {/* Arms */}
-      <group ref={armL} position={[-0.9, -0.05, 0.08]} rotation={[0, 0, 0.85]}>
-        <mesh position={[0, -0.2, 0]}>
+      <group ref={armL} position={[-0.86, -0.02, 0.12]} rotation={[0, 0, -0.85]}>
+        <mesh position={[0, -0.24, 0]}>
           <capsuleGeometry args={[0.15, 0.28, 8, 16]} />
           <meshStandardMaterial {...bodyMat} />
         </mesh>
       </group>
-      <group ref={armR} position={[0.9, -0.05, 0.08]} rotation={[0, 0, -0.85]}>
-        <mesh position={[0, -0.2, 0]}>
+      <group ref={armR} position={[0.86, -0.02, 0.12]} rotation={[0, 0, 0.85]}>
+        <mesh position={[0, -0.24, 0]}>
           <capsuleGeometry args={[0.15, 0.28, 8, 16]} />
           <meshStandardMaterial {...bodyMat} />
         </mesh>
@@ -319,7 +320,7 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
         <torusGeometry args={[0.15, 0.034, 10, 28, Math.PI * 0.76]} />
         <meshStandardMaterial color={C.ink} roughness={0.5} />
       </mesh>
-      {[-0.11, 0, 0.11].map((x, i) => (
+      {[-0.13, 0, 0.13].map((x, i) => (
         <mesh
           key={x}
           ref={(m) => {
@@ -328,30 +329,30 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
           position={[x, -0.3, 0.92]}
           visible={false}
         >
-          <capsuleGeometry args={[0.032, 0.09, 6, 12]} />
+          <capsuleGeometry args={[0.04, 0.08, 6, 12]} />
           <meshStandardMaterial color={C.ink} roughness={0.5} />
         </mesh>
       ))}
 
       {/* Cap with peak, button, antenna and pin */}
-      <group ref={cap} position={[0, 0.7, -0.03]} rotation={[-0.08, 0, 0]}>
-        <mesh scale={[1, 0.64, 1]}>
+      <group ref={cap} position={[0, 0.66, -0.03]} rotation={[-0.1, 0, 0]}>
+        <mesh scale={[1, 0.78, 1]}>
           <sphereGeometry args={[0.74, 40, 20, 0, TAU, 0, Math.PI / 2]} />
           <meshStandardMaterial color={C.teal} roughness={0.7} />
         </mesh>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.735, 0.05, 12, 48]} />
+          <torusGeometry args={[0.735, 0.04, 12, 48]} />
           <meshStandardMaterial color={C.tealDark} roughness={0.7} />
         </mesh>
-        <mesh position={[0, 0.0, 0.02]} rotation={[Math.PI / 2 + 0.22, 0, 0]}>
+        <mesh position={[0, 0.0, 0.02]} rotation={[Math.PI / 2 + 0.3, 0, 0]}>
           <extrudeGeometry args={[peakShape, { depth: 0.05, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, bevelSegments: 2, curveSegments: 24 }]} />
           <meshStandardMaterial color={C.tealDark} roughness={0.65} />
         </mesh>
-        <mesh position={[0, 0.47, 0]}>
+        <mesh position={[0, 0.57, 0]}>
           <sphereGeometry args={[0.075, 16, 12]} />
           <meshStandardMaterial color={C.sun} roughness={0.6} />
         </mesh>
-        <group ref={antenna} position={[0, 0.5, 0]}>
+        <group ref={antenna} position={[0, 0.6, 0]}>
           <mesh position={[0, 0.24, 0]}>
             <cylinderGeometry args={[0.024, 0.03, 0.48, 10]} />
             <meshStandardMaterial color={C.ink} roughness={0.6} />
@@ -387,7 +388,8 @@ function Character({ stateRef, calm }: { stateRef: { current: BuddyState }; calm
   );
 }
 
-export default function BuddyScene({ state }: { state: BuddyState }) {
+export default function BuddyScene({ state, size }: { state: BuddyState; size: number }) {
+  const compact = size <= 80;
   const stateRef = useRef<BuddyState>(state);
   stateRef.current = state;
   const [visible, setVisible] = useState(() => typeof document === "undefined" || !document.hidden);
@@ -405,10 +407,10 @@ export default function BuddyScene({ state }: { state: BuddyState }) {
       flat
       frameloop={visible ? "always" : "never"}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power", premultipliedAlpha: true }}
-      camera={{ position: [0, 0.42, 6.1], fov: 31, near: 0.1, far: 40 }}
+      camera={{ position: [0, compact ? 0.5 : 0.42, compact ? 5.2 : 6.1], fov: 33, near: 0.1, far: 40 }}
       onCreated={({ gl, camera }) => {
         gl.setClearColor(0x000000, 0);
-        camera.lookAt(0, 0.3, 0);
+        camera.lookAt(0, compact ? 0.42 : 0.32, 0);
       }}
       style={{ width: "100%", height: "100%", background: "transparent", touchAction: "pan-y" }}
       aria-label="Buddy, the Raahi assistant"

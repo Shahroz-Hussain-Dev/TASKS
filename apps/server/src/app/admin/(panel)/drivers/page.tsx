@@ -1,8 +1,8 @@
 "use client";
 
+import { CaretRight, Taxi } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { CarTaxiFront, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -57,7 +57,7 @@ function DriversTable() {
     <>
       <PageHeader title="Drivers" subtitle="Review applications, inspect documents and manage who is on the road." />
       <Card padded={false}>
-        <div className="flex flex-col gap-3 border-b border-white/5 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 border-b border-paper-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <Chips<Filter> value={filter} onChange={changeFilter} options={options} layoutId="drivers-filter" />
           <SearchInput value={q} onChange={setQ} placeholder="Name, phone or CNIC" className="lg:w-72" />
         </div>
@@ -67,7 +67,7 @@ function DriversTable() {
         ) : list.isError ? (
           <ErrorState error={list.error} onRetry={() => list.refetch()} />
         ) : list.data.items.length === 0 ? (
-          <EmptyState icon={<CarTaxiFront size={24} />} title={debouncedQ ? "No drivers match" : "No drivers here"} description={debouncedQ ? "Try a different name, phone number or CNIC." : filter === "under_review" ? "Nobody is waiting for review." : "Drivers will appear here as they sign up."} />
+          <EmptyState icon={<Taxi size={26} weight="duotone" />} title={debouncedQ ? "No drivers match" : "No drivers here"} description={debouncedQ ? "Try a different name, phone number or CNIC." : filter === "under_review" ? "Nobody is waiting for review." : "Drivers will appear here as they sign up."} />
         ) : (
           <>
             <Table>
@@ -88,13 +88,13 @@ function DriversTable() {
                   const verified = d.documents.filter((x) => x.status === "verified").length;
                   const flagged = d.documents.filter((x) => x.status === "flagged" || x.status === "rejected").length;
                   return (
-                    <motion.tr key={d.id} variants={item.fade} className="group cursor-pointer hover:bg-white/3" onClick={() => router.push(`/admin/drivers/${d.id}`)}>
+                    <motion.tr key={d.id} variants={item.fade} className="group cursor-pointer transition-colors hover:bg-paper-50" onClick={() => router.push(`/admin/drivers/${d.id}`)}>
                       <Td>
                         <div className="flex items-center gap-3">
                           <Avatar name={d.user.fullName} src={d.user.avatarUrl} />
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-ink-50">{d.user.fullName}</p>
-                            <p className="truncate text-[12.5px] text-ink-400">
+                            <p className="truncate font-bold text-ink-900">{d.user.fullName}</p>
+                            <p className="truncate text-[12.5px] text-ink-500">
                               {d.user.phone ?? "No phone"} {d.city ? `· ${d.city}` : ""}
                             </p>
                           </div>
@@ -105,16 +105,16 @@ function DriversTable() {
                           <Badge tone={DRIVER_STATUS_TONE[d.status]} dot={d.isOnline}>
                             {DRIVER_STATUS_LABEL[d.status]}
                           </Badge>
-                          {d.isOnline ? <span className="text-[11.5px] text-brand-400">Online now</span> : null}
+                          {d.isOnline ? <Badge tone="teal" dot>Online now</Badge> : null}
                         </div>
                       </Td>
                       <Td>
                         {d.vehicle ? (
                           <>
-                            <p className="text-ink-100">
+                            <p className="text-ink-900">
                               {d.vehicle.make} {d.vehicle.model}
                             </p>
-                            <p className="text-[12.5px] text-ink-400">
+                            <p className="text-[12.5px] text-ink-500">
                               {categoryLabel(d.vehicle.category)} · {d.vehicle.plate}
                             </p>
                           </>
@@ -123,30 +123,30 @@ function DriversTable() {
                         )}
                       </Td>
                       <Td>
-                        <span className="font-semibold text-ink-100">{verified}</span>
+                        <span className="font-bold text-ink-900">{verified}</span>
                         <span className="text-ink-500">/{d.documents.length} verified</span>
-                        {flagged > 0 ? <p className="text-[12.5px] text-amber-300">{flagged} need attention</p> : null}
+                        {flagged > 0 ? <p className="text-[12.5px] font-semibold text-sun-700">{flagged} need attention</p> : null}
                       </Td>
                       <Td>
                         {d.subscriptionActive ? (
-                          <Badge tone="brand">Active</Badge>
+                          <Badge tone="mint">Active</Badge>
                         ) : d.subscription?.status === "pending" ? (
-                          <Badge tone="amber">Receipt pending</Badge>
+                          <Badge tone="sun">Receipt pending</Badge>
                         ) : (
                           <Badge tone="neutral">{d.subscription ? "Expired" : "None"}</Badge>
                         )}
                       </Td>
                       <Td>
-                        <p className="text-ink-100">{d.totalRides}</p>
-                        <p className="text-[12.5px] text-ink-400">{pkr(d.totalEarningsPkr, { compact: true })}</p>
+                        <p className="text-ink-900">{d.totalRides}</p>
+                        <p className="text-[12.5px] text-ink-500">{pkr(d.totalEarningsPkr, { compact: true })}</p>
                       </Td>
                       <Td>
-                        <p className="text-ink-100">{fmtDate(d.createdAt)}</p>
-                        <p className="text-[12.5px] text-ink-400">{timeAgo(d.createdAt)}</p>
+                        <p className="text-ink-900">{fmtDate(d.createdAt)}</p>
+                        <p className="text-[12.5px] text-ink-500">{timeAgo(d.createdAt)}</p>
                       </Td>
                       <Td className="w-10 text-right">
-                        <Link href={`/admin/drivers/${d.id}`} className="text-ink-500 group-hover:text-brand-400" aria-label={`Open ${d.user.fullName}`}>
-                          <ChevronRight size={18} />
+                        <Link href={`/admin/drivers/${d.id}`} className="text-ink-300 transition-colors group-hover:text-coral-600" aria-label={`Open ${d.user.fullName}`}>
+                          <CaretRight size={18} weight="bold" />
                         </Link>
                       </Td>
                     </motion.tr>

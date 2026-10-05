@@ -4,6 +4,7 @@ import { ArrowClockwise, ClockCounterClockwise } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { RideDto } from "@raahi/shared";
+import { BreathingCta } from "@/components/customer/BreathingCta";
 import { RideRow } from "@/components/customer/RideRow";
 import { TAB_BAR_CLEARANCE } from "@/components/customer/TabBar";
 import { AnimatedCar } from "@/components/Illustrations";
@@ -127,11 +128,11 @@ export default function RidesHistoryScreen() {
               <h2 className="font-display text-[24px] font-semibold text-ink-900">No rides yet</h2>
               <p className="text-[14.5px] text-ink-500 leading-relaxed mt-1 max-w-[30ch] font-medium">Your trips will appear here with the route, fare and your rating of the driver.</p>
             </div>
-            <div className="breathe">
+            <BreathingCta>
               <Button size="lg" onClick={() => navigate("/c/plan")}>
                 Book your first ride
               </Button>
-            </div>
+            </BreathingCta>
           </motion.div>
         ) : (
           <motion.div variants={item.up} className="flex flex-col gap-5 mt-1">

@@ -5,7 +5,8 @@ import { Money, Skeleton } from "@/components/ui";
 import { spring, springBouncy, springSoft } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { cn } from "@/lib/utils";
-import { CATEGORY_TONE, CategoryIcon } from "./CategoryIcon";
+import { CategoryIcon } from "./CategoryIcon";
+import { CATEGORY_TONE } from "./categoryTone";
 
 /**
  * Horizontal, snap-scrolling carousel of tinted sticker cards — one per ride

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, SendHorizontal, Zap } from "lucide-react";
+import { ChatCircleDots, Lightning, PaperPlaneRight } from "@phosphor-icons/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { sendMessageSchema, type ChatMessageDto, type RideDto } from "@raahi/shared";
@@ -32,7 +32,7 @@ const GROUP_WINDOW_MS = 2 * 60_000;
 /**
  * In-ride messaging between passenger and driver. Polls every 2 s while open,
  * sends optimistically, keeps the latest message in view and stays usable
- * with the keyboard up.
+ * with the keyboard up. Mine = coral jelly bubbles, theirs = white pillows.
  */
 export default function RideChatScreen() {
   const { id = "" } = useParams();
@@ -121,35 +121,38 @@ export default function RideChatScreen() {
 
   const counterpart = ride.data ? (role === "customer" ? ride.data.driver : ride.data.customer) : null;
   const statusLine = ride.data ? (active ? RIDE_STATUS_META[ride.data.status].headline : "Chat closed") : "";
+  const canSend = draft.trim().length > 0;
 
   if (ride.isError && !ride.data) {
     const notFound = ride.error instanceof ApiRequestError && (ride.error.status === 404 || ride.error.status === 403);
     return (
-      <div className="h-full flex flex-col bg-ink-900 px-5" style={{ paddingTop: "calc(var(--safe-top) + 12px)" }}>
+      <div className="h-full flex flex-col bg-paper-50 px-5" style={{ paddingTop: "calc(var(--safe-top) + 12px)" }}>
         <div className="flex items-center min-h-12">
           <BackButton fallback={role === "driver" ? "/d" : "/c"} />
         </div>
-        <EmptyState icon={MessageCircle} title={notFound ? "Chat not available" : "Couldn't open chat"} body={notFound ? "This ride isn't yours or no longer exists." : errorMessage(ride.error)} action={<Button size="md" variant="secondary" onClick={() => (notFound ? navigate(role === "driver" ? "/d" : "/c") : ride.refetch())}>{notFound ? "Go home" : "Try again"}</Button>} />
+        <EmptyState icon={ChatCircleDots} title={notFound ? "Chat not available" : "Couldn't open chat"} body={notFound ? "This ride isn't yours or no longer exists." : errorMessage(ride.error)} action={<Button size="md" variant="secondary" onClick={() => (notFound ? navigate(role === "driver" ? "/d" : "/c") : ride.refetch())}>{notFound ? "Go home" : "Try again"}</Button>} />
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full flex flex-col bg-ink-900" style={{ paddingTop: "calc(var(--safe-top) + 10px)" }}>
+    <div className="relative h-full w-full flex flex-col bg-paper-50" style={{ paddingTop: "calc(var(--safe-top) + 10px)" }}>
       <OfflineBanner />
-      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="px-4 pb-3 flex items-center gap-3 border-b border-white/6">
+      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="px-4 pb-3 flex items-center gap-3">
         <BackButton fallback={`/rides/${id}`} />
         {counterpart ? (
           <motion.button type="button" whileTap={{ scale: 0.97 }} transition={spring} onClick={() => navigate(`/rides/${id}`)} className="flex-1 min-w-0 flex items-center gap-3 text-left">
-            <Avatar name={counterpart.fullName} src={counterpart.avatarUrl} size={42} />
+            <span className="rounded-full ring-[3px] ring-white shadow-pillow">
+              <Avatar name={counterpart.fullName} src={counterpart.avatarUrl} size={44} />
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="font-display text-[17px] font-semibold text-ink-50 truncate leading-tight">{counterpart.fullName}</p>
-              <p className="text-[12.5px] text-ink-400 truncate">{statusLine}</p>
+              <p className="font-display text-[18px] font-semibold text-ink-900 truncate leading-tight">{counterpart.fullName}</p>
+              <p className="text-[12.5px] text-ink-500 truncate font-bold">{statusLine}</p>
             </div>
           </motion.button>
         ) : (
           <div className="flex-1 flex items-center gap-3">
-            <Skeleton className="size-[42px] rounded-full" />
+            <Skeleton className="size-[44px] rounded-full" />
             <div className="flex flex-col gap-1.5">
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-3 w-24" />
@@ -192,7 +195,7 @@ export default function RideChatScreen() {
                 const o = row.o;
                 const prevMine = prev ? (prev.kind === "outgoing" ? true : prev.m.senderId === user?.id) : false;
                 return (
-                  <ChatBubble key={o.tempId} side="right" grouped={prevMine} pending={o.status === "sending"} failed={o.status === "failed"} meta={o.status === "failed" ? <span className="inline-flex items-center gap-2">Not sent · <button type="button" className="underline font-semibold" onClick={() => send.mutate(o)}>Retry</button> · <button type="button" className="underline" onClick={() => setOutbox((xs) => xs.filter((x) => x.tempId !== o.tempId))}>Delete</button></span> : "Sending…"}>
+                  <ChatBubble key={o.tempId} side="right" grouped={prevMine} pending={o.status === "sending"} failed={o.status === "failed"} meta={o.status === "failed" ? <span className="inline-flex items-center gap-2">Not sent · <button type="button" className="underline font-extrabold" onClick={() => send.mutate(o)}>Retry</button> · <button type="button" className="underline" onClick={() => setOutbox((xs) => xs.filter((x) => x.tempId !== o.tempId))}>Delete</button></span> : "Sending…"}>
                     {o.body}
                   </ChatBubble>
                 );
@@ -204,35 +207,46 @@ export default function RideChatScreen() {
 
       <AnimatePresence>
         {!stuck && rows.length > 0 && (
-          <motion.button key="jump" type="button" initial={{ opacity: 0, y: 12, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.9 }} transition={spring} onClick={() => {
-            setStuck(true);
-            scrollToBottom();
-          }} className="absolute right-4 glass rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-ink-50 shadow-float z-10" style={{ bottom: `calc(${keyboard.open ? "8px" : "var(--safe-bottom)"} + 128px)` }}>
+          <motion.button
+            key="jump"
+            type="button"
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.9 }}
+            transition={spring}
+            onClick={() => {
+              setStuck(true);
+              scrollToBottom();
+            }}
+            className="absolute right-4 jelly jelly-white rounded-full px-4 py-2.5 text-[12.5px] font-extrabold text-ink-900 shadow-float z-10"
+            style={{ bottom: `calc(${keyboard.open ? "8px" : "var(--safe-bottom)"} + 128px)` }}
+          >
             Newest messages
           </motion.button>
         )}
       </AnimatePresence>
 
-      <div className="border-t border-white/6 bg-ink-900/95 backdrop-blur" style={{ paddingBottom: keyboard.open ? 8 : "calc(var(--safe-bottom) + 8px)" }}>
+      <div className="relative bg-paper-50" style={{ paddingBottom: keyboard.open ? 8 : "calc(var(--safe-bottom) + 10px)" }}>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-paper-50 to-transparent" />
         {active ? (
           <>
-            <motion.div variants={stagger(0.04)} initial="hidden" animate="show" className="flex gap-2 overflow-x-auto no-scrollbar px-4 pt-3 pb-1">
+            <motion.div variants={stagger(0.04)} initial="hidden" animate="show" className="flex gap-2 overflow-x-auto no-scrollbar px-4 pt-2 pb-2">
               {QUICK_REPLIES[role].map((q) => (
-                <motion.div key={q} variants={item.right} className="shrink-0">
-                  <Chip icon={Zap} onClick={() => submit(q)}>
+                <motion.div key={q} variants={item.pop} className="shrink-0">
+                  <Chip tone={role === "driver" ? "teal" : "coral"} icon={Lightning} onClick={() => submit(q)}>
                     {q}
                   </Chip>
                 </motion.div>
               ))}
             </motion.div>
             <form
-              className="flex items-end gap-2 px-4 pt-2"
+              className="flex items-end gap-2 px-4 pt-1.5"
               onSubmit={(e) => {
                 e.preventDefault();
                 submit();
               }}
             >
-              <div className="flex-1 flex items-end rounded-[22px] bg-ink-800 border border-white/8 focus-within:border-brand-500/60 px-4 py-2 min-h-12 transition-colors">
+              <div className="flex-1 flex items-end rounded-[24px] bg-white border-2 border-transparent focus-within:border-coral-400 shadow-pillow px-4 py-2 min-h-12 transition-colors">
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value.slice(0, 500))}
@@ -244,17 +258,17 @@ export default function RideChatScreen() {
                   }}
                   rows={1}
                   placeholder={`Message ${counterpart?.fullName.split(" ")[0] ?? ""}`.trim() + "…"}
-                  className="w-full bg-transparent outline-none resize-none text-[15px] text-ink-50 placeholder:text-ink-500 max-h-32 leading-6 py-0.5"
+                  className="w-full bg-transparent outline-none resize-none text-[15px] font-semibold text-ink-900 placeholder:text-ink-300 placeholder:font-medium max-h-32 leading-6 py-0.5"
                   style={{ height: Math.min(128, 24 * Math.max(1, draft.split("\n").length) + 4) }}
                   enterKeyHint="send"
                 />
               </div>
-              <IconButton icon={SendHorizontal} label="Send" variant="brand" size={48} type="submit" disabled={draft.trim().length === 0} className={cn("transition-opacity", draft.trim().length === 0 && "opacity-50")} />
+              <IconButton icon={PaperPlaneRight} label="Send" variant="coral" weight="fill" size={48} type="submit" disabled={!canSend} className={cn("transition-opacity", !canSend && "opacity-50")} />
             </form>
           </>
         ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="px-4 pt-3 flex flex-col items-center gap-2 text-center">
-            <p className="text-[13.5px] text-ink-400">This chat closed when the ride ended.</p>
+            <p className="text-[13.5px] text-ink-500 font-semibold">This chat closed when the ride ended.</p>
             <Button size="sm" variant="secondary" onClick={() => navigate(`/rides/${id}`)}>
               View ride details
             </Button>
@@ -268,13 +282,14 @@ export default function RideChatScreen() {
 function EmptyChat({ name, ride }: { name: string; ride: RideDto | null }) {
   return (
     <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="flex flex-col items-center text-center gap-3 pt-12 px-6">
-      <motion.div variants={item.scale} className="size-16 rounded-3xl glass flex items-center justify-center text-brand-400 shadow-card">
-        <MessageCircle className="size-7" />
+      <motion.div variants={item.pop} className="relative size-20 rounded-[28px] bg-coral-100 text-coral-500 flex items-center justify-center -rotate-3 sticker">
+        <span aria-hidden className="blob absolute -inset-4 -z-10 bg-sun-100" />
+        <ChatCircleDots className="size-10" weight="duotone" />
       </motion.div>
-      <motion.h2 variants={item.up} className="font-display text-[18px] font-semibold text-ink-50">
-        Say hello to {name}
+      <motion.h2 variants={item.up} className="font-display text-[22px] font-semibold text-ink-900">
+        Say hello to <span className="text-coral-500">{name}</span>
       </motion.h2>
-      <motion.p variants={item.up} className="text-[14px] text-ink-400 leading-relaxed max-w-xs">
+      <motion.p variants={item.up} className="text-[14.5px] text-ink-500 leading-relaxed max-w-xs font-medium">
         {ride && isActiveRide(ride.status) ? "Share a landmark, a gate number or let them know you're running late. Quick replies are below." : "No messages were exchanged on this ride."}
       </motion.p>
     </motion.div>
@@ -284,9 +299,9 @@ function EmptyChat({ name, ride }: { name: string; ride: RideDto | null }) {
 function DayDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 my-4">
-      <span className="flex-1 h-px bg-white/6" />
-      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-ink-500">{label}</span>
-      <span className="flex-1 h-px bg-white/6" />
+      <span className="flex-1 h-px bg-paper-200" />
+      <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-400">{label}</span>
+      <span className="flex-1 h-px bg-paper-200" />
     </div>
   );
 }

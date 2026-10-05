@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, LogOut, ShieldAlert, UserRound } from "lucide-react";
+import { ArrowLeft, ShieldWarning, SignOut, UserCircle } from "@phosphor-icons/react";
 import { useEffect, useMemo } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import type { DriverDto, UserDto } from "@raahi/shared";
@@ -12,7 +12,6 @@ import { SubscriptionStep } from "@/components/driver/onboarding/SubscriptionSte
 import { VehicleStep } from "@/components/driver/onboarding/VehicleStep";
 import { ProgressRail } from "@/components/driver/ProgressRail";
 import { Redirect } from "@/components/shared/Redirect";
-import { Aurora } from "@/components/shared/Aurora";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { Badge, Button, EmptyState, IconButton, Screen, Spinner, TopBar } from "@/components/ui";
 import { STATUS_POLL_MS } from "@/hooks/driver/keys";
@@ -39,12 +38,14 @@ export default function OnboardingWizard() {
   if (!driver) {
     if (query.isError) return <LoadError message={errorMessage(query.error, "Check your connection and try again.")} onRetry={() => void query.refetch()} retrying={query.isFetching} />;
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center gap-5 bg-ink-900">
-        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring}>
+      <div className="relative h-full w-full flex flex-col items-center justify-center gap-5 bg-paper-50 overflow-hidden">
+        <span aria-hidden className="blob bg-teal-100 w-80 h-80 -top-24 -left-24 opacity-80" />
+        <span aria-hidden className="blob bg-sun-100 w-64 h-64 -bottom-16 -right-16 opacity-80" style={{ animationDelay: "-6s" }} />
+        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring} className="relative">
           <LogoMark size={72} animated />
         </motion.div>
-        <Spinner />
-        <p className="text-[13px] text-ink-400">Setting up your driver profile…</p>
+        <Spinner className="text-teal-500" />
+        <p className="relative text-[13.5px] font-semibold text-ink-500">Setting up your driver profile…</p>
       </div>
     );
   }
@@ -86,31 +87,32 @@ function StepScreen({ step, driver, user }: { step: WizardStep; driver: DriverDt
   const showBack = Boolean(prevStep(step)) || inStatusFlow;
 
   return (
-    <Screen className="noise">
+    <Screen>
       <OfflineBanner />
-      <Aurora variant="top" intensity={0.55} />
+      <span aria-hidden className="blob bg-teal-100 w-72 h-72 -top-28 -right-24 opacity-70" />
+      <span aria-hidden className="blob bg-sun-100 w-40 h-40 top-40 -left-20 opacity-60" style={{ animationDelay: "-9s" }} />
       <motion.div variants={stagger(0.07)} initial="hidden" animate="show" className="relative flex-1 flex flex-col">
         <motion.div variants={item.down}>
           <TopBar
-            left={showBack ? <IconButton icon={ArrowLeft} label="Back" variant="glass" onClick={back} /> : <LogoMark size={40} />}
+            left={showBack ? <IconButton icon={ArrowLeft} label="Back" variant="glass" weight="bold" onClick={back} /> : <LogoMark size={40} />}
             title={
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-[20px] font-semibold text-ink-50 truncate">Driver setup</h1>
+                <h1 className="font-display text-[22px] font-semibold text-ink-900 truncate">Driver setup</h1>
                 {inStatusFlow && <Badge tone={DRIVER_STATUS_META[driver.status].tone}>{DRIVER_STATUS_META[driver.status].label}</Badge>}
               </div>
             }
             subtitle={`Step ${stepIndex(step) + 1} of ${WIZARD_STEPS.length}`}
-            right={<IconButton icon={UserRound} label="Profile" variant="glass" onClick={() => navigate("/profile")} />}
+            right={<IconButton icon={UserCircle} label="Profile" variant="glass" className="text-teal-600" onClick={() => navigate("/profile")} />}
           />
         </motion.div>
 
-        <motion.div variants={item.fade} className="mt-2 mb-5">
+        <motion.div variants={item.fade} className="mt-1 mb-5">
           <ProgressRail steps={WIZARD_STEPS} current={step} completed={done} onSelect={(id) => go(id as WizardStep)} />
         </motion.div>
 
         <motion.div variants={item.left} className="mb-5">
-          <h2 className="font-display text-[26px] font-bold text-ink-50 tracking-tight leading-tight">{meta?.title}</h2>
-          <p className="mt-1 text-[14.5px] text-ink-400 leading-relaxed">{meta?.subtitle}</p>
+          <h2 className="font-display text-[28px] font-semibold text-ink-900 tracking-tight leading-tight">{meta?.title}</h2>
+          <p className="mt-1 text-[14.5px] font-semibold text-ink-500 leading-relaxed">{meta?.subtitle}</p>
         </motion.div>
 
         <motion.div variants={item.up} className="flex-1">
@@ -147,7 +149,7 @@ function StatusScreen({ driver, refreshing, onRefresh }: { driver: DriverDto; re
   if (driver.status === "onboarding") return <Redirect to={`${BASE}/${wizardEntry(driver)}`} />;
 
   return (
-    <Screen className="noise">
+    <Screen>
       <OfflineBanner />
       <motion.div variants={stagger(0.07)} initial="hidden" animate="show" className="relative flex-1 flex flex-col">
         <motion.div variants={item.down}>
@@ -155,7 +157,7 @@ function StatusScreen({ driver, refreshing, onRefresh }: { driver: DriverDto; re
             left={<LogoMark size={40} />}
             title="Application status"
             subtitle={DRIVER_STATUS_META[driver.status].label}
-            right={<IconButton icon={UserRound} label="Profile" variant="glass" onClick={() => navigate("/profile")} />}
+            right={<IconButton icon={UserCircle} label="Profile" variant="glass" className="text-teal-600" onClick={() => navigate("/profile")} />}
           />
         </motion.div>
         <StatusView
@@ -184,20 +186,22 @@ function LoadError({ message, onRetry, retrying }: { message: string; onRetry: (
     haptic.warning();
   }, []);
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center bg-ink-900 px-6">
+    <div className="relative h-full w-full flex flex-col items-center justify-center bg-paper-50 px-6 overflow-hidden">
+      <span aria-hidden className="blob bg-coral-100 w-72 h-72 -top-20 -right-24 opacity-80" />
       <EmptyState
-        icon={ShieldAlert}
+        icon={ShieldWarning}
+        tone="teal"
         title="Couldn't load your profile"
         body={message}
         action={
           <div className="flex flex-col gap-2 items-center">
-            <Button size="md" onClick={onRetry} loading={retrying}>
+            <Button size="md" variant="teal" onClick={onRetry} loading={retrying}>
               Try again
             </Button>
             <Button
               size="md"
               variant="ghost"
-              icon={LogOut}
+              icon={SignOut}
               onClick={async () => {
                 await logout();
                 navigate("/welcome", { replace: true });

@@ -163,7 +163,7 @@ export default function WelcomeScreen() {
             <motion.div {...buddyFloat}>
               <Buddy state="idle" size={176} />
             </motion.div>
-            <motion.span aria-hidden className="absolute left-1/2 -translate-x-1/2 bottom-6 h-3 w-24 rounded-full bg-ink-900/15 blur-[6px]" animate={{ scaleX: [1, 0.78, 1], opacity: [0.5, 0.3, 0.5] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} />
+            <motion.span aria-hidden className="absolute left-1/2 -translate-x-1/2 bottom-6 h-3 w-24 rounded-full bg-[#3f2a14]/15 blur-[6px]" animate={{ scaleX: [1, 0.78, 1], opacity: [0.5, 0.3, 0.5] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} />
           </motion.div>
 
           <motion.div style={{ x: artX, rotate: artRotate }} className="relative mx-auto w-full max-w-[380px]">
@@ -176,7 +176,7 @@ export default function WelcomeScreen() {
             </AnimatePresence>
           </motion.div>
 
-          <motion.div style={{ x: textX }} className="relative mt-5 min-h-[138px]">
+          <motion.div style={{ x: textX }} className="relative mt-5 min-h-[132px]">
             <AnimatePresence mode="popLayout" custom={dir} initial={false}>
               <motion.div key={slide.id} custom={dir} variants={textVariants} initial="enter" animate="center" exit="exit" className="flex flex-col gap-2">
                 <p className={cn("self-start inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-extrabold uppercase tracking-[0.16em]", accent.chip)}>
@@ -191,22 +191,8 @@ export default function WelcomeScreen() {
             </AnimatePresence>
           </motion.div>
 
-          {/* Transparent swipe surface */}
-          <motion.div
-            className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.32}
-            dragSnapToOrigin
-            dragTransition={{ bounceStiffness: 520, bounceDamping: 32 }}
-            style={{ x: dragX }}
-            onDragEnd={onDragEnd}
-            aria-label="Swipe to see more"
-          />
-        </motion.section>
-
-        {/* Dots */}
-        <motion.div variants={item.fade} className="flex items-center justify-center gap-2 mt-2 mb-4">
+          {/* Dots */}
+          <motion.div variants={item.fade} className="relative z-20 flex items-center justify-center gap-2 mt-1">
           {SLIDES.map((s, i) => (
             <button
               key={s.id}
@@ -223,8 +209,22 @@ export default function WelcomeScreen() {
           ))}
         </motion.div>
 
+          {/* Transparent swipe surface */}
+          <motion.div
+            className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.32}
+            dragSnapToOrigin
+            dragTransition={{ bounceStiffness: 520, bounceDamping: 32 }}
+            style={{ x: dragX }}
+            onDragEnd={onDragEnd}
+            aria-label="Swipe to see more"
+          />
+        </motion.section>
+
         {/* Role cards */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mt-3">
           <RoleCard variants={item.left} icon={MapPin} title="I need a ride" sub="Name your fare" accent="coral" preferred={preferredRole === "customer"} onClick={() => chooseRole("customer")} />
           <RoleCard variants={item.right} icon={Car} title="I want to drive" sub="Keep 100% of fares" accent="teal" preferred={preferredRole === "driver"} onClick={() => chooseRole("driver")} />
         </div>

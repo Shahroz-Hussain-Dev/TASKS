@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, TriangleAlert } from "lucide-react";
+import { Sparkle, Warning } from "@phosphor-icons/react";
 import { useState } from "react";
 import { DOCUMENT_META, DOCUMENT_TYPES, type DocumentType, type DriverDto } from "@raahi/shared";
+import { Breathe } from "@/components/driver/Breathe";
 import { DocumentSheet } from "@/components/driver/DocumentSheet";
 import { DocumentTile, type DocumentBusy } from "@/components/driver/DocumentTile";
 import { Button, useToast } from "@/components/ui";
@@ -53,27 +54,27 @@ export function DocumentsStep({ driver, onNext, nextLabel = "Continue" }: { driv
   return (
     <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="flex flex-col gap-4 pb-4">
       {/* Progress */}
-      <motion.div variants={item.left} className="rounded-3xl bg-ink-800 border border-white/6 p-4 shadow-card">
+      <motion.div variants={item.left} className="pillow p-4">
         <div className="flex items-baseline justify-between">
-          <p className="font-display text-[17px] font-semibold text-ink-50">
+          <p className="font-display text-[18px] font-semibold text-ink-900">
             {progress.uploaded} of {progress.required} added
           </p>
-          <p className="text-[12.5px] text-ink-400 tabular-nums">
+          <p className="text-[12.5px] font-bold text-ink-500 tabular-nums">
             {progress.verified} verified{progress.flagged.length > 0 && ` · ${progress.flagged.length} in review`}
-            {progress.rejected.length > 0 && <span className="text-rose-400"> · {progress.rejected.length} rejected</span>}
+            {progress.rejected.length > 0 && <span className="text-rose-500"> · {progress.rejected.length} rejected</span>}
           </p>
         </div>
-        <div className="mt-2.5 h-2 rounded-full bg-white/6 overflow-hidden">
-          <motion.div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400" initial={false} animate={{ width: `${pct}%` }} transition={spring} />
+        <div className="mt-2.5 h-2.5 rounded-full bg-paper-200 overflow-hidden">
+          <motion.div className="h-full rounded-full bg-gradient-to-r from-teal-600 to-teal-400" initial={false} animate={{ width: `${pct}%` }} transition={spring} />
         </div>
-        <p className="mt-2.5 flex items-start gap-2 text-[12.5px] text-ink-400 leading-snug">
-          <Sparkles className="size-3.5 text-violet-400 shrink-0 mt-0.5" />
+        <p className="mt-2.5 flex items-start gap-2 text-[12.5px] font-semibold text-ink-500 leading-snug">
+          <Sparkle className="size-4 text-lavender-500 shrink-0 mt-0.5" weight="duotone" />
           Each photo is checked instantly by AI. Fill the frame, avoid glare, and keep all text readable.
         </p>
       </motion.div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Polaroid grid */}
+      <div className="grid grid-cols-2 gap-4 px-1 py-2">
         {DOCUMENT_TYPES.map((type, i) => (
           <DocumentTile key={type} type={type} doc={docFor(driver, type)} busy={busy[type] ?? null} index={i} onCapture={(s) => void capture(type, s)} onOpen={() => setOpenType(type)} />
         ))}
@@ -81,9 +82,9 @@ export function DocumentsStep({ driver, onNext, nextLabel = "Continue" }: { driv
 
       <AnimatePresence initial={false}>
         {progress.rejected.length > 0 && (
-          <motion.div key="rej" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="flex items-start gap-2.5 rounded-2xl bg-rose-500/8 border border-rose-500/20 px-3.5 py-3">
-            <TriangleAlert className="size-4 text-rose-400 shrink-0 mt-0.5" />
-            <p className="text-[13px] text-ink-200 leading-snug">
+          <motion.div key="rej" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="flex items-start gap-2.5 rounded-[22px] bg-rose-100 px-3.5 py-3">
+            <Warning className="size-5 text-rose-500 shrink-0 mt-0.5" weight="duotone" />
+            <p className="text-[13px] font-semibold text-ink-700 leading-snug">
               Retake {progress.rejected.map((t) => DOCUMENT_META[t].label).join(", ")} before you continue.
             </p>
           </motion.div>
@@ -91,9 +92,11 @@ export function DocumentsStep({ driver, onNext, nextLabel = "Continue" }: { driv
       </AnimatePresence>
 
       <motion.div variants={item.up} className="pt-1">
-        <Button full size="xl" disabled={!progress.ready} onClick={onNext} className={cn(!progress.ready && "opacity-90")}>
-          {progress.ready ? nextLabel : `${progress.required - progress.uploaded} more to add`}
-        </Button>
+        <Breathe active={progress.ready}>
+          <Button full size="xl" variant="teal" disabled={!progress.ready} onClick={onNext} className={cn(!progress.ready && "opacity-90")}>
+            {progress.ready ? nextLabel : `${progress.required - progress.uploaded} more to add`}
+          </Button>
+        </Breathe>
       </motion.div>
 
       {openType && (

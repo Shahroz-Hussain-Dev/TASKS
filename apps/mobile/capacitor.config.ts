@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "dist",
   android: {
     allowMixedContent: false,
-    backgroundColor: "#0B0F1A",
+    backgroundColor: "#FFFBF5",
     buildOptions: {
       // Signing is configured via android/keystore.properties (see DEPLOY.md)
     },
@@ -19,14 +19,14 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,
-      backgroundColor: "#0B0F1A",
+      backgroundColor: "#FFFBF5",
       androidScaleType: "CENTER_CROP",
       splashFullScreen: true,
       splashImmersive: true,
     },
     StatusBar: {
-      style: "DARK",
-      backgroundColor: "#0B0F1A",
+      style: "LIGHT",
+      backgroundColor: "#FFFBF5",
       overlaysWebView: true,
     },
     Keyboard: {

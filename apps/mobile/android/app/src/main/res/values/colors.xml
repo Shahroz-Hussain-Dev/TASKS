@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Raahi brand palette (see docs/DESIGN.md). -->
-    <color name="raahi_ink">#0B0F1A</color>
+    <color name="raahi_ink">#FFFBF5</color>
     <color name="raahi_ink_800">#111827</color>
     <color name="raahi_brand">#10B981</color>
     <color name="raahi_brand_300">#6EE7B7</color>
