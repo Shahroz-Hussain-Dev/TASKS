@@ -14,6 +14,7 @@ const FALLBACK: PublicConfigDto["settings"] = {
   supportPhone: DEFAULT_SETTINGS.supportPhone,
   supportEmail: DEFAULT_SETTINGS.supportEmail,
   commissionPercent: DEFAULT_SETTINGS.commissionPercent,
+  testMode: DEFAULT_SETTINGS.testMode,
 };
 
 /** Public platform settings (petrol price, subscription price, payment accounts). Falls back to the shared defaults offline. */

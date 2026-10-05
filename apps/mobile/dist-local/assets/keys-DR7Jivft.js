@@ -1,0 +1,1 @@
+const t=e=>Math.round(e*1e5)/1e5,s={activeTrip:["customer","active-trip"],request:e=>["request",e],quote:(e,r)=>["quote",t(e.lat),t(e.lng),t(r.lat),t(r.lng)],reverse:e=>["geo","reverse",e?t(e.lat):null,e?t(e.lng):null],ridesList:["rides","list"]};export{s as c};

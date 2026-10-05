@@ -281,6 +281,7 @@ export const adminSettingsSchema = z.object({
   driverSubscriptionPkr: z.number().int().min(0).max(100_000).optional(),
   subscriptionDays: z.number().int().min(1).max(366).optional(),
   autoApproveSubscriptionReceipts: z.boolean().optional(),
+  testMode: z.boolean().optional(),
   paymentInstructions: z
     .object({
       accountTitle: z.string().max(80),

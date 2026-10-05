@@ -24,8 +24,6 @@ import { cn } from "@/lib/utils";
 
 const MAP_PADDING = { bottom: 300 };
 const RECENTS_SHOWN = 3;
-/** Buddy floats bottom-right above the tab bar; the panel leaves this much room for him. */
-const BUDDY_CLEARANCE = 72;
 
 function greetingFor(hour: number): string {
   if (hour < 5) return "Good night";
@@ -37,7 +35,7 @@ function greetingFor(hour: number): string {
 /**
  * Passenger home: light map centred on the device, a cream greeting card from
  * the top, the "Where to?" sticker card lifting in from the bottom with recent
- * destinations and quick category shortcuts, and Buddy waiting bottom-right.
+ * destinations and quick category shortcuts, with Buddy perched on its corner.
  */
 export default function HomeScreen() {
   const navigate = useNavigate();
@@ -123,7 +121,9 @@ export default function HomeScreen() {
           <IconButton icon={GpsFix} label="Centre on my location" variant="solid" size={48} className={cn("text-sky-600", device.status === "locating" && "animate-pulse")} onClick={recentre} />
         </motion.div>
 
-        <motion.section variants={item.up} className="px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_CLEARANCE + BUDDY_CLEARANCE}px)` }}>
+        <motion.section variants={item.up} className="relative px-4 pointer-events-auto" style={{ paddingBottom: `calc(var(--safe-bottom) + ${TAB_BAR_CLEARANCE}px)` }}>
+          {/* Buddy perches on the top-right corner of the card, so nothing sits between the card and the tab bar. */}
+          <BuddyBubble inline hint="Say where you want to go" className="-top-9 right-7" />
           <div className="glass rounded-[32px] p-3 flex flex-col gap-3 overflow-hidden">
             <div className="relative px-1 pt-1">
               <span aria-hidden className="blob bg-coral-100 -left-2 -top-3 w-[55%] h-[130%] opacity-80" />
@@ -165,7 +165,6 @@ export default function HomeScreen() {
         </motion.section>
       </motion.div>
 
-      <BuddyBubble hint="Say where you want to go" />
       <AssistantSheet open={assistantOpen} autoVoice onClose={() => setAssistantOpen(false)} />
     </div>
   );

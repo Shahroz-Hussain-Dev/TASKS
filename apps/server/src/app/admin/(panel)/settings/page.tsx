@@ -24,6 +24,7 @@ type NumericKey = Exclude<
 interface FormState {
   numbers: Record<NumericKey, string>;
   autoApproveSubscriptionReceipts: boolean;
+  testMode: boolean;
   paymentInstructions: Payment;
   supportPhone: string;
   supportEmail: string;
@@ -51,6 +52,7 @@ function toForm(s: PlatformSettings): FormState {
   return {
     numbers,
     autoApproveSubscriptionReceipts: s.autoApproveSubscriptionReceipts,
+    testMode: s.testMode,
     paymentInstructions: { ...s.paymentInstructions },
     supportPhone: s.supportPhone,
     supportEmail: s.supportEmail,
@@ -71,6 +73,7 @@ function toPatch(form: FormState, current: PlatformSettings): { patch: SettingsP
     if (n !== current[k]) patch[k] = n;
   }
   if (form.autoApproveSubscriptionReceipts !== current.autoApproveSubscriptionReceipts) patch.autoApproveSubscriptionReceipts = form.autoApproveSubscriptionReceipts;
+  if (form.testMode !== current.testMode) patch.testMode = form.testMode;
   if (form.supportPhone.trim() !== current.supportPhone) patch.supportPhone = form.supportPhone.trim();
   if (form.supportEmail.trim() !== current.supportEmail) patch.supportEmail = form.supportEmail.trim();
   const pay: Partial<Payment> = {};
@@ -201,6 +204,14 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {numField("driverSubscriptionPkr", "Subscription price", { prefix: "PKR" })}
               {numField("subscriptionDays", "Subscription length", { suffix: "days" })}
+            </div>
+            <div className="mt-4">
+              <Toggle
+                checked={form.testMode}
+                onChange={(v) => setForm({ ...form, testMode: v })}
+                label="Test mode"
+                description="Drivers pay with one tap (no receipt), any document picture is accepted without the AI check, and drivers are approved the moment they submit. Turn off before launch."
+              />
             </div>
             <div className="mt-4">
               <Toggle

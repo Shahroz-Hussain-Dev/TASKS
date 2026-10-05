@@ -201,6 +201,12 @@ export interface PlatformSettings {
   subscriptionDays: number;
   /** When true every uploaded receipt is accepted automatically (test mode). */
   autoApproveSubscriptionReceipts: boolean;
+  /**
+   * Test mode: drivers pay with a single tap (no receipt), documents are
+   * accepted without the AI check, and drivers are approved the moment they
+   * submit. Turn off before real launch.
+   */
+  testMode: boolean;
   /** Platform commission on rides. Raahi takes 0 — 100% goes to the driver. */
   commissionPercent: number;
   /** Where drivers send the subscription payment. */
@@ -233,6 +239,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   driverSubscriptionPkr: 1000,
   subscriptionDays: 30,
   autoApproveSubscriptionReceipts: true,
+  testMode: true,
   commissionPercent: 0,
   paymentInstructions: {
     accountTitle: "Raahi Technologies",

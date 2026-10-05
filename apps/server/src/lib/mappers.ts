@@ -93,7 +93,7 @@ export function toSubscriptionDto(s: Subscription): SubscriptionDto {
     method: s.method,
     transactionRef: s.transactionRef,
     receiptFileId: s.receiptFileId,
-    receiptUrl: fileUrlRequired(s.receiptFileId),
+    receiptUrl: s.receiptFileId ? fileUrlRequired(s.receiptFileId) : null,
     startsAt: iso(s.startsAt),
     endsAt: iso(s.endsAt),
     reviewerNote: s.reviewerNote,

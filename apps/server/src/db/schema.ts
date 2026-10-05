@@ -221,7 +221,6 @@ export const subscriptions = pgTable(
     method: varchar("method", { length: 20 }).notNull(),
     transactionRef: varchar("transaction_ref", { length: 60 }),
     receiptFileId: uuid("receipt_file_id")
-      .notNull()
       .references(() => files.id, { onDelete: "restrict" }),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),

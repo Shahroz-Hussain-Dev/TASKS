@@ -5,9 +5,11 @@
  *   1. details      — CNIC, city, licence (KYC identity)
  *   2. vehicle      — catalogue model → fuel economy, or a custom model
  *   3. documents    — 7 photos, each verified by Gemini the moment it lands
- *   4. subscription — PKR 1,000 / month receipt (auto-approved in test mode)
+ *                     (test mode: accepted as-is, no AI call)
+ *   4. subscription — PKR 1,000 / month receipt (test mode: one-tap payment)
  *   5. submit       — goes under review; auto-approved when every required
  *                     document is verified AND the subscription is active
+ *                     (test mode: documents only need to be present)
  *
  * Status transitions handled here:
  *   onboarding → under_review → approved
@@ -29,6 +31,7 @@ import {
   type DocumentType,
   type DriverDetailsInput,
   type DriverDto,
+  type PlatformSettings,
   type VehicleUpsertInput,
 } from "@raahi/shared";
 import { getDb } from "@/db";
@@ -210,24 +213,31 @@ export async function attachDocument(actor: DriverActor, input: AttachDocumentIn
   if (file.kind !== "document") throw badRequest("This image was not uploaded as a document. Please upload it again from the documents step.");
 
   const db = await getDb();
-  const vehicle = await db.query.vehicles.findFirst({ where: eq(vehicles.driverId, driver.id) });
-  const bytes = await readFileBytes(file);
+  const s = await getSettings();
 
   let verdict: DocumentAiVerdict;
-  try {
-    verdict = await verifyDocument(input.type, bytes, file.mime, {
-      fullName: user.fullName,
-      cnic: driver.cnic,
-      licenseNumber: driver.licenseNumber,
-      plate: vehicle?.plate ?? null,
-    });
-  } catch (err) {
-    // The upload must never be lost because the AI was busy — park it for manual review instead.
-    if (!(err instanceof ApiError) || err.status < 500) throw err;
-    verdict = unavailableVerdict(err.message);
+  let status: DriverDocument["status"];
+  if (s.testMode) {
+    // Test mode: any picture is accepted instantly, no AI round-trip.
+    verdict = testModeVerdict(input.type);
+    status = "verified";
+  } else {
+    const vehicle = await db.query.vehicles.findFirst({ where: eq(vehicles.driverId, driver.id) });
+    const bytes = await readFileBytes(file);
+    try {
+      verdict = await verifyDocument(input.type, bytes, file.mime, {
+        fullName: user.fullName,
+        cnic: driver.cnic,
+        licenseNumber: driver.licenseNumber,
+        plate: vehicle?.plate ?? null,
+      });
+    } catch (err) {
+      // The upload must never be lost because the AI was busy — park it for manual review instead.
+      if (!(err instanceof ApiError) || err.status < 500) throw err;
+      verdict = unavailableVerdict(err.message);
+    }
+    status = decideStatus(verdict, s.autoVerifyConfidence);
   }
-  const s = await getSettings();
-  const status = decideStatus(verdict, s.autoVerifyConfidence);
 
   const previous = await db.query.driverDocuments.findFirst({ where: and(eq(driverDocuments.driverId, driver.id), eq(driverDocuments.type, input.type)) });
   const now = new Date();
@@ -259,6 +269,77 @@ export async function attachDocument(actor: DriverActor, input: AttachDocumentIn
 /* Step 4 — subscription receipt                                       */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Test mode: one tap = paid. No receipt, no review; the subscription starts now
+ * (or extends the current one) and the driver is auto-approved if everything
+ * else is in. Refused when test mode is off.
+ */
+export async function paySubscriptionTestMode(actor: DriverActor): Promise<DriverDto> {
+  const { driver, user } = actor;
+  assertNotSuspended(driver);
+  const s = await getSettings();
+  if (!s.testMode) throw badRequest("One-tap payment is only available in test mode. Please pay and upload your receipt.");
+
+  const db = await getDb();
+  const now = new Date();
+  const result = await db.transaction(async (tx) => {
+    const active = await tx
+      .select()
+      .from(subscriptions)
+      .where(and(eq(subscriptions.driverId, driver.id), eq(subscriptions.status, "active"), gt(subscriptions.endsAt, now)))
+      .orderBy(desc(subscriptions.endsAt));
+    const [pending] = await tx
+      .select()
+      .from(subscriptions)
+      .where(and(eq(subscriptions.driverId, driver.id), eq(subscriptions.status, "pending")))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1);
+    const base = active.reduce((latest, sub) => (sub.endsAt && sub.endsAt.getTime() > latest.getTime() ? sub.endsAt : latest), now);
+    const endsAt = new Date(base.getTime() + s.subscriptionDays * DAY_MS);
+    if (active.length > 0) {
+      await tx
+        .update(subscriptions)
+        .set({ status: "expired", reviewerNote: "Rolled into a renewal", updatedAt: now })
+        .where(and(eq(subscriptions.driverId, driver.id), eq(subscriptions.status, "active")));
+    }
+    const values = {
+      amountPkr: s.driverSubscriptionPkr,
+      method: "test",
+      transactionRef: `TEST-${now.getTime().toString(36).toUpperCase()}`,
+      receiptFileId: null,
+      status: "active" as const,
+      startsAt: now,
+      endsAt,
+      reviewerNote: "Paid with one tap (test mode)",
+      reviewedAt: now,
+      reviewedBy: null,
+      updatedAt: now,
+    };
+    const [row] = pending
+      ? await tx.update(subscriptions).set(values).where(eq(subscriptions.id, pending.id)).returning()
+      : await tx.insert(subscriptions).values({ driverId: driver.id, ...values }).returning();
+    return row!;
+  });
+
+  await notify(driver.userId, {
+    type: "subscription_active",
+    title: "Payment received",
+    body: `Your Raahi driver subscription is active until ${formatDate(result.endsAt!)}. 100% of every fare is yours.`,
+    data: { subscriptionId: result.id },
+  });
+  if (driver.status === "under_review") await tryAutoApprove(actor, "subscription");
+  await audit({
+    actorId: user.id,
+    actorRole: "driver",
+    action: "driver.subscription.activate",
+    targetType: "subscription",
+    targetId: result.id,
+    ip: actor.ip,
+    meta: { amountPkr: s.driverSubscriptionPkr, method: "test", testMode: true, endsAt: result.endsAt?.toISOString() ?? null },
+  });
+  return getDriverDto(driver.id);
+}
+
 export async function submitSubscription(actor: DriverActor, input: SubscriptionReceiptInput): Promise<DriverDto> {
   const { driver, user } = actor;
   assertNotSuspended(driver);
@@ -286,7 +367,7 @@ export async function submitSubscription(actor: DriverActor, input: Subscription
 
     const receipt = { amountPkr: input.amountPkr, method: input.method, transactionRef: input.transactionRef ?? null, receiptFileId: input.fileId };
 
-    if (s.autoApproveSubscriptionReceipts) {
+    if (s.autoApproveSubscriptionReceipts || s.testMode) {
       // Renewing early never loses days: the new period starts where the current one ends.
       const base = active.reduce((latest, sub) => (sub.endsAt && sub.endsAt.getTime() > latest.getTime() ? sub.endsAt : latest), now);
       const endsAt = new Date(base.getTime() + s.subscriptionDays * DAY_MS);
@@ -367,7 +448,7 @@ export async function submitForReview(actor: DriverActor): Promise<DriverDto> {
   const db = await getDb();
   const now = new Date();
   const submittedAt = full.submittedAt ?? now;
-  const approve = qualifiesForAutoApproval(full);
+  const approve = qualifiesForAutoApproval(full, await getSettings());
   await db
     .update(drivers)
     .set(
@@ -406,16 +487,19 @@ export async function submitForReview(actor: DriverActor): Promise<DriverDto> {
 /* Internals                                                           */
 /* ------------------------------------------------------------------ */
 
-/** Every required document verified AND an active subscription → no human needed. */
-function qualifiesForAutoApproval(d: DriverWithRelations): boolean {
-  const docsVerified = REQUIRED_DOCS.every((t) => d.documents.some((doc) => doc.type === t && doc.status === "verified"));
+/**
+ * Every required document verified AND an active subscription → no human needed.
+ * In test mode a document only has to be present (any picture counts).
+ */
+function qualifiesForAutoApproval(d: DriverWithRelations, s: PlatformSettings): boolean {
+  const docsOk = REQUIRED_DOCS.every((t) => d.documents.some((doc) => doc.type === t && (s.testMode ? doc.status !== "rejected" : doc.status === "verified")));
   const subscriptionActive = d.subscriptions.some((sub) => isSubscriptionActive(sub));
-  return docsVerified && subscriptionActive;
+  return docsOk && subscriptionActive;
 }
 
 async function tryAutoApprove(actor: DriverActor, trigger: string): Promise<void> {
   const full = await loadDriver(actor.driver.id);
-  if (full.status !== "under_review" || !qualifiesForAutoApproval(full)) return;
+  if (full.status !== "under_review" || !qualifiesForAutoApproval(full, await getSettings())) return;
   const db = await getDb();
   const now = new Date();
   await db.update(drivers).set({ status: "approved", statusReason: null, reviewedAt: now, reviewedBy: null, updatedAt: now }).where(eq(drivers.id, full.id));
@@ -434,6 +518,21 @@ function reopenIfRejected(driver: Driver): DriverPatch {
 
 function assertNotSuspended(driver: Driver): void {
   if (driver.status === "suspended") throw forbidden("Your driver account is suspended. Contact support to resolve this before making changes.");
+}
+
+function testModeVerdict(type: DocumentType): DocumentAiVerdict {
+  return {
+    detectedType: type,
+    matchesExpectedType: true,
+    legible: true,
+    confidence: 1,
+    extracted: {},
+    nameMatchesProfile: null,
+    issues: [],
+    summary: "Accepted without AI verification (test mode).",
+    model: "none",
+    verifiedAt: new Date().toISOString(),
+  };
 }
 
 function unavailableVerdict(reason: string): DocumentAiVerdict {

@@ -21,6 +21,7 @@ interface Receipt {
  * Pay-and-upload flow for the monthly driver subscription. Used by onboarding
  * step 4 and by the renewal screen. Shows the payment accounts (copyable), a
  * method picker, an optional transaction reference and the receipt screenshot.
+ * In test mode (server setting) it collapses to a single "Pay now" button.
  */
 export function SubscriptionForm({ driver, onSaved, mode, onContinue, className }: { driver: DriverDto; onSaved: (d: DriverDto) => void; mode: "onboarding" | "renew"; onContinue?: () => void; className?: string }) {
   const toast = useToast();
@@ -38,6 +39,21 @@ export function SubscriptionForm({ driver, onSaved, mode, onContinue, className 
   const active = driver.subscriptionActive && driver.subscription?.endsAt;
   const pending = driver.subscription?.status === "pending";
   const showForm = replacing || (!active && !pending);
+  /** Test mode: one tap = paid. No accounts, no screenshot. */
+  const oneTap = settings.testMode;
+
+  const payNow = useDriverMutation(() => api.driver.subscriptionPay(), {
+    onSuccess: (d) => {
+      haptic.success();
+      onSaved(d);
+      setReplacing(false);
+      toast({ title: "Payment received", body: `Your subscription is active for the next ${settings.subscriptionDays} days.`, tone: "success" });
+    },
+    onError: (err) => {
+      haptic.error();
+      setError(errorMessage(err, "Payment didn't go through. Try again."));
+    },
+  });
 
   const submit = useDriverMutation((body: { fileId: string; method: string; transactionRef?: string; amountPkr: number }) => api.driver.subscription(body), {
     onSuccess: (d) => {
@@ -138,7 +154,46 @@ export function SubscriptionForm({ driver, onSaved, mode, onContinue, className 
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
-        {showForm && (
+        {showForm && oneTap && (
+          <motion.div key="one-tap" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="flex flex-col gap-4 overflow-hidden">
+            <motion.div variants={item.left} className="relative px-1 py-2">
+              <span aria-hidden className="blob bg-sun-100 w-48 h-48 -right-8 -top-14 opacity-90" />
+              <div className="relative sticker sticker-tilt-l bg-sun-100 p-5 overflow-hidden">
+                <span aria-hidden className="absolute -right-6 -bottom-8 size-28 rounded-full bg-sun-500/25" />
+                <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-sun-600">Monthly subscription</p>
+                <div className="mt-1 flex items-end gap-2">
+                  <Money value={amount} className="text-[38px] text-ink-900 leading-none" />
+                  <span className="text-[13px] font-bold text-ink-500 mb-1">/ {settings.subscriptionDays} days</span>
+                </div>
+                <p className="mt-2 text-[13.5px] font-semibold text-ink-700 leading-snug">One tap and you're covered. Raahi takes no cut of your fares.</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Badge tone="teal">0% commission</Badge>
+                  <Badge tone="coral">100% of fares yours</Badge>
+                </div>
+              </div>
+            </motion.div>
+            <AnimatePresence initial={false}>
+              {error && (
+                <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[13px] font-bold text-rose-600 text-center">
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <motion.div variants={item.up} className="flex flex-col gap-2">
+              <Breathe>
+                <Button full size="xl" variant="teal" icon={Wallet} loading={payNow.isPending} onClick={() => { setError(null); haptic.medium(); payNow.mutate(undefined); }}>
+                  {mode === "renew" ? `Renew for PKR ${amount.toLocaleString("en-PK")}` : `Pay PKR ${amount.toLocaleString("en-PK")} now`}
+                </Button>
+              </Breathe>
+              {replacing && (
+                <Button full variant="ghost" disabled={payNow.isPending} onClick={() => setReplacing(false)}>
+                  Keep current subscription
+                </Button>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+        {showForm && !oneTap && (
           <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="flex flex-col gap-4 overflow-hidden">
             {/* Amount sticker */}
             <motion.div variants={item.left} className="relative px-1 py-2">

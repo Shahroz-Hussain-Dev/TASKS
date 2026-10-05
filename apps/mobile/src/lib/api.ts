@@ -213,6 +213,8 @@ export const api = {
     vehicle: (body: VehicleUpsertInput) => request<DriverDto>("/api/driver/vehicle", { method: "PUT", body }),
     attachDocument: (body: { type: string; fileId: string }) => request<DriverDto>("/api/driver/documents", { body }),
     subscription: (body: { fileId: string; method: string; transactionRef?: string; amountPkr: number }) => request<DriverDto>("/api/driver/subscription", { body }),
+    /** Test mode: one tap activates the subscription without a receipt. */
+    subscriptionPay: () => request<DriverDto>("/api/driver/subscription/pay", { method: "POST" }),
     submit: () => request<DriverDto>("/api/driver/submit", { method: "POST" }),
     presence: (online: boolean) => request<{ online: boolean }>("/api/driver/presence", { body: { online } }),
     location: (body: { lat: number; lng: number; heading?: number | null; speedKmh?: number | null; accuracyM?: number | null }) => request<{ activeRideId: string | null }>("/api/driver/location", { body }),

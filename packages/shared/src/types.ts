@@ -104,8 +104,8 @@ export interface SubscriptionDto {
   amountPkr: number;
   method: string;
   transactionRef: string | null;
-  receiptFileId: string;
-  receiptUrl: string;
+  receiptFileId: string | null;
+  receiptUrl: string | null;
   startsAt: string | null;
   endsAt: string | null;
   reviewerNote: string | null;
@@ -331,6 +331,7 @@ export interface PublicConfigDto {
     | "supportPhone"
     | "supportEmail"
     | "commissionPercent"
+    | "testMode"
   >;
   serverTime: string;
   minAppVersion: string;

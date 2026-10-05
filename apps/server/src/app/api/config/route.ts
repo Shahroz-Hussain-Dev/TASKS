@@ -23,6 +23,7 @@ export const GET = route(async () => {
       supportPhone: s.supportPhone,
       supportEmail: s.supportEmail,
       commissionPercent: s.commissionPercent,
+      testMode: s.testMode,
     },
     serverTime: new Date().toISOString(),
     minAppVersion: MIN_APP_VERSION,

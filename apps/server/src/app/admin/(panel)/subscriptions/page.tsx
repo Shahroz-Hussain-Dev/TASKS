@@ -39,7 +39,7 @@ export default function SubscriptionsPage() {
   const list = useQuery({ queryKey: ["admin", "subscriptions", params], queryFn: ({ signal }) => adminApi.subscriptions.list(params, signal), placeholderData: (prev) => prev, refetchInterval: filter === "pending" ? 20_000 : false });
 
   const images = useMemo<LightboxImage[]>(
-    () => (list.data?.items ?? []).map((s) => ({ src: fileUrl(s.receiptFileId), title: `${s.driver.fullName} · ${pkr(s.amountPkr)}`, caption: `${s.method}${s.transactionRef ? ` · ref ${s.transactionRef}` : ""} · uploaded ${fmtDateTime(s.createdAt)}` })),
+    () => (list.data?.items ?? []).filter((s) => s.receiptFileId).map((s) => ({ src: fileUrl(s.receiptFileId!), title: `${s.driver.fullName} · ${pkr(s.amountPkr)}`, caption: `${s.method}${s.transactionRef ? ` · ref ${s.transactionRef}` : ""} · uploaded ${fmtDateTime(s.createdAt)}` })),
     [list.data],
   );
 
@@ -87,15 +87,19 @@ export default function SubscriptionsPage() {
                 </tr>
               </thead>
               <motion.tbody key={`${filter}-${page}-${debouncedQ}`} variants={stagger(0.03, 0)} initial="hidden" animate="show" className={list.isPlaceholderData ? "opacity-60 transition-opacity" : "transition-opacity"}>
-                {list.data.items.map((s, i) => {
+                {list.data.items.map((s) => {
                   const mismatch = expected !== undefined && s.amountPkr !== expected;
                   return (
                     <motion.tr key={s.id} variants={item.fade} className="transition-colors hover:bg-paper-50">
                       <Td>
-                        <button type="button" onClick={() => setLightbox(i)} className="group relative block h-16 w-20 overflow-hidden rounded-xl bg-paper-100 ring-1 ring-paper-200" aria-label="Open receipt">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={fileUrl(s.receiptFileId)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                        </button>
+                        {s.receiptFileId ? (
+                          <button type="button" onClick={() => setLightbox(images.findIndex((img) => img.src === fileUrl(s.receiptFileId!)))} className="group relative block h-16 w-20 overflow-hidden rounded-xl bg-paper-100 ring-1 ring-paper-200" aria-label="Open receipt">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={fileUrl(s.receiptFileId)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          </button>
+                        ) : (
+                          <span className="inline-flex h-16 w-20 items-center justify-center rounded-xl bg-teal-50 px-1 text-center text-[11px] font-bold leading-tight text-teal-700">One-tap (test)</span>
+                        )}
                       </Td>
                       <Td>
                         <Link href={`/admin/drivers/${s.driver.id}`} className="font-bold text-ink-900 hover:text-coral-600">

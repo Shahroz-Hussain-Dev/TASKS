@@ -1,0 +1,1 @@
+ALTER TABLE "subscriptions" ALTER COLUMN "receipt_file_id" DROP NOT NULL;

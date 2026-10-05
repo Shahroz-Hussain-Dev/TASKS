@@ -11,11 +11,13 @@ import { Buddy } from "./Buddy";
 const HINT_MS = 5000;
 
 /**
- * The floating coral jelly circle with a mini Buddy, bottom-right above the
- * tab bar. Owns the Assistant sheet; shows a one-time speech-bubble hint.
+ * The coral jelly circle with a mini Buddy. Floats bottom-right above the tab
+ * bar by default; with `inline` the parent positions it (the passenger home
+ * perches him on the corner of the "Where to?" card). Owns the Assistant
+ * sheet; shows a one-time speech-bubble hint.
  * Tapping Buddy opens the sheet and he speaks first, then listens.
  */
-export function BuddyBubble({ className, hint = "Say where you want to go" }: { className?: string; hint?: string }) {
+export function BuddyBubble({ className, hint = "Say where you want to go", inline = false }: { className?: string; hint?: string; inline?: boolean }) {
   const { settings, ready } = useAssistantSettings();
   const [open, setOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -41,8 +43,7 @@ export function BuddyBubble({ className, hint = "Say where you want to go" }: { 
   if (typeof document === "undefined") return null;
   const visible = ready && settings.showBuddy;
 
-  return createPortal(
-    <>
+  const launcher = (
       <AnimatePresence>
         {visible && (
           <motion.div
@@ -51,8 +52,8 @@ export function BuddyBubble({ className, hint = "Say where you want to go" }: { 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.4, opacity: 0, y: 24 }}
             transition={springBouncy}
-            className={cn("fixed z-30 flex items-end gap-2", className)}
-            style={{ right: 18, bottom: "calc(var(--safe-bottom) + 96px)" }}
+            className={cn(inline ? "absolute z-30 flex items-end gap-2" : "fixed z-30 flex items-end gap-2", className)}
+            style={inline ? undefined : { right: 18, bottom: "calc(var(--safe-bottom) + 96px)" }}
           >
             <AnimatePresence>
               {showHint && !open && (
@@ -91,8 +92,14 @@ export function BuddyBubble({ className, hint = "Say where you want to go" }: { 
           </motion.div>
         )}
       </AnimatePresence>
-      <AssistantSheet open={open && visible} autoVoice onClose={() => setOpen(false)} />
-    </>,
-    document.body,
+  );
+
+  // The sheet always lives on <body> (fixed positioning breaks inside animated
+  // ancestors); the launcher either floats there too or sits where the parent put it.
+  return (
+    <>
+      {inline ? launcher : createPortal(launcher, document.body)}
+      {createPortal(<AssistantSheet open={open && visible} autoVoice onClose={() => setOpen(false)} />, document.body)}
+    </>
   );
 }

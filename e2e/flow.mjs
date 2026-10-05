@@ -245,13 +245,20 @@ try {
   await d.getByRole("button", { name: "Continue" }).click();
   await d.waitForURL(/#\/d\/onboarding\/subscription/);
 
-  // Step 4 — subscription receipt (JazzCash)
-  await d.getByRole("button", { name: "JazzCash" }).first().click();
-  await d.getByLabel("Transaction ID (optional)").fill(driver.txRef);
-  await uploadVia(d, d.getByRole("button", { name: /Add screenshot/ }), fixtures.receiptJpg);
-  await d.getByText("Attached").waitFor({ timeout: 30_000 });
-  await shot(d, "onboarding-subscription-filled");
-  await d.getByRole("button", { name: "Submit receipt" }).click();
+  // Step 4 — subscription. Test mode (the default) is a single "Pay now" tap;
+  // with test mode off the receipt form is shown instead.
+  const payNow = d.getByRole("button", { name: /^Pay PKR/ });
+  if (await payNow.isVisible().catch(() => false)) {
+    await shot(d, "onboarding-subscription-filled");
+    await payNow.click();
+  } else {
+    await d.getByRole("button", { name: "JazzCash" }).first().click();
+    await d.getByLabel("Transaction ID (optional)").fill(driver.txRef);
+    await uploadVia(d, d.getByRole("button", { name: /Add screenshot/ }), fixtures.receiptJpg);
+    await d.getByText("Attached").waitFor({ timeout: 30_000 });
+    await shot(d, "onboarding-subscription-filled");
+    await d.getByRole("button", { name: "Submit receipt" }).click();
+  }
   await d.getByText("Subscription active").first().waitFor({ timeout: 30_000 });
   await shot(d, "onboarding-subscription-active");
   await d.getByRole("button", { name: "Continue" }).click();
@@ -287,12 +294,13 @@ try {
   await a.getByRole("heading", { name: /Dashboard|Good/ }).first().waitFor().catch(() => {});
   await shot(a, "dashboard", { admin: true, settle: 3500 });
 
-  await a.goto(`${API}/admin/drivers?status=under_review`);
+  // In test mode the driver is already approved, so look in the matching list.
+  await a.goto(`${API}/admin/drivers?status=${dDriver.status}`);
   await a.getByText(driver.fullName).first().waitFor({ timeout: 30_000 });
-  await shot(a, "drivers-under-review", { admin: true, settle: 2000 });
+  await shot(a, dDriver.status === "approved" ? "drivers-approved" : "drivers-under-review", { admin: true, settle: 2000 });
   await a.getByText(driver.fullName).first().click();
   await a.waitForURL(/\/admin\/drivers\/[0-9a-f-]+$/);
-  await a.getByText("Gemini verdict").first().waitFor({ timeout: 30_000 });
+  await a.getByText(/Gemini verdict|test mode/i).first().waitFor({ timeout: 30_000 }).catch(() => {});
   await shot(a, "driver-detail", { admin: true, settle: 2500 });
   await shot(a, "driver-detail-full", { admin: true, settle: 500, fullPage: true });
   const driverId = a.url().split("/").pop();

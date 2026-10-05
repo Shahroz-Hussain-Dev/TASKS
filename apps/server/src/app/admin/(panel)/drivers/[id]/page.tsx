@@ -128,7 +128,7 @@ export default function DriverDetailPage() {
     [d],
   );
   const receiptImages = useMemo<LightboxImage[]>(
-    () => (d?.subscription ? [{ src: fileUrl(d.subscription.receiptFileId), title: `Receipt · ${pkr(d.subscription.amountPkr)}`, caption: `${d.subscription.method}${d.subscription.transactionRef ? ` · ref ${d.subscription.transactionRef}` : ""}` }] : []),
+    () => (d?.subscription?.receiptFileId ? [{ src: fileUrl(d.subscription.receiptFileId), title: `Receipt · ${pkr(d.subscription.amountPkr)}`, caption: `${d.subscription.method}${d.subscription.transactionRef ? ` · ref ${d.subscription.transactionRef}` : ""}` }] : []),
     [d],
   );
 
@@ -292,8 +292,12 @@ export default function DriverDetailPage() {
                     className="group relative block h-32 w-full overflow-hidden rounded-2xl bg-paper-100 ring-1 ring-paper-200"
                     aria-label="Open receipt"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={fileUrl(d.subscription.receiptFileId)} alt="Payment receipt" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                    {d.subscription.receiptFileId ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={fileUrl(d.subscription.receiptFileId)} alt="Payment receipt" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-teal-50 text-[12.5px] font-bold text-teal-700">One-tap payment (test mode)</span>
+                    )}
                     <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11.5px] font-bold text-ink-900 shadow-pillow">
                       <Receipt size={13} weight="duotone" className="text-coral-500" /> Receipt
                     </span>
