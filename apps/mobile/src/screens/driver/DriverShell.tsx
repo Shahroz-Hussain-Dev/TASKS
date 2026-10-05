@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LogOut, ShieldAlert } from "lucide-react";
+import { ShieldWarning, SignOut } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { LogoMark } from "@/components/Brand";
@@ -37,20 +37,22 @@ export default function DriverShell() {
   if (!driver) {
     if (query.isError) {
       return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-ink-900 px-6">
+        <div className="relative h-full w-full flex flex-col items-center justify-center bg-paper-50 px-6 overflow-hidden">
+          <span aria-hidden className="blob bg-coral-100 w-72 h-72 -top-20 -right-24 opacity-80" />
           <EmptyState
-            icon={ShieldAlert}
+            icon={ShieldWarning}
+            tone="teal"
             title="Couldn't load your driver profile"
             body={errorMessage(query.error, "Check your connection and try again.")}
             action={
               <div className="flex flex-col gap-2 items-center">
-                <Button size="md" onClick={() => void query.refetch()} loading={query.isFetching}>
+                <Button size="md" variant="teal" onClick={() => void query.refetch()} loading={query.isFetching}>
                   Try again
                 </Button>
                 <Button
                   size="md"
                   variant="ghost"
-                  icon={LogOut}
+                  icon={SignOut}
                   onClick={async () => {
                     await logout();
                     navigate("/welcome", { replace: true });
@@ -65,12 +67,14 @@ export default function DriverShell() {
       );
     }
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center gap-5 bg-ink-900">
-        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring}>
+      <div className="relative h-full w-full flex flex-col items-center justify-center gap-5 bg-paper-50 overflow-hidden">
+        <span aria-hidden className="blob bg-teal-100 w-80 h-80 -top-24 -left-24 opacity-80" />
+        <span aria-hidden className="blob bg-sun-100 w-64 h-64 -bottom-16 -right-16 opacity-80" style={{ animationDelay: "-6s" }} />
+        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring} className="relative">
           <LogoMark size={72} animated />
         </motion.div>
-        <Spinner />
-        <p className="text-[13px] text-ink-400">Loading your driver profile…</p>
+        <Spinner className="text-teal-500" />
+        <p className="relative text-[13.5px] font-semibold text-ink-500">Loading your driver profile…</p>
       </div>
     );
   }
@@ -78,7 +82,7 @@ export default function DriverShell() {
   if (driver.status !== "approved") return <Redirect to="/d/onboarding" />;
 
   return (
-    <div className="relative h-full w-full bg-ink-900">
+    <div className="relative h-full w-full bg-paper-50">
       <Outlet />
       <OfflineBanner className="!top-[calc(var(--safe-top)_+_76px)]" />
       <SubscriptionBanner driver={driver} offset={connected ? 68 : 124} />

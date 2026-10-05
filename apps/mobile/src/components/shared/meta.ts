@@ -5,7 +5,7 @@
  */
 import { ACTIVE_RIDE_STATUSES, DEFAULT_SETTINGS, computeFare, type FareBreakdown, type NotificationDto, type PublicConfigDto, type RideDto, type RideStatus, type UserRole } from "@raahi/shared";
 
-export type BadgeTone = "neutral" | "brand" | "amber" | "rose" | "sky" | "violet";
+export type BadgeTone = "neutral" | "brand" | "amber" | "rose" | "sky" | "violet" | "coral" | "teal" | "sun" | "mint";
 
 export interface RideStatusMeta {
   label: string;
@@ -15,10 +15,10 @@ export interface RideStatusMeta {
 }
 
 export const RIDE_STATUS_META: Record<RideStatus, RideStatusMeta> = {
-  assigned: { label: "On the way", tone: "brand", headline: "Driver is on the way" },
-  arrived: { label: "Arrived", tone: "brand", headline: "Driver has arrived" },
+  assigned: { label: "On the way", tone: "teal", headline: "Driver is on the way" },
+  arrived: { label: "Arrived", tone: "teal", headline: "Driver has arrived" },
   in_progress: { label: "In progress", tone: "sky", headline: "Trip in progress" },
-  completed: { label: "Completed", tone: "neutral", headline: "Trip completed" },
+  completed: { label: "Completed", tone: "mint", headline: "Trip completed" },
   cancelled_by_customer: { label: "Cancelled", tone: "rose", headline: "Cancelled by the passenger" },
   cancelled_by_driver: { label: "Cancelled", tone: "rose", headline: "Cancelled by the driver" },
 };

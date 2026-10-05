@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Check } from "lucide-react";
+import { Check, Warning } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { CANCEL_REASONS_CUSTOMER, CANCEL_REASONS_DRIVER, rideCancelSchema } from "@raahi/shared";
 import { Button, Sheet, TextArea, useToast } from "@/components/ui";
@@ -18,8 +18,8 @@ export interface CancelSheetProps {
 }
 
 /**
- * Cancellation reasons as a single-select list; "Other" reveals a details
- * box. The confirm button spins until the caller's promise settles.
+ * Cancellation reasons as a single-select list of tinted chips-rows; "Other"
+ * reveals a details box. The confirm button spins until the caller's promise settles.
  */
 export default function CancelSheet({ open, onClose, perspective, onConfirm, title }: CancelSheetProps) {
   const reasons = perspective === "customer" ? CANCEL_REASONS_CUSTOMER : CANCEL_REASONS_DRIVER;
@@ -28,6 +28,7 @@ export default function CancelSheet({ open, onClose, perspective, onConfirm, tit
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
+  const accent = perspective === "driver" ? "teal" : "coral";
 
   useEffect(() => {
     if (!open) return;
@@ -64,34 +65,45 @@ export default function CancelSheet({ open, onClose, perspective, onConfirm, tit
   return (
     <Sheet open={open} onClose={busy ? () => {} : onClose} title={title ?? "Cancel this ride?"} dismissible={!busy}>
       <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
-        <motion.div variants={item.down} className="flex items-start gap-3 rounded-2xl bg-amber-400/8 border border-amber-400/15 px-3.5 py-3">
-          <AlertTriangle className="size-5 text-amber-300 shrink-0 mt-0.5" />
-          <p className="text-[13.5px] text-ink-200 leading-snug">
+        <motion.div variants={item.down} className="flex items-start gap-3 rounded-[20px] bg-sun-100 px-3.5 py-3 shadow-[0_3px_0_0_#ffe49a]">
+          <Warning className="size-[22px] text-sun-600 shrink-0 mt-0.5" weight="duotone" />
+          <p className="text-[13.5px] text-ink-700 leading-snug font-semibold">
             {perspective === "customer" ? "Your driver may already be on the way. Frequent cancellations lower your rating." : "Cancelling after accepting affects your acceptance rate and rating."}
           </p>
         </motion.div>
 
-        <motion.ul variants={item.up} className="flex flex-col gap-1.5" role="radiogroup" aria-label="Reason">
+        <motion.ul variants={item.up} className="flex flex-col gap-2" role="radiogroup" aria-label="Reason">
           {reasons.map((r) => {
             const active = r === reason;
             return (
               <motion.li key={r} layout transition={spring}>
-                <button
+                <motion.button
                   type="button"
                   role="radio"
                   aria-checked={active}
+                  whileTap={{ scale: 0.98 }}
+                  transition={spring}
                   onClick={() => {
                     haptic.tick();
                     setReason(r);
                     setError(null);
                   }}
-                  className={cn("w-full flex items-center gap-3 rounded-2xl px-3.5 py-3 text-left border transition-colors", active ? "bg-brand-500/10 border-brand-500/50" : "bg-white/3 border-white/6 hover:bg-white/5")}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-[20px] px-3.5 py-3 text-left transition-colors border-2",
+                    active ? (accent === "teal" ? "bg-teal-100 border-teal-400" : "bg-coral-100 border-coral-400") : "bg-white border-transparent shadow-pillow",
+                  )}
                 >
-                  <span className={cn("size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors", active ? "border-brand-400 bg-brand-500" : "border-ink-500")}>
-                    <AnimatePresence>{active && <motion.span key="c" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={spring}><Check className="size-3 text-ink-950" strokeWidth={3} /></motion.span>}</AnimatePresence>
+                  <span className={cn("size-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors", active ? (accent === "teal" ? "border-teal-500 bg-teal-500" : "border-coral-500 bg-coral-500") : "border-paper-300 bg-paper-50")}>
+                    <AnimatePresence>
+                      {active && (
+                        <motion.span key="c" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={spring}>
+                          <Check className="size-3.5 text-white" weight="bold" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </span>
-                  <span className={cn("text-[15px] font-medium", active ? "text-ink-50" : "text-ink-200")}>{r}</span>
-                </button>
+                  <span className={cn("text-[15px] font-bold", active ? "text-ink-900" : "text-ink-700")}>{r}</span>
+                </motion.button>
               </motion.li>
             );
           })}
@@ -108,7 +120,7 @@ export default function CancelSheet({ open, onClose, perspective, onConfirm, tit
         <motion.div variants={item.up} className="flex flex-col gap-2 pt-1">
           <AnimatePresence initial={false}>
             {error && (
-              <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[13px] text-rose-400 text-center">
+              <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[13px] text-rose-500 text-center font-bold">
                 {error}
               </motion.p>
             )}

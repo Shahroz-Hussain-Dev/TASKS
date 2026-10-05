@@ -1,4 +1,4 @@
-import { Phone } from "lucide-react";
+import { Phone } from "@phosphor-icons/react";
 import { forwardRef, type ChangeEvent } from "react";
 import { DEFAULT_DIAL_CODE } from "@raahi/shared";
 import { Input, type InputProps } from "@/components/ui";

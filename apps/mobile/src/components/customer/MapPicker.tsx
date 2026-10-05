@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, LocateFixed, X } from "lucide-react";
+import { Check, GpsFix, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import type { LatLng, Place } from "@raahi/shared";
 import { MapView, type MapHandle } from "@/components/Map";
@@ -14,15 +14,15 @@ import { item, spring, springSoft, stagger } from "@/lib/motion";
 import { getCurrentLocation, haptic } from "@/lib/native";
 
 /**
- * "Choose on map": a full-screen map with a pin fixed at the centre. The pin
- * lifts while the map moves and settles when it stops; the address under it is
- * reverse-geocoded once the camera is still.
+ * "Choose on map": a full-screen light map with a pin fixed at the centre. The
+ * pin lifts while the map moves and settles when it stops; the address under
+ * it is reverse-geocoded once the camera is still.
  */
 export function MapPicker({ open, target, initial, onClose, onConfirm }: { open: boolean; target: "pickup" | "dropoff"; initial: LatLng | null; onClose: () => void; onConfirm: (place: Place) => void }) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div key="picker" initial={{ y: "8%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "6%", opacity: 0, transition: { duration: 0.2 } }} transition={springSoft} className="fixed inset-0 z-50 bg-ink-900">
+        <motion.div key="picker" initial={{ y: "8%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "6%", opacity: 0, transition: { duration: 0.2 } }} transition={springSoft} className="fixed inset-0 z-50 bg-paper-50">
           <PickerBody target={target} initial={initial ?? DEFAULT_CENTER} onClose={onClose} onConfirm={onConfirm} />
         </motion.div>
       )}
@@ -35,7 +35,7 @@ function PickerBody({ target, initial, onClose, onConfirm }: { target: "pickup" 
   const [center, setCenter] = useState<LatLng>(initial);
   const [moving, setMoving] = useState(false);
   const [locating, setLocating] = useState(false);
-  const colour = target === "pickup" ? "#34d399" : "#fbbf24";
+  const colour = target === "pickup" ? "#12a594" : "#ff6b4a";
 
   const reverse = useQuery({
     queryKey: ck.reverse(center),
@@ -74,27 +74,27 @@ function PickerBody({ target, initial, onClose, onConfirm }: { target: "pickup" 
       </MapView>
 
       {/* Centre pin — tip sits exactly on the map centre */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 flex flex-col items-center" style={{ marginTop: -44 }} aria-hidden>
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 flex flex-col items-center" style={{ marginTop: -46 }} aria-hidden>
         <motion.div animate={{ y: moving ? -14 : 0 }} transition={spring} className="flex flex-col items-center">
-          <div className="size-6 rounded-full border-[3px] border-ink-950 shadow-float" style={{ background: colour }} />
+          <div className="size-7 rounded-full border-[4px] border-white shadow-float" style={{ background: colour }} />
           <div className="w-[3px] h-5 rounded-full -mt-0.5" style={{ background: colour }} />
         </motion.div>
-        <motion.div animate={{ scale: moving ? 0.5 : 1, opacity: moving ? 0.35 : 0.7 }} transition={spring} className="size-2.5 rounded-full bg-ink-950 blur-[1.5px] -mt-0.5" />
+        <motion.div animate={{ scale: moving ? 0.5 : 1, opacity: moving ? 0.25 : 0.45 }} transition={spring} className="size-3 rounded-full bg-ink-900 blur-[2px] -mt-0.5" />
       </div>
 
       <motion.div variants={stagger(0.07)} initial="hidden" animate="show" className="absolute inset-0 pointer-events-none flex flex-col" style={{ paddingTop: "calc(var(--safe-top) + 12px)", paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
         <motion.div variants={item.down} className="flex items-center justify-between px-4 pointer-events-auto">
-          <IconButton icon={X} label="Close" onClick={onClose} />
-          <span className="glass rounded-full px-4 h-10 inline-flex items-center text-[14px] font-semibold text-ink-50 shadow-card">{target === "pickup" ? "Set pickup point" : "Set destination"}</span>
-          <IconButton icon={LocateFixed} label="My location" onClick={() => void locateMe()} className={locating ? "animate-pulse" : undefined} />
+          <IconButton icon={X} label="Close" variant="solid" weight="bold" onClick={onClose} />
+          <span className="pillow rounded-full px-4 h-11 inline-flex items-center font-display text-[15px] font-semibold text-ink-900">{target === "pickup" ? "Set pickup point" : "Set destination"}</span>
+          <IconButton icon={GpsFix} label="My location" variant="solid" className={locating ? "animate-pulse text-sky-600" : "text-sky-600"} onClick={() => void locateMe()} />
         </motion.div>
 
         <motion.div variants={item.up} className="mt-auto px-4 pointer-events-auto">
-          <div className="glass rounded-3xl shadow-float p-4 flex flex-col gap-3">
+          <div className="pillow p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-full" style={{ background: colour }} />
-              <span className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">{target === "pickup" ? "Pickup" : "Destination"}</span>
-              <span className="ml-auto text-[11.5px] text-ink-500 tabular-nums">
+              <span className="size-3 rounded-full" style={{ background: colour, boxShadow: `0 0 0 3px ${target === "pickup" ? "#dcf4ef" : "#ffe9e2"}` }} />
+              <span className="text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400">{target === "pickup" ? "Pickup" : "Destination"}</span>
+              <span className="ml-auto text-[11.5px] text-ink-300 tabular-nums font-semibold">
                 {center.lat.toFixed(5)}, {center.lng.toFixed(5)}
               </span>
             </div>
@@ -107,19 +107,19 @@ function PickerBody({ target, initial, onClose, onConfirm }: { target: "pickup" 
                   </motion.div>
                 ) : reverse.data ? (
                   <motion.div key={`${center.lat}-${center.lng}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={spring}>
-                    <p className="font-display text-[17px] font-semibold text-ink-50 leading-snug">{reverse.data.name || reverse.data.address}</p>
-                    {reverse.data.name && reverse.data.name !== reverse.data.address && <p className="text-[13px] text-ink-300 mt-0.5 leading-snug">{reverse.data.address}</p>}
+                    <p className="font-display text-[18px] font-semibold text-ink-900 leading-snug">{reverse.data.name || reverse.data.address}</p>
+                    {reverse.data.name && reverse.data.name !== reverse.data.address && <p className="text-[13px] text-ink-500 mt-0.5 leading-snug font-medium">{reverse.data.address}</p>}
                   </motion.div>
                 ) : (
                   <motion.div key="fallback" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <p className="font-display text-[16px] font-semibold text-ink-50">Dropped pin</p>
-                    <p className="text-[13px] text-ink-400 mt-0.5">We couldn't look up this address, but you can still use the spot.</p>
+                    <p className="font-display text-[17px] font-semibold text-ink-900">Dropped pin</p>
+                    <p className="text-[13px] text-ink-500 mt-0.5 font-medium">We couldn't look up this address, but you can still use the spot.</p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            <p className="text-[12.5px] text-ink-400">Drag the map until the pin sits exactly where you'll {target === "pickup" ? "wait" : "get off"}.</p>
-            <Button full size="xl" icon={Check} disabled={moving} variant={target === "pickup" ? "primary" : "amber"} onClick={confirm}>
+            <p className="text-[12.5px] text-ink-500 font-medium">Drag the map until the pin sits exactly where you'll {target === "pickup" ? "wait" : "get off"}.</p>
+            <Button full size="xl" icon={Check} disabled={moving} variant={target === "pickup" ? "teal" : "primary"} onClick={confirm}>
               {addressReady ? (target === "pickup" ? "Confirm pickup" : "Confirm destination") : "Use this spot"}
             </Button>
           </div>

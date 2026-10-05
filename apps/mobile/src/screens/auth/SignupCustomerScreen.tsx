@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Mail, Sparkles, UserRound } from "lucide-react";
+import { EnvelopeSimple, Sparkle, User } from "@phosphor-icons/react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { customerSignupSchema, type CustomerSignupInput } from "@raahi/shared";
@@ -58,25 +58,29 @@ export default function SignupCustomerScreen() {
   return (
     <AuthShell
       eyebrow="Rider account"
-      title="Let's get you moving"
+      title={
+        <>
+          Let's get you <span className="text-coral-500">moving.</span>
+        </>
+      }
       subtitle="Takes under a minute. Your number is how drivers reach you."
       footer={
         <p>
           Already have an account?{" "}
-          <Link to="/auth/login?role=customer" className="font-semibold text-brand-400">
+          <Link to="/auth/login?role=customer" className="font-extrabold text-coral-600">
             Sign in
           </Link>
         </p>
       }
     >
       <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
-        <Input label="Full name" placeholder="As on your CNIC" icon={UserRound} autoComplete="name" autoCapitalize="words" {...form.bind("fullName")} />
+        <Input label="Full name" placeholder="As on your CNIC" icon={User} autoComplete="name" autoCapitalize="words" {...form.bind("fullName")} />
         <PhoneInput label="Mobile number" {...form.bind("phone")} />
-        <Input label="Email (optional)" placeholder="you@example.com" type="email" inputMode="email" icon={Mail} autoComplete="email" autoCapitalize="none" hint="For receipts and account recovery." {...form.bind("email")} />
+        <Input label="Email (optional)" placeholder="you@example.com" type="email" inputMode="email" icon={EnvelopeSimple} autoComplete="email" autoCapitalize="none" hint="For receipts and account recovery." {...form.bind("email")} />
         <PasswordInput label="Password" placeholder="At least 8 characters" autoComplete="new-password" {...form.bind("password")} />
         <PasswordInput label="Confirm password" placeholder="Type it again" autoComplete="new-password" {...form.bind("confirm")} />
-        <p className="text-[12.5px] leading-relaxed text-ink-500 px-1">By creating an account you agree to Raahi's Terms of Service and Privacy Policy. Fares are paid in cash directly to the driver.</p>
-        <Button type="submit" size="xl" full icon={Sparkles} loading={signup.isPending}>
+        <p className="text-[12.5px] leading-relaxed text-ink-500 px-1 font-medium">By creating an account you agree to Raahi's Terms of Service and Privacy Policy. Fares are paid in cash directly to the driver.</p>
+        <Button type="submit" size="xl" full icon={Sparkle} loading={signup.isPending}>
           Create account
         </Button>
       </form>

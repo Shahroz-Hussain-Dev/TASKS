@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Banknote, LocateFixed, Phone, Share2, ShieldAlert, Star, X } from "lucide-react";
+import { GpsFix, Money as MoneyIcon, Phone, ShareNetwork, ShieldWarning, Star, X } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MARKET_RULES, decodePolyline, estimateDurationMin, estimateRoadKm, type DriverPublicDto, type LatLng, type RideDto } from "@raahi/shared";
+import { MARKET_RULES, decodePolyline, estimateDurationMin, estimateRoadKm, type DriverPublicDto, type LatLng, type RideDto, type RideStatus } from "@raahi/shared";
 import { AnimatedCarMarker } from "@/components/customer/AnimatedCarMarker";
 import { DriverCard } from "@/components/customer/DriverCard";
 import { FitCamera } from "@/components/customer/FitCamera";
@@ -31,6 +31,14 @@ const POLICE = "15";
 const RESCUE = "1122";
 
 type DriverWithPhone = DriverPublicDto & { phone?: string | null };
+
+/** Status pill: label + colour that morphs as the ride progresses (sky → sun → teal → mint). */
+const STATUS_PILL: Partial<Record<RideStatus, { label: string; bg: string; fg: string }>> = {
+  assigned: { label: "Driver coming", bg: "#3da9fc", fg: "#ffffff" },
+  arrived: { label: "At pickup", bg: "#ffc53d", fg: "#1f1b2d" },
+  in_progress: { label: "On trip", bg: "#12a594", fg: "#ffffff" },
+  completed: { label: "Trip done", bg: "#2fbf71", fg: "#ffffff" },
+};
 
 /** Opens the dialler. `window.open` is intercepted by the native shell; the location fallback covers browsers that block it. */
 function dial(number: string) {
@@ -192,7 +200,7 @@ export default function RideScreen() {
   const canCancel = !!ride && (ride.status === "assigned" || ride.status === "arrived");
 
   return (
-    <div className="relative h-full w-full bg-ink-900">
+    <div className="relative h-full w-full bg-paper-50">
       <MapView center={ride?.pickup} zoom={14}>
         {ride && (
           <>
@@ -217,19 +225,19 @@ export default function RideScreen() {
           <BackButton fallback="/c/home" />
         </motion.div>
         <motion.div variants={item.down} className="pointer-events-auto flex items-center gap-2">
-          <IconButton icon={Share2} label="Share trip" onClick={() => void share()} />
-          <motion.button type="button" aria-label="Emergency help" whileTap={{ scale: 0.9 }} transition={springBouncy} onClick={() => {
+          <IconButton icon={ShareNetwork} label="Share trip" variant="solid" className="text-ink-700" onClick={() => void share()} />
+          <motion.button type="button" aria-label="Emergency help" whileTap={{ scale: 0.92, y: 3 }} transition={springBouncy} onClick={() => {
             haptic.heavy();
             setSosOpen(true);
-          }} className="h-11 pl-3 pr-4 rounded-full bg-rose-500 text-ink-50 font-bold text-[13.5px] tracking-wide flex items-center gap-1.5 shadow-float">
-            <ShieldAlert className="size-5" />
+          }} className="h-12 pl-3 pr-4 rounded-full jelly jelly-rose font-display font-semibold text-[15px] tracking-wide flex items-center gap-1.5">
+            <ShieldWarning className="size-[22px]" weight="duotone" />
             SOS
           </motion.button>
         </motion.div>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ ...spring, delay: 0.3 }} className="absolute right-4 z-10" style={{ bottom: panelHeight + 14 }}>
-        <IconButton icon={LocateFixed} label="Re-centre" onClick={() => {
+        <IconButton icon={GpsFix} label="Re-centre" variant="solid" className="text-sky-600" onClick={() => {
           haptic.tick();
           setFollowTick((n) => n + 1);
         }} />
@@ -237,24 +245,34 @@ export default function RideScreen() {
 
       {/* Bottom panel */}
       <div ref={panelRef} className="absolute inset-x-0 bottom-0 z-10 flex flex-col max-h-[70%]">
-        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[30px] shadow-float flex flex-col min-h-0 overflow-y-auto no-scrollbar px-4 pt-3" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
+        <motion.div initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="glass rounded-t-[32px] shadow-float flex flex-col min-h-0 overflow-y-auto no-scrollbar px-4 pt-3" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
           <div className="flex justify-center">
-            <span className="h-1.5 w-12 rounded-full bg-white/15" />
+            <span className="h-1.5 w-12 rounded-full bg-paper-300" />
           </div>
 
           <motion.div variants={stagger(0.07, 0.1)} initial="hidden" animate="show" className="flex flex-col gap-3.5 pt-3">
             <motion.div variants={item.down} className="px-1 min-h-[58px]">
+              {ride && STATUS_PILL[ride.status] && (
+                <motion.span layout initial={{ scale: 0.6, opacity: 0, rotate: -4 }} animate={{ scale: 1, opacity: 1, rotate: -1.5, backgroundColor: STATUS_PILL[ride.status]!.bg, color: STATUS_PILL[ride.status]!.fg }} transition={springBouncy} className="sticker inline-flex items-center gap-1.5 rounded-full px-3 h-8 text-[12.5px] font-extrabold uppercase tracking-wider mb-2 ml-0.5">
+                  <span className="size-2 rounded-full bg-white/80" />
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={ride.status} initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }} transition={spring}>
+                      {STATUS_PILL[ride.status]!.label}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.span>
+              )}
               <AnimatePresence mode="wait" initial={false}>
                 {ride && info ? (
                   <motion.div key={ride.status} initial={{ opacity: 0, y: 14, filter: "blur(4px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -10, filter: "blur(4px)" }} transition={spring}>
-                    <h1 className="font-display text-[22px] font-semibold text-ink-50 leading-tight">{info.headline}</h1>
-                    <p className="text-[13.5px] text-ink-300 mt-1 leading-snug">{info.sub}</p>
-                    {info.stale && <p className="text-[12px] text-amber-300 mt-0.5">The driver's location hasn't updated for a while.</p>}
+                    <h1 className="font-display text-[24px] font-semibold text-ink-900 leading-tight">{info.headline}</h1>
+                    <p className="text-[13.5px] text-ink-500 mt-1 leading-snug font-semibold">{info.sub}</p>
+                    {info.stale && <p className="text-[12px] text-sun-600 mt-0.5 font-bold">The driver's location hasn't updated for a while.</p>}
                   </motion.div>
                 ) : (
                   <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2 pt-1">
-                    <span className="h-5 w-2/3 rounded shimmer bg-white/5" />
-                    <span className="h-3.5 w-1/2 rounded shimmer bg-white/5" />
+                    <span className="h-5 w-2/3 rounded shimmer bg-paper-200" />
+                    <span className="h-3.5 w-1/2 rounded shimmer bg-paper-200" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -266,17 +284,17 @@ export default function RideScreen() {
                   <DriverCard driver={ride.driver} unread={ride.unreadMessages} phone={phone} onChat={() => navigate(`/rides/${ride.id}/chat`)} onCall={phone ? () => dial(phone) : undefined} />
                 </motion.div>
 
-                <motion.div variants={item.left} className="rounded-3xl bg-ink-800 border border-white/8 shadow-card px-4 py-3 flex items-center gap-3">
-                  <span className="size-10 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center shrink-0">
-                    <Banknote className="size-5" />
+                <motion.div variants={item.left} className="pillow bg-sun-100 px-4 py-3 flex items-center gap-3">
+                  <span className="size-11 rounded-full bg-white text-sun-600 flex items-center justify-center shrink-0">
+                    <MoneyIcon className="size-6" weight="duotone" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">Fare · cash</p>
-                    <p className="text-[12.5px] text-ink-400 truncate">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-500">Fare · cash</p>
+                    <p className="text-[12.5px] text-ink-600 truncate font-semibold">
                       {formatKm(ride.distanceKm)} · {formatDuration(ride.durationMin)} · 100% to your driver
                     </p>
                   </div>
-                  <Money value={ride.farePkr} className="text-[22px] font-bold text-amber-300" />
+                  <Money value={ride.farePkr} className="text-[24px] text-ink-900" />
                 </motion.div>
 
                 <motion.div variants={item.up} className="flex flex-col gap-2 pt-0.5">
@@ -287,8 +305,8 @@ export default function RideScreen() {
                           Rate your driver
                         </Button>
                       ) : (
-                        <div className="rounded-2xl bg-brand-500/10 border border-brand-500/25 px-4 py-3 text-[14px] text-ink-100 flex items-center gap-2">
-                          <Star className="size-4 text-amber-400 fill-amber-400" />
+                        <div className="rounded-[22px] bg-mint-100 px-4 py-3 text-[14px] text-ink-800 font-semibold flex items-center gap-2">
+                          <Star className="size-5 text-sun-500" weight="fill" />
                           You rated this trip {ride.myRating.stars} {ride.myRating.stars === 1 ? "star" : "stars"}. Thank you!
                         </div>
                       )}
@@ -297,11 +315,11 @@ export default function RideScreen() {
                       </Button>
                     </>
                   ) : canCancel ? (
-                    <Button full variant="ghost" icon={X} className="text-rose-400" onClick={() => setCancelOpen(true)}>
+                    <Button full variant="ghost" icon={X} className="text-rose-500" onClick={() => setCancelOpen(true)}>
                       Cancel ride
                     </Button>
                   ) : (
-                    <p className="text-center text-[12.5px] text-ink-500 py-1">Sit back and enjoy the ride. Use SOS if anything feels wrong.</p>
+                    <p className="text-center text-[12.5px] text-ink-500 py-1 font-semibold">Sit back and enjoy the ride. Use SOS if anything feels wrong.</p>
                   )}
                 </motion.div>
               </>
@@ -309,7 +327,7 @@ export default function RideScreen() {
 
             {query.isError && !ride && (
               <motion.div variants={item.up} className="flex flex-col items-center gap-3 py-4 text-center">
-                <p className="text-[14px] text-ink-300">{errorMessage(query.error, "We couldn't load this ride.")}</p>
+                <p className="text-[14px] text-ink-600 font-semibold">{errorMessage(query.error, "We couldn't load this ride.")}</p>
                 <Button variant="secondary" size="md" onClick={() => void query.refetch()}>
                   Try again
                 </Button>
@@ -337,12 +355,12 @@ export default function RideScreen() {
 
       <Sheet open={sosOpen} onClose={() => setSosOpen(false)} title="Emergency help">
         <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="flex flex-col gap-3 pb-2">
-          <motion.div variants={item.down} className="rounded-2xl bg-rose-500/10 border border-rose-500/25 px-4 py-3 flex items-start gap-3">
-            <ShieldAlert className="size-5 text-rose-400 shrink-0 mt-0.5" />
-            <p className="text-[13.5px] text-ink-100 leading-snug">If you feel unsafe, call for help now. Keep the app open — your trip details are below to read out.</p>
+          <motion.div variants={item.down} className="rounded-[22px] bg-rose-100 px-4 py-3 flex items-start gap-3">
+            <ShieldWarning className="size-6 text-rose-500 shrink-0 mt-0.5" weight="duotone" />
+            <p className="text-[13.5px] text-ink-800 leading-snug font-semibold">If you feel unsafe, call for help now. Keep the app open — your trip details are below to read out.</p>
           </motion.div>
           <motion.div variants={item.up} className="grid grid-cols-2 gap-2">
-            <Button size="xl" variant="danger" icon={Phone} onClick={() => dial(POLICE)} className="bg-rose-500 text-ink-50 border-rose-500 hover:bg-rose-400">
+            <Button size="xl" variant="danger" icon={Phone} onClick={() => dial(POLICE)}>
               Police · {POLICE}
             </Button>
             <Button size="xl" variant="outline" icon={Phone} onClick={() => dial(RESCUE)}>
@@ -350,15 +368,15 @@ export default function RideScreen() {
             </Button>
           </motion.div>
           {ride && (
-            <motion.div variants={item.up} className="rounded-2xl bg-white/4 border border-white/6 px-4 py-3 text-[13px] text-ink-200 leading-relaxed">
-              <p className={cn("font-semibold text-ink-50")}>{ride.driver.fullName}{ride.driver.vehicle?.plate ? ` · ${ride.driver.vehicle.plate}` : ""}</p>
+            <motion.div variants={item.up} className="pillow px-4 py-3 text-[13px] text-ink-600 leading-relaxed font-medium">
+              <p className={cn("font-extrabold text-ink-900")}>{ride.driver.fullName}{ride.driver.vehicle?.plate ? ` · ${ride.driver.vehicle.plate}` : ""}</p>
               {vehicleLine(ride.driver.vehicle) && <p>{vehicleLine(ride.driver.vehicle)}</p>}
-              <p className="text-ink-400 mt-1">From {ride.pickup.address}</p>
-              <p className="text-ink-400">To {ride.dropoff.address}</p>
+              <p className="text-ink-500 mt-1">From {ride.pickup.address}</p>
+              <p className="text-ink-500">To {ride.dropoff.address}</p>
             </motion.div>
           )}
           <motion.div variants={item.up}>
-            <Button full variant="ghost" icon={Share2} onClick={() => void share()}>
+            <Button full variant="ghost" icon={ShareNetwork} onClick={() => void share()}>
               Share my trip with someone
             </Button>
           </motion.div>

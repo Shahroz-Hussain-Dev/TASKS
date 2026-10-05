@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Banknote, Flag, LocateFixed, MessageCircle, Navigation, Siren, Star, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChatCircleDots, Crosshair, Flag, HandCoins, NavigationArrow, Siren, Star, X } from "@phosphor-icons/react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { decodePolyline, estimateDurationMin, estimateRoadKm, haversineKm, type LatLng, type RideDto, type RideStatus, type RouteQuote } from "@raahi/shared";
 import { Confetti } from "@/components/driver/Confetti";
@@ -28,6 +28,8 @@ const RESCUE = "1122";
 const r3 = (n: number) => Math.round(n * 1e3) / 1e3;
 /** The routing API refuses legs shorter than this (same floor as the server); draw a straight line instead of asking. */
 const MIN_ROUTE_KM = 0.2;
+/** "Navigate" is a sky jelly — the Button has no sky variant, so paint it inline. */
+const SKY_JELLY = { background: "#3da9fc", color: "#ffffff", "--jelly-edge": "#2c90e0" } as CSSProperties;
 
 function dial(number: string) {
   const url = `tel:${number}`;
@@ -48,7 +50,8 @@ function openNavigation(to: LatLng, label: string) {
 interface StepMeta {
   headline: string;
   cta: string;
-  ctaVariant: "primary" | "amber";
+  /** I've arrived = sun, Start trip = teal, Complete trip = coral. */
+  ctaVariant: "amber" | "teal" | "primary";
   navLabel: string;
   target: LatLng;
 }
@@ -57,11 +60,11 @@ function stepFor(ride: RideDto): StepMeta | null {
   const first = ride.customer.fullName.trim().split(/\s+/)[0] ?? "the passenger";
   switch (ride.status) {
     case "assigned":
-      return { headline: "Head to the pickup", cta: "I've arrived", ctaVariant: "primary", navLabel: "Navigate to pickup", target: ride.pickup };
+      return { headline: "Head to the pickup", cta: "I've arrived", ctaVariant: "amber", navLabel: "Navigate to pickup", target: ride.pickup };
     case "arrived":
-      return { headline: `Waiting for ${first}`, cta: "Start trip", ctaVariant: "primary", navLabel: "Navigate to drop-off", target: ride.dropoff };
+      return { headline: `Waiting for ${first}`, cta: "Start trip", ctaVariant: "teal", navLabel: "Navigate to drop-off", target: ride.dropoff };
     case "in_progress":
-      return { headline: "Heading to the destination", cta: "Complete trip", ctaVariant: "amber", navLabel: "Navigate", target: ride.dropoff };
+      return { headline: "Heading to the destination", cta: "Complete trip", ctaVariant: "primary", navLabel: "Navigate", target: ride.dropoff };
     default:
       return null;
   }
@@ -232,15 +235,16 @@ export default function DriverRideScreen() {
 
   const center = pres.fix ?? ride?.pickup ?? DEFAULT_CENTER;
   const canCancel = ride?.status === "assigned" || ride?.status === "arrived";
+  const statusTint = ride?.status === "in_progress" ? "bg-teal-100 text-teal-700" : ride?.status === "arrived" ? "bg-sun-100 text-sun-600" : "bg-sky-100 text-sky-600";
 
   return (
-    <div className="relative h-full w-full bg-ink-900">
+    <div className="relative h-full w-full bg-paper-50">
       <MapView ref={mapRef} center={center} zoom={14} padding={{ top: 110, bottom: 380, left: 30, right: 30 }} onMoveStart={() => setFollow(false)}>
         {ride && (
           <>
             <FitCamera points={framePoints} padding={{ top: 120, bottom: 380, left: 40, right: 40 }} revision={`${ride.id}:${ride.status}`} />
-            {toPickup && approachPoints.length >= 2 && <RouteLine points={approachPoints} id="approach" color="#38bdf8" width={4} />}
-            {tripPoints.length >= 2 && <RouteLine points={tripPoints} id="trip" animated={ride.status === "in_progress"} color={ride.status === "in_progress" ? "#34d399" : "#64748b"} width={ride.status === "in_progress" ? 5 : 3} />}
+            {toPickup && approachPoints.length >= 2 && <RouteLine points={approachPoints} id="approach" color="#3da9fc" width={4} />}
+            {tripPoints.length >= 2 && <RouteLine points={tripPoints} id="trip" animated={ride.status === "in_progress"} color={ride.status === "in_progress" ? "#12a594" : "#cfc9d9"} width={ride.status === "in_progress" ? 5 : 3} />}
             <Marker position={ride.pickup} anchor="bottom" zIndex={3}>
               <PinMarker kind="pickup" label={ride.status === "in_progress" ? undefined : "Pickup"} />
             </Marker>
@@ -260,18 +264,20 @@ export default function DriverRideScreen() {
 
       {/* Top chrome */}
       <div className="absolute inset-x-0 top-0 px-4 flex items-start justify-between pointer-events-none" style={{ paddingTop: "calc(var(--safe-top) + 12px)" }}>
-        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="pointer-events-auto glass rounded-2xl px-3.5 py-2 shadow-card max-w-[70%]">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">{ride?.status === "in_progress" ? "Trip in progress" : ride?.status === "arrived" ? "At pickup" : "Pickup"}</p>
-          <p className="text-[14px] font-semibold text-ink-50 truncate">{ride ? (toPickup ? ride.pickup.address : ride.dropoff.address) : "…"}</p>
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="pointer-events-auto glass rounded-[22px] px-3.5 py-2 max-w-[70%]">
+          <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.14em]", statusTint)}>{ride?.status === "in_progress" ? "Trip in progress" : ride?.status === "arrived" ? "At pickup" : "Pickup"}</span>
+          <p className="text-[14px] font-bold text-ink-900 truncate mt-1">{ride ? (toPickup ? ride.pickup.address : ride.dropoff.address) : "…"}</p>
         </motion.div>
         <div className="pointer-events-auto flex flex-col gap-2">
-          <IconButton icon={Siren} label="Emergency" onClick={() => setSosOpen(true)} style={{ color: "#fb7185" }} />
+          <IconButton icon={Siren} label="Emergency" variant="solid" className="text-rose-500" onClick={() => setSosOpen(true)} />
           <AnimatePresence>
             {!follow && pres.fix && (
               <motion.div key="rc" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={spring}>
                 <IconButton
-                  icon={LocateFixed}
+                  icon={Crosshair}
                   label="Recenter"
+                  variant="solid"
+                  className="text-teal-600"
                   onClick={() => {
                     haptic.tick();
                     setFollow(true);
@@ -285,7 +291,7 @@ export default function DriverRideScreen() {
       </div>
 
       {/* Panel */}
-      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="absolute inset-x-0 bottom-0 glass rounded-t-[32px] shadow-float px-5 pt-4" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
+      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="absolute inset-x-0 bottom-0 bg-paper-50 rounded-t-[32px] shadow-float px-5 pt-4" style={{ paddingBottom: "calc(var(--safe-bottom) + 16px)" }}>
         {!ride ? (
           <div className="flex flex-col gap-3 pb-2">
             <Skeleton className="h-6 w-48" />
@@ -304,31 +310,33 @@ export default function DriverRideScreen() {
             <motion.div variants={item.down} className="min-h-12">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={ride.status} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring}>
-                  <h1 className="font-display text-[22px] font-semibold text-ink-50 leading-tight">{step?.headline ?? "Trip completed"}</h1>
-                  <p className="text-[13.5px] text-ink-400 mt-0.5 truncate">{sub}</p>
+                  <h1 className="font-display text-[24px] font-semibold text-ink-900 leading-tight">{step?.headline ?? "Trip completed"}</h1>
+                  <p className="text-[13.5px] font-semibold text-ink-500 mt-0.5 truncate">{sub}</p>
                 </motion.div>
               </AnimatePresence>
             </motion.div>
 
             {/* Passenger + fare */}
-            <motion.div variants={item.left} className="flex items-center gap-3 rounded-3xl bg-ink-800/70 border border-white/6 p-3">
-              <Avatar name={ride.customer.fullName} src={ride.customer.avatarUrl} size={46} />
+            <motion.div variants={item.left} className="flex items-center gap-3 pillow p-3">
+              <Avatar name={ride.customer.fullName} src={ride.customer.avatarUrl} size={48} />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-ink-50 truncate">{ride.customer.fullName}</p>
-                <p className="text-[12.5px] text-ink-400 flex items-center gap-1 tabular-nums">
-                  <Star className="size-3 text-amber-300 fill-amber-300" />
+                <p className="font-display font-semibold text-[16px] text-ink-900 truncate">{ride.customer.fullName}</p>
+                <p className="text-[12.5px] font-semibold text-ink-500 flex items-center gap-1 tabular-nums">
+                  <Star className="size-3.5 text-sun-500" weight="fill" />
                   {ride.customer.ratingCount > 0 ? `${ride.customer.ratingAvg.toFixed(1)} (${ride.customer.ratingCount})` : "New rider"}
-                  <span className="text-ink-600 mx-1">·</span>
+                  <span className="text-ink-300 mx-1">·</span>
                   {formatKm(ride.distanceKm)} · {formatDuration(ride.durationMin)}
                 </p>
               </div>
-              <div className="text-right mr-1">
-                <Money value={ride.farePkr} className="text-[19px] font-bold text-amber-300 leading-none" />
-                <p className="text-[11px] text-ink-500 mt-0.5 uppercase tracking-wide font-bold">Cash</p>
+              <div className="text-right mr-1 flex flex-col items-end">
+                <span className="inline-flex rounded-full bg-sun-100 px-2.5 py-0.5">
+                  <Money value={ride.farePkr} className="text-[17px] text-ink-900 leading-none" />
+                </span>
+                <p className="text-[10.5px] text-ink-400 mt-1 uppercase tracking-wide font-extrabold">Cash</p>
               </div>
               <div className="relative">
-                <IconButton icon={MessageCircle} label="Chat with passenger" variant="solid" size={42} onClick={() => navigate(`/rides/${ride.id}/chat`)} />
-                {ride.unreadMessages > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-ink-950 text-[10px] font-bold flex items-center justify-center tabular-nums">{ride.unreadMessages > 9 ? "9+" : ride.unreadMessages}</span>}
+                <IconButton icon={ChatCircleDots} label="Chat with passenger" variant="teal" size={44} onClick={() => navigate(`/rides/${ride.id}/chat`)} />
+                {ride.unreadMessages > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-sun-500 text-ink-900 text-[10px] font-extrabold flex items-center justify-center tabular-nums ring-2 ring-white">{ride.unreadMessages > 9 ? "9+" : ride.unreadMessages}</span>}
               </div>
             </motion.div>
 
@@ -336,11 +344,11 @@ export default function DriverRideScreen() {
             {step && (
               <motion.div variants={item.up} className="flex flex-col gap-2">
                 <div className="grid grid-cols-[auto_1fr] gap-2">
-                  <Button variant="outline" size="xl" icon={Navigation} onClick={() => openNavigation(step.target, toPickup ? "Pickup" : "Drop-off")} aria-label={step.navLabel}>
+                  <Button variant="outline" size="xl" icon={NavigationArrow} style={SKY_JELLY} onClick={() => openNavigation(step.target, toPickup ? "Pickup" : "Drop-off")} aria-label={step.navLabel}>
                     Navigate
                   </Button>
                   <motion.div layout transition={spring}>
-                    <Button full size="xl" variant={step.ctaVariant} icon={ride.status === "in_progress" ? Flag : undefined} loading={advance.isPending} onClick={() => advance.mutate(ride.status)}>
+                    <Button full size="xl" variant={step.ctaVariant} icon={ride.status === "in_progress" ? Flag : undefined} loading={advance.isPending} onClick={() => advance.mutate(ride.status)} className="breathe">
                       <AnimatePresence mode="wait" initial={false}>
                         <motion.span key={step.cta} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring} className="inline-block">
                           {step.cta}
@@ -350,7 +358,7 @@ export default function DriverRideScreen() {
                   </motion.div>
                 </div>
                 {canCancel && (
-                  <Button variant="ghost" size="md" icon={X} className="text-ink-400" onClick={() => setCancelOpen(true)}>
+                  <Button variant="ghost" size="md" icon={X} className="text-ink-500" onClick={() => setCancelOpen(true)}>
                     Cancel trip
                   </Button>
                 )}
@@ -363,26 +371,32 @@ export default function DriverRideScreen() {
       {/* Completion celebration */}
       <AnimatePresence>
         {celebrate && ride && (
-          <motion.div key="celebrate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-ink-950/85 backdrop-blur-md flex flex-col items-center justify-center px-6 text-center">
+          <motion.div key="celebrate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-paper-50/92 backdrop-blur-md flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+            <span aria-hidden className="blob bg-sun-100 w-80 h-80 -top-16 -right-24" />
+            <span aria-hidden className="blob bg-teal-100 w-64 h-64 -bottom-12 -left-16" style={{ animationDelay: "-6s" }} />
             <Confetti count={90} seed={7} />
-            <motion.div variants={stagger(0.1, 0.15)} initial="hidden" animate="show" className="relative flex flex-col items-center gap-4">
-              <motion.span variants={item.scale} initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={springBouncy} className="size-24 rounded-[32px] bg-amber-400 text-ink-950 flex items-center justify-center shadow-float">
-                <Banknote className="size-11" strokeWidth={2.2} />
-              </motion.span>
-              <motion.div variants={item.up}>
-                <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-amber-300">Trip completed</p>
-                <h2 className="font-display text-[34px] font-bold text-ink-50 leading-tight mt-1">
-                  Collect <Money value={ride.farePkr} className="text-amber-300" />
-                </h2>
-                <p className="text-[15px] text-ink-300 mt-2 leading-relaxed">
-                  in cash from {ride.customer.fullName.split(" ")[0]}. {formatKm(ride.distanceKm)} · {formatDuration(ride.durationMin)}. Every rupee is yours.
-                </p>
+            <motion.div variants={stagger(0.1, 0.15)} initial="hidden" animate="show" className="relative w-full flex flex-col items-center gap-4">
+              <motion.div variants={item.scale} className="relative w-full">
+                <span aria-hidden className="blob bg-sun-100 w-56 h-56 left-1/2 -translate-x-1/2 -top-10 -z-10" />
+                <div className="sticker sticker-tilt-l bg-white p-6 flex flex-col items-center gap-3">
+                  <motion.span initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={springBouncy} className="size-20 rounded-[28px] bg-sun-500 text-ink-900 flex items-center justify-center shadow-pillow">
+                    <HandCoins className="size-10" weight="duotone" />
+                  </motion.span>
+                  <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-teal-600">Trip completed</p>
+                  <h2 className="font-display text-[32px] font-semibold text-ink-900 leading-tight">
+                    Collect <Money value={ride.farePkr} className="text-coral-500" /> in cash
+                  </h2>
+                  <p className="text-[14.5px] font-semibold text-ink-500 leading-relaxed">
+                    from {ride.customer.fullName.split(" ")[0]}. {formatKm(ride.distanceKm)} · {formatDuration(ride.durationMin)}. Every rupee is yours.
+                  </p>
+                </div>
               </motion.div>
               <motion.div variants={item.up} className="w-full pt-2">
                 <Button
                   full
                   size="xl"
                   variant="amber"
+                  className="breathe"
                   onClick={() => {
                     haptic.medium();
                     setCelebrate(false);
@@ -412,14 +426,14 @@ export default function DriverRideScreen() {
 
       <Sheet open={sosOpen} onClose={() => setSosOpen(false)} title="Emergency">
         <div className="flex flex-col gap-2 pb-2">
-          <p className="text-[14px] text-ink-300 leading-relaxed">If you're in danger, call the authorities first. Your trip details stay on record with Raahi.</p>
+          <p className="text-[14px] font-semibold text-ink-600 leading-relaxed">If you're in danger, call the authorities first. Your trip details stay on record with Raahi.</p>
           <Button full variant="danger" size="xl" icon={Siren} onClick={() => dial(POLICE)}>
             Call Police · {POLICE}
           </Button>
           <Button full variant="secondary" size="lg" onClick={() => dial(RESCUE)}>
             Call Rescue · {RESCUE}
           </Button>
-          <Button full variant="ghost" onClick={() => setSosOpen(false)} className={cn("text-ink-400")}>
+          <Button full variant="ghost" onClick={() => setSosOpen(false)} className={cn("text-ink-500")}>
             Close
           </Button>
         </div>

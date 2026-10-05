@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Car, LogIn, UserRound } from "lucide-react";
+import { Car, SignIn, User } from "@phosphor-icons/react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { loginSchema, type LoginInput } from "@raahi/shared";
@@ -23,6 +23,7 @@ export default function LoginScreen() {
   const toast = useToast();
   const role = asRole(params.get("role"), preferredRole);
   const form = useZodForm(loginSchema, { phone: "", password: "", role });
+  const driver = role === "driver";
 
   const login = useMutation({
     mutationFn: (input: LoginInput) => api.auth.login(input),
@@ -65,14 +66,26 @@ export default function LoginScreen() {
   return (
     <AuthShell
       eyebrow="Welcome back"
-      title={role === "driver" ? "Sign in to drive" : "Sign in to ride"}
-      subtitle={role === "driver" ? "Go online, see requests near you and send offers." : "Name your fare and let drivers come to you."}
+      tone={driver ? "teal" : "coral"}
+      title={
+        driver ? (
+          <>
+            Sign in <span className="text-teal-500">to drive.</span>
+          </>
+        ) : (
+          <>
+            Sign in <span className="text-coral-500">to ride.</span>
+          </>
+        )
+      }
+      subtitle={driver ? "Go online, see requests near you and send offers." : "Name your fare and let drivers come to you."}
       aside={
         <Segmented
           value={role}
           onChange={changeRole}
+          tone={driver ? "teal" : "coral"}
           options={[
-            { value: "customer", label: "Rider", icon: UserRound },
+            { value: "customer", label: "Rider", icon: User },
             { value: "driver", label: "Driver", icon: Car },
           ]}
         />
@@ -80,8 +93,8 @@ export default function LoginScreen() {
       footer={
         <p>
           New to Raahi?{" "}
-          <Link to={role === "driver" ? "/auth/signup/driver" : "/auth/signup/customer"} className="font-semibold text-brand-400">
-            Create {role === "driver" ? "a driver" : "an"} account
+          <Link to={driver ? "/auth/signup/driver" : "/auth/signup/customer"} className={driver ? "font-extrabold text-teal-600" : "font-extrabold text-coral-600"}>
+            Create {driver ? "a driver" : "an"} account
           </Link>
         </p>
       }
@@ -89,9 +102,10 @@ export default function LoginScreen() {
       <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
         <PhoneInput label="Mobile number" {...form.bind("phone")} />
         <PasswordInput label="Password" placeholder="Your password" autoComplete="current-password" {...form.bind("password")} />
-        <Button type="submit" size="xl" full icon={LogIn} loading={login.isPending} className="mt-2">
+        <Button type="submit" size="xl" full icon={SignIn} variant={driver ? "teal" : "primary"} loading={login.isPending} className="mt-1">
           Sign in
         </Button>
+        <p className="text-center text-[12.5px] text-ink-400 font-semibold -mt-1">Your number is your login. We never share it.</p>
       </form>
     </AuthShell>
   );

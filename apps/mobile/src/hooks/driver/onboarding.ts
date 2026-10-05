@@ -86,12 +86,12 @@ export function prevStep(step: WizardStep): WizardStep | null {
 /* Documents                                                           */
 /* ------------------------------------------------------------------ */
 
-export type Tone = "neutral" | "brand" | "amber" | "rose" | "sky" | "violet";
+export type Tone = "neutral" | "brand" | "amber" | "rose" | "sky" | "violet" | "coral" | "teal" | "sun" | "mint";
 
 export const DOC_STATUS_META: Record<DocumentVerificationStatus, { label: string; tone: Tone; blurb: string }> = {
   pending: { label: "Checking", tone: "sky", blurb: "Waiting for verification." },
-  verified: { label: "Verified", tone: "brand", blurb: "Looks good. Nothing else to do here." },
-  flagged: { label: "Needs review", tone: "amber", blurb: "Our team will take a look. You can retake it now to speed things up." },
+  verified: { label: "Verified", tone: "mint", blurb: "Looks good. Nothing else to do here." },
+  flagged: { label: "Needs review", tone: "sun", blurb: "Our team will take a look. You can retake it now to speed things up." },
   rejected: { label: "Rejected", tone: "rose", blurb: "Retake this photo before you submit." },
 };
 
@@ -141,15 +141,15 @@ export function documentProgress(driver: DriverDto | null): DocumentProgress {
 
 export const DRIVER_STATUS_META: Record<DriverStatus, { label: string; tone: Tone }> = {
   onboarding: { label: "Onboarding", tone: "neutral" },
-  under_review: { label: "Under review", tone: "amber" },
-  approved: { label: "Approved", tone: "brand" },
+  under_review: { label: "Under review", tone: "sun" },
+  approved: { label: "Approved", tone: "teal" },
   rejected: { label: "Rejected", tone: "rose" },
   suspended: { label: "Suspended", tone: "rose" },
 };
 
 export const SUBSCRIPTION_STATUS_META: Record<SubscriptionStatus, { label: string; tone: Tone }> = {
-  pending: { label: "Under review", tone: "amber" },
-  active: { label: "Active", tone: "brand" },
+  pending: { label: "Under review", tone: "sun" },
+  active: { label: "Active", tone: "teal" },
   expired: { label: "Expired", tone: "rose" },
   rejected: { label: "Rejected", tone: "rose" },
 };

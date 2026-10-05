@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { BadgeCheck, Camera, Car, CreditCard, FileText, IdCard, Receipt, UserRound } from "lucide-react";
+import { Camera, Car, CreditCard, FileText, IdentificationCard, Receipt, SealCheck, User } from "@phosphor-icons/react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DEFAULT_SETTINGS, driverSignupSchema, formatPkr, type DriverSignupInput } from "@raahi/shared";
@@ -24,7 +24,7 @@ const confirmRule = (v: Values) => {
 
 const CHECKLIST = [
   { icon: Camera, label: "A live selfie" },
-  { icon: IdCard, label: "CNIC, front and back" },
+  { icon: IdentificationCard, label: "CNIC, front and back" },
   { icon: FileText, label: "Driving licence" },
   { icon: FileText, label: "Route permit" },
   { icon: Car, label: "Vehicle documents and a photo" },
@@ -69,45 +69,51 @@ export default function SignupDriverScreen() {
   return (
     <AuthShell
       eyebrow="Driver account"
-      title="Drive on your terms"
+      tone="teal"
+      title={
+        <>
+          Drive on <span className="text-teal-500">your terms.</span>
+        </>
+      }
       subtitle="Keep 100% of every fare. Create your account, then we'll walk you through verification."
       aside={
-        <div className="rounded-3xl bg-ink-800/80 border border-white/6 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <BadgeCheck className="size-4 text-brand-400" />
-            <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] text-ink-300">You'll need, in the next step</p>
+        <div className="relative overflow-hidden rounded-[26px] bg-teal-100 p-4 shadow-[0_4px_0_0_#b7e8df]">
+          <span aria-hidden className="blob absolute -right-10 -top-12 size-36 bg-white/50" />
+          <div className="relative flex items-center gap-2 mb-3">
+            <SealCheck className="size-5 text-teal-600" weight="duotone" />
+            <p className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-teal-700">You'll need, in the next step</p>
           </div>
-          <motion.ul variants={stagger(0.05, 0.3)} initial="hidden" animate="show" className="grid grid-cols-1 gap-2">
+          <motion.ul variants={stagger(0.05, 0.3)} initial="hidden" animate="show" className="relative grid grid-cols-1 gap-2">
             {CHECKLIST.map(({ icon: Icon, label }) => (
-              <motion.li key={label} variants={item.right} className="flex items-center gap-2.5 text-[13.5px] text-ink-200">
-                <span className="size-7 rounded-lg bg-white/5 flex items-center justify-center text-ink-300 shrink-0">
-                  <Icon className="size-4" />
+              <motion.li key={label} variants={item.right} className="flex items-center gap-2.5 text-[13.5px] font-bold text-ink-800">
+                <span className="size-8 rounded-xl bg-white flex items-center justify-center text-teal-600 shrink-0 shadow-pillow">
+                  <Icon className="size-[18px]" weight="duotone" />
                 </span>
                 {label}
               </motion.li>
             ))}
           </motion.ul>
-          <p className="mt-3 flex items-center gap-1.5 text-[12px] text-ink-500">
-            <CreditCard className="size-3.5" /> No commission on rides, ever.
+          <p className="relative mt-3 flex items-center gap-1.5 text-[12.5px] font-bold text-teal-700">
+            <CreditCard className="size-4" weight="duotone" /> No commission on rides, ever.
           </p>
         </div>
       }
       footer={
         <p>
           Already driving with us?{" "}
-          <Link to="/auth/login?role=driver" className="font-semibold text-brand-400">
+          <Link to="/auth/login?role=driver" className="font-extrabold text-teal-600">
             Sign in
           </Link>
         </p>
       }
     >
       <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
-        <Input label="Full name" placeholder="Exactly as on your CNIC" icon={UserRound} autoComplete="name" autoCapitalize="words" hint="Must match your CNIC and licence for verification." {...form.bind("fullName")} />
+        <Input label="Full name" placeholder="Exactly as on your CNIC" icon={User} autoComplete="name" autoCapitalize="words" hint="Must match your CNIC and licence for verification." {...form.bind("fullName")} />
         <PhoneInput label="Mobile number" {...form.bind("phone")} />
         <PasswordInput label="Password" placeholder="At least 8 characters" autoComplete="new-password" {...form.bind("password")} />
         <PasswordInput label="Confirm password" placeholder="Type it again" autoComplete="new-password" {...form.bind("confirm")} />
-        <p className="text-[12.5px] leading-relaxed text-ink-500 px-1">By continuing you agree to Raahi's Driver Terms and Privacy Policy, and to document verification by Raahi and its AI systems.</p>
-        <Button type="submit" size="xl" full icon={Car} loading={signup.isPending}>
+        <p className="text-[12.5px] leading-relaxed text-ink-500 px-1 font-medium">By continuing you agree to Raahi's Driver Terms and Privacy Policy, and to document verification by Raahi and its AI systems.</p>
+        <Button type="submit" size="xl" full icon={Car} variant="teal" loading={signup.isPending}>
           Continue to verification
         </Button>
       </form>

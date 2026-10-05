@@ -14,7 +14,7 @@ export default function CustomerShell() {
   const { pathname } = useLocation();
   const showTabs = TAB_BAR_PATHS.has(pathname);
   return (
-    <div className="relative h-full w-full bg-ink-900">
+    <div className="relative h-full w-full bg-paper-50">
       <Outlet />
       {showTabs && <ActiveTripBanner />}
       <OfflineBanner />

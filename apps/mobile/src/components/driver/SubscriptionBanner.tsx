@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarClock, ChevronRight, ShieldX } from "lucide-react";
+import { CalendarCheck, CaretRight, ShieldSlash } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import type { DriverDto } from "@raahi/shared";
 import { subscriptionDaysLeft, SUBSCRIPTION_WARN_DAYS } from "@/hooks/driver/onboarding";
@@ -38,11 +38,11 @@ export function SubscriptionBanner({ driver, className, offset = 0 }: { driver: 
               haptic.light();
               navigate("/d/subscription");
             }}
-            className={cn("pointer-events-auto mx-auto max-w-md w-full glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 text-left shadow-float border-l-4", lapsed ? "border-l-rose-500" : "border-l-amber-400")}
+            className={cn("pointer-events-auto mx-auto max-w-md w-full rounded-[22px] px-3.5 py-2.5 flex items-center gap-2.5 text-left shadow-pillow border-l-[5px]", lapsed ? "bg-rose-100 border-l-rose-500" : "bg-sun-100 border-l-sun-500")}
           >
-            {lapsed ? <ShieldX className="size-[18px] text-rose-400 shrink-0" /> : <CalendarClock className="size-[18px] text-amber-300 shrink-0" />}
-            <span className="flex-1 text-[13px] text-ink-100 leading-snug">{text}</span>
-            <ChevronRight className="size-4 text-ink-400 shrink-0" />
+            {lapsed ? <ShieldSlash className="size-[20px] text-rose-500 shrink-0" weight="duotone" /> : <CalendarCheck className="size-[20px] text-sun-600 shrink-0" weight="duotone" />}
+            <span className="flex-1 text-[13px] font-bold text-ink-800 leading-snug">{text}</span>
+            <CaretRight className="size-4 text-ink-400 shrink-0" weight="bold" />
           </motion.button>
         </motion.div>
       )}

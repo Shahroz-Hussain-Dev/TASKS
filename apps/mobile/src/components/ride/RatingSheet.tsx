@@ -8,7 +8,7 @@ import { qk } from "@/hooks/queryKeys";
 import { api } from "@/lib/api";
 import { item, spring, stagger } from "@/lib/motion";
 import { haptic } from "@/lib/native";
-import { errorMessage } from "@/lib/utils";
+import { cn, errorMessage } from "@/lib/utils";
 
 export interface RatingSheetProps {
   open: boolean;
@@ -23,7 +23,7 @@ export interface RatingSheetProps {
 const MAX_TAGS = 5;
 
 /**
- * Post-trip rating: stars, a few tag chips that flip between praise and
+ * Post-trip rating: sun stars, a few tag chips that flip between praise and
  * problems depending on the score, and an optional comment.
  */
 export default function RatingSheet({ open, ride, perspective, onClose, onRated }: RatingSheetProps) {
@@ -49,6 +49,7 @@ export default function RatingSheet({ open, ride, perspective, onClose, onRated 
   }, [ride, perspective]);
 
   const tagSet = stars === 0 ? [] : stars >= 4 ? RATING_TAGS[perspective].positive : RATING_TAGS[perspective].negative;
+  const positive = stars >= 4;
 
   const rate = useMutation({
     mutationFn: async () => {
@@ -88,21 +89,27 @@ export default function RatingSheet({ open, ride, perspective, onClose, onRated 
     <Sheet open={open} onClose={rate.isPending ? () => {} : onClose} title="Rate your trip" dismissible={!rate.isPending}>
       <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="flex flex-col gap-5 pb-2">
         {counterpart && (
-          <motion.div variants={item.down} className="flex items-center gap-3">
-            <Avatar name={counterpart.name} src={counterpart.avatarUrl} size={52} ring />
+          <motion.div variants={item.down} className="pillow p-3.5 flex items-center gap-3">
+            <div className="relative">
+              <span className="blob absolute -inset-2 bg-sun-100" />
+              <span className="relative block rounded-full ring-4 ring-white shadow-[0_14px_30px_-16px_rgb(63_42_20/0.35)]">
+                <Avatar name={counterpart.name} src={counterpart.avatarUrl} size={54} />
+              </span>
+            </div>
             <div className="min-w-0">
-              <p className="text-[12.5px] text-ink-400">How was {counterpart.role}?</p>
-              <p className="font-display text-[17px] font-semibold text-ink-50 truncate">{counterpart.name}</p>
-              {counterpart.sub && <p className="text-[12.5px] text-ink-400 truncate">{counterpart.sub}</p>}
+              <p className="text-[12.5px] text-ink-500 font-bold">How was {counterpart.role}?</p>
+              <p className="font-display text-[18px] font-semibold text-ink-900 truncate">{counterpart.name}</p>
+              {counterpart.sub && <p className="text-[12.5px] text-ink-500 truncate font-semibold">{counterpart.sub}</p>}
             </div>
           </motion.div>
         )}
 
-        <motion.div variants={item.scale} className="flex flex-col items-center gap-2 py-1">
-          <Stars value={stars} onChange={pick} size={44} />
-          <div className="h-6 relative w-full text-center">
+        <motion.div variants={item.pop} className="relative flex flex-col items-center gap-2 py-2">
+          <span className="blob absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[120%] bg-sun-100 -z-10" />
+          <Stars value={stars} onChange={pick} size={46} />
+          <div className="h-7 relative w-full text-center">
             <AnimatePresence mode="wait" initial={false}>
-              <motion.p key={stars} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring} className="absolute inset-x-0 text-[14px] font-semibold text-ink-200">
+              <motion.p key={stars} initial={{ opacity: 0, y: 8, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8 }} transition={spring} className={cn("absolute inset-x-0 font-display text-[17px] font-semibold", stars === 0 ? "text-ink-400" : positive ? "text-teal-600" : "text-coral-600")}>
                 {stars === 0 ? "Tap a star" : STAR_LABELS[stars]}
               </motion.p>
             </AnimatePresence>
@@ -111,12 +118,12 @@ export default function RatingSheet({ open, ride, perspective, onClose, onRated 
 
         <AnimatePresence initial={false}>
           {tagSet.length > 0 && (
-            <motion.div key={stars >= 4 ? "pos" : "neg"} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="overflow-hidden">
-              <p className="text-[12.5px] font-semibold text-ink-400 mb-2">{stars >= 4 ? "What went well?" : "What went wrong?"}</p>
+            <motion.div key={positive ? "pos" : "neg"} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="overflow-hidden">
+              <p className="text-[13px] font-extrabold text-ink-600 mb-2.5 pl-1">{positive ? "What went well?" : "What went wrong?"}</p>
               <div className="flex flex-wrap gap-2">
                 {tagSet.map((t, i) => (
-                  <motion.div key={t} initial={{ opacity: 0, scale: 0.8, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ ...spring, delay: i * 0.035 }}>
-                    <Chip active={tags.includes(t)} onClick={() => toggleTag(t)}>
+                  <motion.div key={t} initial={{ opacity: 0, scale: 0.6, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ ...spring, delay: i * 0.035 }}>
+                    <Chip tone={positive ? "teal" : "coral"} active={tags.includes(t)} onClick={() => toggleTag(t)}>
                       {t}
                     </Chip>
                   </motion.div>
@@ -133,7 +140,7 @@ export default function RatingSheet({ open, ride, perspective, onClose, onRated 
         <motion.div variants={item.up} className="flex flex-col gap-2">
           <AnimatePresence initial={false}>
             {error && (
-              <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[13px] text-rose-400 text-center">
+              <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[13px] text-rose-500 text-center font-bold">
                 {error}
               </motion.p>
             )}

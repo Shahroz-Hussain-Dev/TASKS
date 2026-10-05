@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Radar } from "lucide-react";
+import { Broadcast, CaretRight } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RIDE_STATUS_META, vehicleLine } from "@/components/shared/meta";
@@ -9,7 +9,6 @@ import { useOnline } from "@/hooks/useOnline";
 import { springSoft } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { pkr } from "@/lib/utils";
-
 
 /**
  * Global "something is happening" strip at the top of the tab screens: an open
@@ -57,17 +56,17 @@ export function ActiveTripBanner() {
               haptic.light();
               if (trip.target) navigate(trip.target);
             }}
-            className="pointer-events-auto glass shadow-float rounded-2xl w-full max-w-sm flex items-center gap-3 pl-3 pr-2 py-2.5 text-left border-l-4 border-l-brand-500"
+            className="pointer-events-auto pillow shadow-float rounded-[22px] w-full max-w-sm flex items-center gap-3 pl-2.5 pr-2 py-2 text-left border border-paper-200"
           >
-            <span className="relative size-9 rounded-xl bg-brand-500/15 text-brand-400 flex items-center justify-center shrink-0">
-              {trip.ride ? <span className="size-2.5 rounded-full bg-brand-400 radar-ring absolute" /> : null}
-              {trip.ride ? <span className="size-2.5 rounded-full bg-brand-400" /> : <Radar className="size-[18px]" />}
+            <span className={trip.ride ? "relative size-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0" : "relative size-10 rounded-full bg-coral-100 text-coral-600 flex items-center justify-center shrink-0"}>
+              {trip.ride ? <span className="size-3 rounded-full bg-teal-500 radar-ring absolute" /> : null}
+              {trip.ride ? <span className="size-3 rounded-full bg-teal-500" /> : <Broadcast className="size-[22px]" weight="duotone" />}
             </span>
             <span className="flex-1 min-w-0">
-              <span className="block text-[14px] font-semibold text-ink-50 truncate">{title}</span>
-              {sub && <span className="block text-[12.5px] text-ink-300 truncate">{sub}</span>}
+              <span className="block text-[14.5px] font-extrabold text-ink-900 truncate">{title}</span>
+              {sub && <span className="block text-[12.5px] text-ink-500 truncate font-medium">{sub}</span>}
             </span>
-            <ChevronRight className="size-5 text-ink-400 shrink-0" />
+            <CaretRight className="size-5 text-ink-300 shrink-0" weight="bold" />
           </motion.button>
         </motion.div>
       )}

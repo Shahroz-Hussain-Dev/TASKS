@@ -9,7 +9,13 @@ import { Chips } from "./ui";
 type Metric = "rides" | "gmvPkr";
 
 const METRIC_LABEL: Record<Metric, string> = { rides: "Rides", gmvPkr: "GMV" };
-const METRIC_COLOR: Record<Metric, string> = { rides: "#34d399", gmvPkr: "#fbbf24" };
+/** Stroke colours darkened one step so the 2px line holds up on white; the fill uses the 500 tint. */
+const METRIC_COLOR: Record<Metric, { stroke: string; fill: string }> = {
+  rides: { stroke: "#f2552f", fill: "#ff6b4a" },
+  gmvPkr: { stroke: "#0e8a7b", fill: "#12a594" },
+};
+const GRID = "#F6E9D8";
+const AXIS = "#6b6478";
 
 type SeriesPoint = AdminStatsDto["series"][number];
 
@@ -28,9 +34,9 @@ function SeriesTooltip({ active, payload, metric }: SeriesTooltipProps) {
   const point = isSeriesPoint(raw) ? raw : undefined;
   if (!active || !point) return null;
   return (
-    <div className="glass rounded-2xl px-3.5 py-2.5 text-[13px] shadow-float">
-      <p className="font-semibold text-ink-50">{fmtDayKey(point.date)}</p>
-      <p className="mt-1 text-ink-300">
+    <div className="pillow rounded-2xl px-3.5 py-2.5 text-[13px] shadow-float">
+      <p className="font-bold text-ink-900">{fmtDayKey(point.date)}</p>
+      <p className="mt-1 text-ink-700">
         {metric === "rides" ? `${point.rides.toLocaleString("en-PK")} rides` : pkr(point.gmvPkr)}
       </p>
       <p className="text-ink-500">{point.signups} sign-ups</p>
@@ -48,9 +54,9 @@ export function RidesAreaChart({ series }: { series: AdminStatsDto["series"] }) 
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[13px] text-ink-400">
+        <p className="text-[13px] text-ink-500">
           Last 14 days ·{" "}
-          <span className="font-semibold text-ink-100">{metric === "rides" ? `${total.toLocaleString("en-PK")} completed rides` : `${pkr(total)} paid to drivers`}</span>
+          <span className="font-bold text-ink-900">{metric === "rides" ? `${total.toLocaleString("en-PK")} completed rides` : `${pkr(total)} paid to drivers`}</span>
         </p>
         <Chips<Metric> value={metric} onChange={setMetric} layoutId="dash-metric" options={[{ value: "rides", label: "Rides" }, { value: "gmvPkr", label: "GMV" }]} />
       </div>
@@ -60,22 +66,22 @@ export function RidesAreaChart({ series }: { series: AdminStatsDto["series"] }) 
           <AreaChart data={series} margin={{ top: 10, right: 8, left: -8, bottom: 0 }}>
             <defs>
               <linearGradient id={`fill-${metric}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={color} stopOpacity={0} />
+                <stop offset="0%" stopColor={color.fill} stopOpacity={0.32} />
+                <stop offset="100%" stopColor={color.fill} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="date" tickFormatter={fmtDayKey} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={28} />
+            <CartesianGrid vertical={false} stroke={GRID} />
+            <XAxis dataKey="date" tickFormatter={fmtDayKey} tick={{ fill: AXIS, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={28} />
             <YAxis
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: AXIS, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               allowDecimals={false}
               width={56}
               tickFormatter={(v: number) => (metric === "gmvPkr" ? (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)) : String(v))}
             />
-            <Tooltip cursor={{ stroke: "rgba(255,255,255,0.15)", strokeWidth: 1 }} content={(props) => <SeriesTooltip active={props.active} payload={props.payload} metric={metric} />} />
-            <Area type="monotone" dataKey={metric} name={METRIC_LABEL[metric]} stroke={color} strokeWidth={2} fill={`url(#fill-${metric})`} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "#111827" }} isAnimationActive animationDuration={700} />
+            <Tooltip cursor={{ stroke: "#ead9c3", strokeWidth: 1 }} content={(props) => <SeriesTooltip active={props.active} payload={props.payload} metric={metric} />} />
+            <Area type="monotone" dataKey={metric} name={METRIC_LABEL[metric]} stroke={color.stroke} strokeWidth={2.5} fill={`url(#fill-${metric})`} dot={false} activeDot={{ r: 5, strokeWidth: 3, stroke: "#ffffff", fill: color.stroke }} isAnimationActive animationDuration={700} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -93,7 +99,7 @@ export function CategoryDonut({ mix }: { mix: AdminStatsDto["categoryMix"] }) {
     <div className="flex flex-col items-center gap-4 sm:flex-row">
       <div className="relative h-[200px] w-[200px] shrink-0">
         {total === 0 ? (
-          <div className="absolute inset-0 grid place-items-center rounded-full border-[14px] border-ink-700 text-center text-[12.5px] text-ink-500">
+          <div className="absolute inset-0 grid place-items-center rounded-full border-[14px] border-paper-200 text-center text-[12.5px] text-ink-500">
             No rides
             <br />
             in 30 days
@@ -109,9 +115,9 @@ export function CategoryDonut({ mix }: { mix: AdminStatsDto["categoryMix"] }) {
                   innerRadius={64}
                   outerRadius={92}
                   paddingAngle={2}
-                  cornerRadius={4}
-                  stroke="#111827"
-                  strokeWidth={2}
+                  cornerRadius={6}
+                  stroke="#ffffff"
+                  strokeWidth={3}
                   isAnimationActive
                   animationDuration={700}
                   onMouseEnter={(_, i) => {
@@ -131,16 +137,16 @@ export function CategoryDonut({ mix }: { mix: AdminStatsDto["categoryMix"] }) {
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
               <div>
-                <p className="font-display text-[26px] font-semibold leading-none text-ink-50">
+                <p className="font-display text-[26px] font-semibold leading-none tabular-nums text-ink-900">
                   {activeCategory ? `${Math.round(((data.find((d) => d.category === activeCategory)?.rides ?? 0) / total) * 100)}%` : total.toLocaleString("en-PK")}
                 </p>
-                <p className="mt-1 text-[11.5px] uppercase tracking-wide text-ink-500">{activeCategory ? VEHICLE_CATEGORY_META[activeCategory].label : "rides · 30d"}</p>
+                <p className="mt-1 text-[11.5px] font-bold uppercase tracking-wide text-ink-500">{activeCategory ? VEHICLE_CATEGORY_META[activeCategory].label : "rides · 30d"}</p>
               </div>
             </div>
           </>
         )}
       </div>
-      <ul className="w-full space-y-2">
+      <ul className="w-full space-y-1.5">
         {data.map((d) => {
           const share = total > 0 ? Math.round((d.rides / total) * 100) : 0;
           return (
@@ -148,12 +154,12 @@ export function CategoryDonut({ mix }: { mix: AdminStatsDto["categoryMix"] }) {
               key={d.category}
               onMouseEnter={() => setActiveCategory(d.category)}
               onMouseLeave={() => setActiveCategory(null)}
-              className={cn("flex items-center gap-3 rounded-xl px-2 py-1.5 text-[13.5px] transition-colors", activeCategory === d.category && "bg-white/4")}
+              className={cn("flex items-center gap-3 rounded-xl px-2.5 py-1.5 text-[13.5px] transition-colors", activeCategory === d.category && "bg-paper-100")}
             >
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: CATEGORY_COLORS[d.category] }} />
-              <span className="flex-1 text-ink-200">{d.label}</span>
-              <span className="font-semibold text-ink-50">{d.rides.toLocaleString("en-PK")}</span>
-              <span className="w-10 text-right text-ink-500">{share}%</span>
+              <span className="h-3 w-3 shrink-0 rounded-full ring-2 ring-white" style={{ background: CATEGORY_COLORS[d.category] }} />
+              <span className="flex-1 text-ink-700">{d.label}</span>
+              <span className="font-bold tabular-nums text-ink-900">{d.rides.toLocaleString("en-PK")}</span>
+              <span className="w-10 text-right tabular-nums text-ink-500">{share}%</span>
             </li>
           );
         })}

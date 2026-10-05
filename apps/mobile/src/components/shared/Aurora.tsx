@@ -1,16 +1,18 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Two to three slow-drifting colour blobs behind hero and empty states.
- * Purely decorative (aria-hidden); respects reduced motion via global.css.
+ * Two to three slowly morphing tint blobs (coral, sun, teal) behind heroes and
+ * empty states. Purely decorative (aria-hidden); respects reduced motion via
+ * global.css. `intensity` scales opacity; `variant="top"` keeps blobs in the
+ * upper half; `variant="soft"` is a quieter version for inside cards.
  */
 export function Aurora({ className, intensity = 1, variant = "full" }: { className?: string; intensity?: number; variant?: "full" | "top" | "soft" }) {
-  const scale = variant === "soft" ? 0.6 : 1;
+  const scale = variant === "soft" ? 0.55 : 1;
   return (
     <div aria-hidden className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
-      <div className="aurora bg-brand-500" style={{ width: "62%", height: "48%", top: "-14%", left: "-12%", opacity: 0.38 * intensity * scale }} />
-      <div className="aurora bg-violet-400" style={{ width: "54%", height: "46%", top: variant === "top" ? "-8%" : "28%", right: "-18%", animationDelay: "-7s", opacity: 0.22 * intensity * scale }} />
-      {variant !== "top" && <div className="aurora bg-amber-400" style={{ width: "46%", height: "38%", bottom: "-12%", left: "18%", animationDelay: "-13s", opacity: 0.16 * intensity * scale }} />}
+      <div className="blob bg-coral-100" style={{ width: "64%", height: "46%", top: "-12%", left: "-14%", opacity: 0.95 * intensity * scale }} />
+      <div className="blob bg-sun-100" style={{ width: "52%", height: "40%", top: variant === "top" ? "-6%" : "26%", right: "-16%", animationDelay: "-6s", animationDuration: "17s", opacity: 0.9 * intensity * scale }} />
+      {variant !== "top" && <div className="blob bg-teal-100" style={{ width: "48%", height: "36%", bottom: "-10%", left: "16%", animationDelay: "-11s", animationDuration: "20s", opacity: 0.85 * intensity * scale }} />}
     </div>
   );
 }

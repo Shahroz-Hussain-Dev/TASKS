@@ -114,7 +114,8 @@ export const shortId = (id: string | null | undefined) => (id ? id.slice(0, 8) :
 
 /* ---- Status vocab (labels + tones) ---- */
 
-export type Tone = "neutral" | "brand" | "amber" | "rose" | "sky" | "violet";
+/** Badge tints: approved=mint, under review=sun, rejected=rose, suspended=ink, onboarding=sky, online=teal. */
+export type Tone = "neutral" | "ink" | "teal" | "mint" | "sun" | "coral" | "rose" | "sky" | "lavender";
 
 export const DRIVER_STATUS_LABEL: Record<DriverStatus, string> = {
   onboarding: "Onboarding",
@@ -124,11 +125,11 @@ export const DRIVER_STATUS_LABEL: Record<DriverStatus, string> = {
   suspended: "Suspended",
 };
 export const DRIVER_STATUS_TONE: Record<DriverStatus, Tone> = {
-  onboarding: "neutral",
-  under_review: "amber",
-  approved: "brand",
+  onboarding: "sky",
+  under_review: "sun",
+  approved: "mint",
   rejected: "rose",
-  suspended: "violet",
+  suspended: "ink",
 };
 
 export const RIDE_STATUS_LABEL: Record<RideStatus, string> = {
@@ -141,9 +142,9 @@ export const RIDE_STATUS_LABEL: Record<RideStatus, string> = {
 };
 export const RIDE_STATUS_TONE: Record<RideStatus, Tone> = {
   assigned: "sky",
-  arrived: "violet",
-  in_progress: "amber",
-  completed: "brand",
+  arrived: "lavender",
+  in_progress: "sun",
+  completed: "mint",
   cancelled_by_customer: "rose",
   cancelled_by_driver: "rose",
 };
@@ -163,8 +164,8 @@ export const DOC_STATUS_LABEL: Record<DocumentVerificationStatus, string> = {
 };
 export const DOC_STATUS_TONE: Record<DocumentVerificationStatus, Tone> = {
   pending: "neutral",
-  verified: "brand",
-  flagged: "amber",
+  verified: "mint",
+  flagged: "sun",
   rejected: "rose",
 };
 
@@ -175,8 +176,8 @@ export const SUB_STATUS_LABEL: Record<SubscriptionStatus, string> = {
   rejected: "Rejected",
 };
 export const SUB_STATUS_TONE: Record<SubscriptionStatus, Tone> = {
-  pending: "amber",
-  active: "brand",
+  pending: "sun",
+  active: "mint",
   expired: "neutral",
   rejected: "rose",
 };
@@ -187,18 +188,18 @@ export const TICKET_STATUS_LABEL: Record<SupportTicketStatus, string> = {
   resolved: "Resolved",
 };
 export const TICKET_STATUS_TONE: Record<SupportTicketStatus, Tone> = {
-  open: "amber",
+  open: "sun",
   awaiting_user: "sky",
-  resolved: "brand",
+  resolved: "mint",
 };
 
-/** Validated categorical palette for the category mix (fixed order, never cycled). */
+/** Category palette (DESIGN.md): Moto = sky, Rickshaw = sun, Ride = coral, Ride AC = teal, Comfort = lavender. */
 export const CATEGORY_COLORS: Record<VehicleCategory, string> = {
-  bike: "#059669",
-  rickshaw: "#d97706",
-  car: "#0284c7",
-  car_ac: "#e11d48",
-  car_premium: "#8b5cf6",
+  bike: "#3da9fc",
+  rickshaw: "#ffc53d",
+  car: "#ff6b4a",
+  car_ac: "#12a594",
+  car_premium: "#8b7cf6",
 };
 
 export const cn = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(" ");

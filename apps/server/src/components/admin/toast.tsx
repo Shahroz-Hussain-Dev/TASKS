@@ -1,7 +1,7 @@
 "use client";
 
+import { CheckCircle, Info, Warning, X, type Icon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { springSoft } from "./motion";
 
@@ -23,11 +23,11 @@ interface ToastApi {
 
 const ToastCtx = createContext<ToastApi | null>(null);
 
-const ICONS: Record<ToastKind, typeof CheckCircle2> = { success: CheckCircle2, error: AlertTriangle, info: Info };
+const ICONS: Record<ToastKind, Icon> = { success: CheckCircle, error: Warning, info: Info };
 const TONES: Record<ToastKind, string> = {
-  success: "text-brand-400 bg-brand-500/15",
-  error: "text-rose-400 bg-rose-500/15",
-  info: "text-sky-400 bg-sky-400/15",
+  success: "text-mint-600 bg-mint-100",
+  error: "text-rose-600 bg-rose-100",
+  info: "text-sky-600 bg-sky-100",
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -71,17 +71,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 exit={{ opacity: 0, x: 40, scale: 0.96, transition: { duration: 0.18 } }}
                 transition={springSoft}
                 role="status"
-                className="glass pointer-events-auto flex items-start gap-3 rounded-2xl p-3.5 shadow-float"
+                className="pillow pointer-events-auto flex items-start gap-3 rounded-2xl p-3.5 shadow-float"
               >
-                <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${TONES[t.kind]}`}>
-                  <Icon size={18} strokeWidth={2.2} />
+                <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full ${TONES[t.kind]}`}>
+                  <Icon size={20} weight="duotone" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-50">{t.title}</p>
-                  {t.description ? <p className="mt-0.5 text-[13px] leading-snug text-ink-300">{t.description}</p> : null}
+                  <p className="text-sm font-bold text-ink-900">{t.title}</p>
+                  {t.description ? <p className="mt-0.5 text-[13px] leading-snug text-ink-600">{t.description}</p> : null}
                 </div>
-                <button type="button" onClick={() => dismiss(t.id)} aria-label="Dismiss" className="rounded-lg p-1 text-ink-400 hover:bg-white/5 hover:text-ink-100">
-                  <X size={16} />
+                <button type="button" onClick={() => dismiss(t.id)} aria-label="Dismiss" className="rounded-full p-1 text-ink-500 hover:bg-paper-100 hover:text-ink-900">
+                  <X size={16} weight="bold" />
                 </button>
               </motion.div>
             );

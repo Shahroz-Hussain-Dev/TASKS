@@ -28,7 +28,7 @@ export function StaticRouteMap({ pickup, dropoff, polyline, className, height = 
   const center = useMemo<LatLng>(() => ({ lat: (pickup.lat + dropoff.lat) / 2, lng: (pickup.lng + dropoff.lng) / 2 }), [pickup.lat, pickup.lng, dropoff.lat, dropoff.lng]);
 
   return (
-    <div className={cn("relative w-full overflow-hidden bg-ink-900", className)} style={{ height }}>
+    <div className={cn("relative w-full overflow-hidden bg-paper-100", className)} style={{ height }}>
       <MapView interactive={false} center={center} zoom={12}>
         <FitToPoints points={points} padding={padding} />
         <RouteLine points={points} id="ride-detail-route" animated={false} width={4} />
@@ -39,7 +39,7 @@ export function StaticRouteMap({ pickup, dropoff, polyline, className, height = 
           <PinMarker kind="dropoff" />
         </Marker>
       </MapView>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-900 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-paper-50 to-transparent" />
     </div>
   );
 }

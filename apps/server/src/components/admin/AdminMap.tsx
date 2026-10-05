@@ -40,20 +40,21 @@ interface AdminMapProps {
   interactive?: boolean;
 }
 
+/** Sunrise palette: free driver = teal, busy driver = sun, request = lavender, pickup/customer = sky, drop-off = coral. */
 const KIND_STYLE: Record<MarkerKind, { bg: string; ring: string; glyph: string }> = {
-  driver: { bg: "#10b981", ring: "rgba(16,185,129,0.35)", glyph: "car" },
-  "driver-busy": { bg: "#f59e0b", ring: "rgba(245,158,11,0.35)", glyph: "car" },
-  request: { bg: "#a78bfa", ring: "rgba(167,139,250,0.35)", glyph: "hand" },
-  pickup: { bg: "#38bdf8", ring: "rgba(56,189,248,0.35)", glyph: "dot" },
-  dropoff: { bg: "#fb7185", ring: "rgba(251,113,133,0.35)", glyph: "flag" },
-  customer: { bg: "#38bdf8", ring: "rgba(56,189,248,0.35)", glyph: "dot" },
+  driver: { bg: "#12a594", ring: "rgba(18,165,148,0.28)", glyph: "car" },
+  "driver-busy": { bg: "#ffc53d", ring: "rgba(255,197,61,0.35)", glyph: "car" },
+  request: { bg: "#8b7cf6", ring: "rgba(139,124,246,0.3)", glyph: "hand" },
+  pickup: { bg: "#3da9fc", ring: "rgba(61,169,252,0.3)", glyph: "dot" },
+  dropoff: { bg: "#ff6b4a", ring: "rgba(255,107,74,0.3)", glyph: "flag" },
+  customer: { bg: "#3da9fc", ring: "rgba(61,169,252,0.3)", glyph: "dot" },
 };
 
 const GLYPHS: Record<string, string> = {
-  car: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#06080f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l4 7H8z"/><path d="M12 10v11"/></svg>',
-  hand: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#06080f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m4.9 4.9 2.9 2.9"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m16.2 7.8 2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>',
-  dot: '<svg viewBox="0 0 24 24" width="12" height="12"><circle cx="12" cy="12" r="5" fill="#06080f"/></svg>',
-  flag: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#06080f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4h12l-2 4 2 4H4"/></svg>',
+  car: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l4 7H8z"/><path d="M12 10v11"/></svg>',
+  hand: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m4.9 4.9 2.9 2.9"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m16.2 7.8 2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>',
+  dot: '<svg viewBox="0 0 24 24" width="12" height="12"><circle cx="12" cy="12" r="5" fill="#ffffff"/></svg>',
+  flag: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4h12l-2 4 2 4H4"/></svg>',
 };
 
 function markerElement(spec: MapMarkerSpec): HTMLDivElement {
@@ -65,14 +66,14 @@ function markerElement(spec: MapMarkerSpec): HTMLDivElement {
   ring.style.cssText = `position:absolute;inset:0;border-radius:9999px;background:${s.ring};transform:scale(1.25);`;
   const body = document.createElement("span");
   body.className = "raahi-marker-body";
-  body.style.cssText = `position:relative;width:24px;height:24px;border-radius:9999px;background:${s.bg};display:grid;place-items:center;border:2px solid #06080f;box-shadow:0 8px 20px -6px rgba(0,0,0,.8);transition:transform .35s cubic-bezier(.16,1,.3,1);`;
+  body.style.cssText = `position:relative;width:26px;height:26px;border-radius:9999px;background:${s.bg};display:grid;place-items:center;border:3px solid #ffffff;box-shadow:0 10px 24px -8px rgba(63,42,20,.45);transition:transform .35s cubic-bezier(.16,1,.3,1);`;
   body.innerHTML = GLYPHS[s.glyph] ?? GLYPHS.dot!;
   el.append(ring, body);
   if (spec.label) {
     const label = document.createElement("span");
     label.className = "raahi-marker-label";
     label.textContent = spec.label;
-    label.style.cssText = "position:absolute;top:100%;left:50%;transform:translate(-50%,2px);white-space:nowrap;font:600 11px/1 var(--font-sans);color:#e2e8f0;background:rgba(11,15,26,.85);padding:3px 7px;border-radius:9999px;border:1px solid rgba(255,255,255,.08);pointer-events:none;";
+    label.style.cssText = "position:absolute;top:100%;left:50%;transform:translate(-50%,3px);white-space:nowrap;font:800 11px/1 var(--font-sans);color:#1f1b2d;background:#ffffff;padding:4px 8px;border-radius:9999px;box-shadow:0 6px 16px -8px rgba(63,42,20,.4);pointer-events:none;";
     el.append(label);
   }
   if (spec.heading !== undefined && spec.heading !== null && s.glyph === "car") body.style.transform = `rotate(${spec.heading}deg)`;
@@ -89,35 +90,35 @@ function updateMarkerElement(el: HTMLElement, spec: MapMarkerSpec) {
   if (label && spec.label) label.textContent = spec.label;
 }
 
-/** Dim the light OSM style into Raahi's night palette without a custom style. */
-function applyDarkTheme(m: MLMap) {
+/** Repaint the OSM style into Raahi's warm "paper" palette without a custom style (same pass as apps/mobile Map.tsx). */
+function applyPaperTheme(m: MLMap) {
   const style = m.getStyle();
   for (const layer of style.layers ?? []) {
     try {
-      if (layer.type === "background") m.setPaintProperty(layer.id, "background-color", "#0b0f1a");
+      const id = layer.id.toLowerCase();
+      if (layer.type === "background") m.setPaintProperty(layer.id, "background-color", "#fff6ec");
       else if (layer.type === "fill") {
-        const id = layer.id.toLowerCase();
-        if (id.includes("water")) m.setPaintProperty(layer.id, "fill-color", "#0e1a2b");
-        else if (id.includes("park") || id.includes("grass") || id.includes("wood") || id.includes("forest")) m.setPaintProperty(layer.id, "fill-color", "#0f1f1c");
+        if (id.includes("water")) m.setPaintProperty(layer.id, "fill-color", "#cfe8ff");
+        else if (id.includes("park") || id.includes("grass") || id.includes("wood") || id.includes("forest") || id.includes("green")) m.setPaintProperty(layer.id, "fill-color", "#dff3e3");
         else if (id.includes("building")) {
-          m.setPaintProperty(layer.id, "fill-color", "#161e2e");
+          m.setPaintProperty(layer.id, "fill-color", "#f3e4d2");
           m.setPaintProperty(layer.id, "fill-opacity", 0.9);
-        } else m.setPaintProperty(layer.id, "fill-color", "#111827");
+        } else if (id.includes("residential") || id.includes("landuse")) m.setPaintProperty(layer.id, "fill-color", "#fbeedd");
+        else m.setPaintProperty(layer.id, "fill-color", "#fdf1e3");
       } else if (layer.type === "line") {
-        const id = layer.id.toLowerCase();
-        if (id.includes("water")) m.setPaintProperty(layer.id, "line-color", "#13233a");
-        else if (id.includes("motorway") || id.includes("trunk") || id.includes("highway")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#1f2a3f" : "#3b4b66");
-        else if (id.includes("primary") || id.includes("secondary")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#1a2235" : "#33415a");
-        else if (id.includes("rail")) m.setPaintProperty(layer.id, "line-color", "#1f2a3f");
-        else if (id.includes("boundary")) m.setPaintProperty(layer.id, "line-color", "#2b3650");
-        else m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#141b2b" : "#263247");
+        if (id.includes("water")) m.setPaintProperty(layer.id, "line-color", "#b9dcff");
+        else if (id.includes("motorway") || id.includes("trunk") || id.includes("highway")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#f0cfae" : "#ffd9a8");
+        else if (id.includes("primary") || id.includes("secondary")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#ecd2b8" : "#ffffff");
+        else if (id.includes("rail")) m.setPaintProperty(layer.id, "line-color", "#e2d3c1");
+        else if (id.includes("boundary")) m.setPaintProperty(layer.id, "line-color", "#e8cfc0");
+        else m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#ecdcc8" : "#ffffff");
       } else if (layer.type === "symbol") {
-        m.setPaintProperty(layer.id, "text-color", "#9aa6bd");
-        m.setPaintProperty(layer.id, "text-halo-color", "#0b0f1a");
-        m.setPaintProperty(layer.id, "text-halo-width", 1.2);
-        if (layer.id.toLowerCase().includes("poi")) m.setLayoutProperty(layer.id, "visibility", "none");
+        m.setPaintProperty(layer.id, "text-color", "#6b6478");
+        m.setPaintProperty(layer.id, "text-halo-color", "#fff6ec");
+        m.setPaintProperty(layer.id, "text-halo-width", 1.4);
+        if (id.includes("poi")) m.setLayoutProperty(layer.id, "visibility", "none");
       } else if (layer.type === "fill-extrusion") {
-        m.setPaintProperty(layer.id, "fill-extrusion-color", "#1a2235");
+        m.setPaintProperty(layer.id, "fill-extrusion-color", "#f3e4d2");
       }
     } catch {
       /* layer may not support the property */
@@ -144,7 +145,7 @@ function linesToGeoJson(lines: MapLineSpec[]): LineCollection {
       .filter((l) => l.points.length >= 2)
       .map<LineFeature>((l) => ({
         type: "Feature",
-        properties: { id: l.id, color: l.color ?? "#34d399", width: l.width ?? 4, dashed: l.dashed ? 1 : 0 },
+        properties: { id: l.id, color: l.color ?? "#ff6b4a", width: l.width ?? 4, dashed: l.dashed ? 1 : 0 },
         geometry: { type: "LineString", coordinates: l.points.map((p): [number, number] => [p.lng, p.lat]) },
       })),
   };
@@ -183,16 +184,19 @@ export function AdminMap({ markers = [], lines = [], fit, fitKey, className, int
           fadeDuration: 0,
         });
         map.addControl(new lib.NavigationControl({ showCompass: false }), "bottom-right");
+        map.on("styledata", () => {
+          if (map) applyPaperTheme(map);
+        });
         map.on("load", () => {
           if (!map) return;
-          applyDarkTheme(map);
+          applyPaperTheme(map);
           map.addSource(LINES_SOURCE, { type: "geojson", data: linesToGeoJson([]) });
           map.addLayer({
             id: `${LINES_SOURCE}-casing`,
             type: "line",
             source: LINES_SOURCE,
             layout: { "line-cap": "round", "line-join": "round" },
-            paint: { "line-color": "#06080f", "line-width": ["+", ["get", "width"], 4], "line-opacity": 0.8 },
+            paint: { "line-color": "#ffffff", "line-width": ["+", ["get", "width"], 5], "line-opacity": 0.9 },
           });
           map.addLayer({
             id: LINES_SOURCE,
@@ -268,11 +272,11 @@ export function AdminMap({ markers = [], lines = [], fit, fitKey, className, int
   }, [ready, fitKey]);
 
   return (
-    <div className={cn("relative overflow-hidden rounded-3xl border border-white/6 bg-ink-900", className)}>
+    <div className={cn("relative overflow-hidden rounded-3xl bg-[#fff6ec] shadow-pillow", className)}>
       <div ref={container} className="absolute inset-0" />
       {!ready && !failed ? <div className="shimmer absolute inset-0" aria-hidden /> : null}
       {failed ? (
-        <div className="absolute inset-0 grid place-items-center p-6 text-center text-[13.5px] text-ink-400">Map tiles could not be loaded. Check the connection to tiles.openfreemap.org.</div>
+        <div className="absolute inset-0 grid place-items-center p-6 text-center text-[13.5px] text-ink-500">Map tiles could not be loaded. Check the connection to tiles.openfreemap.org.</div>
       ) : null}
     </div>
   );

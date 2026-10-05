@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, Headphones, LifeBuoy, Phone, SendHorizontal, ShieldCheck, Sparkles } from "lucide-react";
+import { Headset, PaperPlaneRight, Phone, ShieldCheck, Sparkle } from "@phosphor-icons/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { supportMessageSchema, type SupportMessageDto, type SupportTicketDto } from "@raahi/shared";
 import { Badge, Button, Chip, IconButton, Skeleton, useToast } from "@/components/ui";
+import { Buddy } from "@/components/buddy";
 import { BackButton } from "@/components/shared/BackButton";
 import { ChatBubble } from "@/components/shared/ChatBubble";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
@@ -15,7 +16,7 @@ import { useKeyboard } from "@/hooks/useKeyboard";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { item, spring, stagger } from "@/lib/motion";
+import { float, item, spring, stagger } from "@/lib/motion";
 import { haptic } from "@/lib/native";
 import { cn, errorMessage } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ function pickTicket(items: SupportTicketDto[]): SupportTicketDto | null {
 /**
  * Help chat: Gemini answers stream in token-by-token; "Talk to a human"
  * escalates the ticket and admin replies appear as they arrive (polled).
+ * Buddy is the agent avatar and reacts to the conversation state.
  */
 export default function SupportScreen() {
   const { user } = useAuth();
@@ -157,23 +159,25 @@ export default function SupportScreen() {
 
   const showSuggestions = !busy && !pending && (messages.length === 0 || messages[messages.length - 1]?.sender !== "user");
   const supportPhone = config.data?.settings.supportPhone;
+  const buddyState = pending?.status === "streaming" ? (pending.assistant.length === 0 ? "thinking" : "speaking") : pending?.status === "error" ? "sad" : "idle";
+  const canSend = !busy && draft.trim().length > 0;
 
   return (
-    <div className="relative h-full w-full flex flex-col bg-ink-900" style={{ paddingTop: "calc(var(--safe-top) + 10px)" }}>
+    <div className="relative h-full w-full flex flex-col bg-paper-50" style={{ paddingTop: "calc(var(--safe-top) + 10px)" }}>
       <OfflineBanner />
-      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="px-4 pb-3 flex items-center gap-3 border-b border-white/6">
+      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="relative px-4 pb-3 flex items-center gap-3">
         <BackButton fallback={role === "driver" ? "/d" : "/c"} />
-        <div className="relative size-11 rounded-2xl bg-brand-500/12 text-brand-400 flex items-center justify-center shrink-0">
-          <LifeBuoy className="size-5" />
-          <span className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full bg-brand-400 border-2 border-ink-900" />
+        <div className="relative size-12 rounded-full bg-white shadow-pillow flex items-center justify-center shrink-0 overflow-hidden">
+          <Buddy state={buddyState} size={44} />
+          <span className={cn("absolute right-0.5 bottom-0.5 size-3 rounded-full border-2 border-white", ticket?.escalated ? "bg-lavender-500" : "bg-mint-500")} />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="font-display text-[18px] font-semibold text-ink-50 leading-tight">Raahi Support</h1>
-          <p className="text-[12.5px] text-ink-400 truncate">{ticket?.escalated ? "Human agent assigned · replies here" : "AI assistant · answers in seconds"}</p>
+          <h1 className="font-display text-[19px] font-semibold text-ink-900 leading-tight">Raahi Support</h1>
+          <p className="text-[12.5px] text-ink-500 truncate font-bold">{ticket?.escalated ? "Human agent assigned · replies here" : "AI assistant · answers in seconds"}</p>
         </div>
         {supportPhone && <IconButton icon={Phone} label="Call support" variant="ghost" onClick={() => window.open(`tel:${supportPhone.replace(/\s+/g, "")}`, "_self")} />}
         {!ticket?.escalated && (
-          <Button size="sm" variant="secondary" icon={Headphones} loading={escalate.isPending} disabled={busy} onClick={() => escalate.mutate()}>
+          <Button size="sm" variant="outline" icon={Headset} loading={escalate.isPending} disabled={busy} onClick={() => escalate.mutate()}>
             Human
           </Button>
         )}
@@ -190,9 +194,9 @@ export default function SupportScreen() {
           <div className="flex flex-col">
             <AnimatePresence initial={false}>
               {ticket?.escalated && (
-                <motion.div key="esc" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="mt-3 flex items-center gap-2.5 rounded-2xl bg-violet-400/10 border border-violet-400/20 px-3.5 py-2.5">
-                  <ShieldCheck className="size-4 text-violet-400 shrink-0" />
-                  <p className="text-[13px] text-ink-200 leading-snug">Escalated to the Raahi team. We'll reply here, usually within a few hours.</p>
+                <motion.div key="esc" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="mt-3 flex items-center gap-2.5 rounded-[20px] bg-lavender-100 px-3.5 py-2.5 shadow-[0_3px_0_0_#d8d2ff]">
+                  <ShieldCheck className="size-5 text-lavender-500 shrink-0" weight="duotone" />
+                  <p className="text-[13px] text-ink-700 leading-snug font-semibold">Escalated to the Raahi team. We'll reply here, usually within a few hours.</p>
                   <Badge tone="violet" className="ml-auto shrink-0">
                     {ticket.status === "resolved" ? "Resolved" : "Open"}
                   </Badge>
@@ -208,17 +212,17 @@ export default function SupportScreen() {
               ))}
               {pending && (
                 <motion.div key="pending" className="flex flex-col" initial={false}>
-                  <ChatBubble side="right" grouped={messages[messages.length - 1]?.sender === "user"} pending={pending.status === "streaming" && pending.assistant.length === 0} failed={pending.status === "error"} meta={pending.status === "error" ? <span className="inline-flex items-center gap-2">Not sent · <button type="button" className="underline font-semibold" onClick={retry}>Retry</button></span> : undefined}>
+                  <ChatBubble side="right" grouped={messages[messages.length - 1]?.sender === "user"} pending={pending.status === "streaming" && pending.assistant.length === 0} failed={pending.status === "error"} meta={pending.status === "error" ? <span className="inline-flex items-center gap-2">Not sent · <button type="button" className="underline font-extrabold" onClick={retry}>Retry</button></span> : undefined}>
                     {pending.user}
                   </ChatBubble>
                   {pending.status !== "error" && (
-                    <ChatBubble side="left" tone="glass" label={<span className="inline-flex items-center gap-1"><Bot className="size-3.5" /> Raahi assistant</span>}>
+                    <ChatBubble side="left" tone="white" label={<AssistantLabel />}>
                       {typed.shown.length === 0 ? (
                         <TypingDots />
                       ) : (
                         <span>
                           {typed.shown}
-                          {!typed.done && <span className="inline-block w-[2px] h-[1em] align-[-2px] ml-0.5 bg-brand-400 animate-pulse" />}
+                          {!typed.done && <span className="inline-block w-[2px] h-[1em] align-[-2px] ml-0.5 bg-coral-500 animate-pulse" />}
                         </span>
                       )}
                     </ChatBubble>
@@ -227,8 +231,8 @@ export default function SupportScreen() {
               )}
             </AnimatePresence>
             {tickets.isError && !tickets.data && (
-              <div className="mt-6 text-center text-[13.5px] text-ink-400">
-                Couldn't load earlier messages. <button type="button" className="underline text-ink-200" onClick={() => tickets.refetch()}>Retry</button>
+              <div className="mt-6 text-center text-[13.5px] text-ink-500 font-semibold">
+                Couldn't load earlier messages. <button type="button" className="underline text-coral-600 font-extrabold" onClick={() => tickets.refetch()}>Retry</button>
               </div>
             )}
           </div>
@@ -236,14 +240,15 @@ export default function SupportScreen() {
       </div>
 
       {/* Suggestions + composer */}
-      <div className="border-t border-white/6 bg-ink-900/95 backdrop-blur" style={{ paddingBottom: keyboard.open ? 8 : "calc(var(--safe-bottom) + 8px)" }}>
+      <div className="relative bg-paper-50" style={{ paddingBottom: keyboard.open ? 8 : "calc(var(--safe-bottom) + 10px)" }}>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-paper-50 to-transparent" />
         <AnimatePresence initial={false}>
           {showSuggestions && (
             <motion.div key="sugg" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={spring} className="overflow-hidden">
-              <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="flex gap-2 overflow-x-auto no-scrollbar px-4 pt-3 pb-1">
+              <motion.div variants={stagger(0.05)} initial="hidden" animate="show" className="flex gap-2 overflow-x-auto no-scrollbar px-4 pt-2 pb-2">
                 {suggestions.map((s) => (
-                  <motion.div key={s} variants={item.right} className="shrink-0">
-                    <Chip icon={Sparkles} onClick={() => submit(s)}>
+                  <motion.div key={s} variants={item.pop} className="shrink-0">
+                    <Chip tone="sun" icon={Sparkle} onClick={() => submit(s)}>
                       {s}
                     </Chip>
                   </motion.div>
@@ -253,13 +258,13 @@ export default function SupportScreen() {
           )}
         </AnimatePresence>
         <form
-          className="flex items-end gap-2 px-4 pt-2"
+          className="flex items-end gap-2 px-4 pt-1.5"
           onSubmit={(e) => {
             e.preventDefault();
             submit();
           }}
         >
-          <div className="flex-1 flex items-end rounded-[22px] bg-ink-800 border border-white/8 focus-within:border-brand-500/60 px-4 py-2 min-h-12 transition-colors">
+          <div className="flex-1 flex items-end rounded-[24px] bg-white border-2 border-transparent focus-within:border-coral-400 shadow-pillow px-4 py-2 min-h-12 transition-colors">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value.slice(0, 1000))}
@@ -271,30 +276,45 @@ export default function SupportScreen() {
               }}
               rows={1}
               placeholder={ticket?.escalated ? "Message the Raahi team…" : "Ask anything about Raahi…"}
-              className="w-full bg-transparent outline-none resize-none text-[15px] text-ink-50 placeholder:text-ink-500 max-h-32 leading-6 py-0.5"
+              className="w-full bg-transparent outline-none resize-none text-[15px] font-semibold text-ink-900 placeholder:text-ink-300 placeholder:font-medium max-h-32 leading-6 py-0.5"
               style={{ height: Math.min(128, 24 * Math.max(1, draft.split("\n").length) + 4) }}
               enterKeyHint="enter"
               disabled={busy}
             />
           </div>
-          <IconButton icon={SendHorizontal} label="Send" variant="brand" size={48} type="submit" disabled={busy || draft.trim().length === 0} className={cn("transition-opacity", (busy || draft.trim().length === 0) && "opacity-50")} />
+          <IconButton icon={PaperPlaneRight} label="Send" variant="coral" weight="fill" size={48} type="submit" disabled={!canSend} className={cn("transition-opacity", !canSend && "opacity-50")} />
         </form>
       </div>
     </div>
   );
 }
 
-function Intro({ name }: { name: string }) {
+function AssistantLabel() {
   return (
-    <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="flex flex-col items-center text-center gap-3 pt-10 pb-6 px-4">
-      <motion.div variants={item.scale} className="relative size-20 rounded-[28px] glass flex items-center justify-center shadow-glow">
-        <motion.span className="absolute inset-0 rounded-[28px] bg-brand-500/20" animate={{ scale: [1, 1.25, 1], opacity: [0.4, 0, 0.4] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-        <Bot className="size-9 text-brand-400" />
+    <span className="inline-flex items-center gap-1.5">
+      <span className="inline-flex size-4 rounded-full bg-coral-100 items-center justify-center">
+        <span className="size-1.5 rounded-full bg-coral-500" />
+      </span>
+      Raahi assistant
+    </span>
+  );
+}
+
+function Intro({ name }: { name: string }) {
+  const buddyFloat = float(6, 4);
+  return (
+    <motion.div variants={stagger(0.08, 0.1)} initial="hidden" animate="show" className="relative flex flex-col items-center text-center gap-3 pt-6 pb-6 px-4">
+      <motion.div variants={item.pop} className="relative">
+        <span aria-hidden className="blob absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-40 bg-coral-100" />
+        <span aria-hidden className="blob absolute left-[60%] top-[55%] -translate-x-1/2 -translate-y-1/2 size-28 bg-sun-100" style={{ animationDelay: "-7s" }} />
+        <motion.div {...buddyFloat} className="relative">
+          <Buddy state="idle" size={150} />
+        </motion.div>
       </motion.div>
-      <motion.h2 variants={item.up} className="font-display text-[20px] font-semibold text-ink-50">
-        Hi {name}, how can we help?
+      <motion.h2 variants={item.up} className="font-display text-[24px] font-semibold text-ink-900 leading-tight">
+        Hi {name}, <span className="text-coral-500">how can we help?</span>
       </motion.h2>
-      <motion.p variants={item.up} className="text-[14px] text-ink-400 leading-relaxed max-w-xs">
+      <motion.p variants={item.up} className="text-[14.5px] text-ink-500 leading-relaxed max-w-xs font-medium">
         Ask about fares, bidding, documents or a specific ride. Answers arrive in seconds, and you can hand over to a human at any time.
       </motion.p>
     </motion.div>
@@ -310,9 +330,9 @@ function MessageItem({ m, prev }: { m: SupportMessageDto; prev: SupportMessageDt
       {newDay && <DayDivider label={dayLabel(m.createdAt)} />}
       <ChatBubble
         side={mine ? "right" : "left"}
-        tone={mine ? "brand" : m.sender === "admin" ? "violet" : "glass"}
+        tone={mine ? "coral" : m.sender === "admin" ? "lavender" : "white"}
         grouped={grouped && !newDay}
-        label={mine ? undefined : m.sender === "admin" ? <span className="inline-flex items-center gap-1 text-violet-400"><ShieldCheck className="size-3.5" /> Raahi team</span> : <span className="inline-flex items-center gap-1"><Bot className="size-3.5" /> Raahi assistant</span>}
+        label={mine ? undefined : m.sender === "admin" ? <span className="inline-flex items-center gap-1 text-lavender-600"><ShieldCheck className="size-3.5" weight="fill" /> Raahi team</span> : <AssistantLabel />}
         meta={timeOfDay(m.createdAt)}
       >
         {m.body}
@@ -324,9 +344,9 @@ function MessageItem({ m, prev }: { m: SupportMessageDto; prev: SupportMessageDt
 function DayDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 my-4">
-      <span className="flex-1 h-px bg-white/6" />
-      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-ink-500">{label}</span>
-      <span className="flex-1 h-px bg-white/6" />
+      <span className="flex-1 h-px bg-paper-200" />
+      <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-400">{label}</span>
+      <span className="flex-1 h-px bg-paper-200" />
     </div>
   );
 }

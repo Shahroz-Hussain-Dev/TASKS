@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Sora } from "next/font/google";
+import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
-const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
+const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Raahi — Your ride. Your price.", template: "%s · Raahi" },
@@ -13,13 +13,14 @@ export const metadata: Metadata = {
   openGraph: { title: "Raahi", description: "Your ride. Your price.", type: "website" },
 };
 
-export const viewport: Viewport = { themeColor: "#0b0f1a", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#fffbf5", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sora.variable} ${manrope.variable}`}>
-      <body style={{ fontFamily: "var(--font-manrope), Manrope, system-ui, sans-serif" }}>
-        <style>{`:root{--font-display:var(--font-sora),Sora,system-ui,sans-serif;--font-sans:var(--font-manrope),Manrope,system-ui,sans-serif}`}</style>
+    <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
+      <body className="min-h-screen bg-paper-50 font-sans text-ink-700">
+        {/* Keep the legacy variable names resolvable for any inline style that still reads them. */}
+        <style>{`:root{--font-display:var(--font-fredoka),Fredoka,Nunito,ui-rounded,system-ui,sans-serif;--font-sans:var(--font-nunito),Nunito,ui-rounded,system-ui,sans-serif}`}</style>
         {children}
       </body>
     </html>

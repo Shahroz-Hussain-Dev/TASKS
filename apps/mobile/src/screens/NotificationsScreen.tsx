@@ -1,10 +1,10 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Banknote, Bell, Car, CheckCheck, LifeBuoy, MessageCircle, Receipt, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Bell, Car, ChatCircleDots, Checks, Lifebuoy, Money, Receipt, ShieldCheck } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { NotificationDto, Paginated } from "@raahi/shared";
-import { Button, EmptyState, Screen, Skeleton, TopBar, useToast } from "@/components/ui";
+import { Button, EmptyState, Screen, Skeleton, TopBar, useToast, type IconComponent } from "@/components/ui";
 import { BackButton } from "@/components/shared/BackButton";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { dayLabel, notificationIcon, notificationTarget, type NotificationIcon } from "@/components/shared/meta";
@@ -18,14 +18,15 @@ import { cn, errorMessage, timeAgo } from "@/lib/utils";
 type Page = Paginated<NotificationDto> & { unread: number };
 type Pages = { pages: Page[]; pageParams: number[] };
 
-const ICONS: Record<NotificationIcon, { icon: LucideIcon; cls: string }> = {
-  bid: { icon: Banknote, cls: "bg-amber-400/12 text-amber-300" },
-  ride: { icon: Car, cls: "bg-brand-500/12 text-brand-400" },
-  chat: { icon: MessageCircle, cls: "bg-sky-400/12 text-sky-400" },
-  shield: { icon: ShieldCheck, cls: "bg-brand-500/12 text-brand-400" },
-  receipt: { icon: Receipt, cls: "bg-violet-400/12 text-violet-400" },
-  support: { icon: LifeBuoy, cls: "bg-violet-400/12 text-violet-400" },
-  bell: { icon: Bell, cls: "bg-white/6 text-ink-200" },
+/** Duotone icon + tint per notification family. */
+const ICONS: Record<NotificationIcon, { icon: IconComponent; cls: string }> = {
+  bid: { icon: Money, cls: "bg-sun-100 text-sun-600" },
+  ride: { icon: Car, cls: "bg-coral-100 text-coral-500" },
+  chat: { icon: ChatCircleDots, cls: "bg-sky-100 text-sky-500" },
+  shield: { icon: ShieldCheck, cls: "bg-teal-100 text-teal-600" },
+  receipt: { icon: Receipt, cls: "bg-lavender-100 text-lavender-500" },
+  support: { icon: Lifebuoy, cls: "bg-lavender-100 text-lavender-500" },
+  bell: { icon: Bell, cls: "bg-paper-100 text-ink-500" },
 };
 
 function markReadInCache(data: Pages | undefined, ids: string[] | null): Pages | undefined {
@@ -108,7 +109,7 @@ export default function NotificationsScreen() {
               <AnimatePresence>
                 {unread > 0 && (
                   <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={spring}>
-                    <Button size="sm" variant="secondary" icon={CheckCheck} loading={markRead.isPending && markRead.variables === null} onClick={() => markRead.mutate(null)}>
+                    <Button size="sm" variant="secondary" icon={Checks} loading={markRead.isPending && markRead.variables === null} onClick={() => markRead.mutate(null)}>
                       Mark all read
                     </Button>
                   </motion.div>
@@ -121,8 +122,8 @@ export default function NotificationsScreen() {
         {query.isPending && (
           <motion.div variants={item.up} className="flex flex-col gap-3 mt-2">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex gap-3 items-start">
-                <Skeleton className="size-11 rounded-2xl shrink-0" />
+              <div key={i} className="pillow p-3.5 flex gap-3 items-start">
+                <Skeleton className="size-12 rounded-2xl shrink-0" />
                 <div className="flex-1 flex flex-col gap-2 pt-1">
                   <Skeleton className="h-3.5 w-2/3" />
                   <Skeleton className="h-3 w-full" />
@@ -137,14 +138,14 @@ export default function NotificationsScreen() {
           <EmptyState icon={Bell} title="Couldn't load notifications" body={errorMessage(query.error)} action={<Button size="md" variant="secondary" onClick={() => query.refetch()}>Try again</Button>} />
         )}
 
-        {query.data && items.length === 0 && <EmptyState icon={Bell} title="Nothing here yet" body="Offers, ride updates and messages from our team will show up here." />}
+        {query.data && items.length === 0 && <EmptyState icon={Bell} tone="sun" title="Nothing here yet" body="Offers, ride updates and messages from our team will show up here." />}
 
         {groups.length > 0 && (
           <motion.div variants={item.up} className="flex flex-col gap-5 mt-1">
             {groups.map((g) => (
               <section key={g.label}>
-                <p className="sticky top-0 z-10 -mx-5 px-5 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-500 bg-ink-900/85 backdrop-blur">{g.label}</p>
-                <ul className="flex flex-col gap-2 mt-1">
+                <p className="sticky top-0 z-10 -mx-5 px-7 py-1.5 text-[11.5px] font-extrabold uppercase tracking-[0.16em] text-ink-400 bg-paper-50/90 backdrop-blur">{g.label}</p>
+                <ul className="flex flex-col gap-2.5 mt-1">
                   <AnimatePresence initial={false}>
                     {g.items.map((n) => (
                       <NotificationRow key={n.id} n={n} onOpen={() => open(n)} />
@@ -170,17 +171,17 @@ function NotificationRow({ n, onOpen }: { n: NotificationDto; onOpen: () => void
   const unread = !n.readAt;
   return (
     <motion.li layout initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={spring}>
-      <motion.button type="button" whileTap={{ scale: 0.985 }} transition={spring} onClick={onOpen} className={cn("w-full flex items-start gap-3 rounded-3xl p-3.5 text-left border transition-colors", unread ? "bg-ink-800 border-white/10" : "bg-ink-800/50 border-white/5")}>
-        <span className={cn("size-11 rounded-2xl flex items-center justify-center shrink-0", cls)}>
-          <Icon className="size-5" />
+      <motion.button type="button" whileTap={{ scale: 0.985, y: 2 }} transition={spring} onClick={onOpen} className={cn("w-full flex items-start gap-3 rounded-[24px] p-3.5 text-left transition-colors", unread ? "bg-white shadow-pillow" : "bg-white/60 shadow-[0_1px_0_0_#f6e9d8]")}>
+        <span className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", cls, !unread && "opacity-70")}>
+          <Icon className="size-6" weight="duotone" />
         </span>
         <span className="flex-1 min-w-0">
           <span className="flex items-start gap-2">
-            <span className={cn("flex-1 text-[15px] leading-snug", unread ? "font-semibold text-ink-50" : "font-medium text-ink-200")}>{n.title}</span>
-            <AnimatePresence>{unread && <motion.span key="dot" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={spring} className="mt-1.5 size-2 rounded-full bg-brand-400 shadow-glow shrink-0" />}</AnimatePresence>
+            <span className={cn("flex-1 text-[15px] leading-snug", unread ? "font-extrabold text-ink-900" : "font-bold text-ink-600")}>{n.title}</span>
+            <AnimatePresence>{unread && <motion.span key="dot" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={spring} className="mt-1.5 size-2.5 rounded-full bg-coral-500 ring-4 ring-coral-100 shrink-0" />}</AnimatePresence>
           </span>
-          <span className="block text-[13.5px] text-ink-400 leading-snug mt-0.5">{n.body}</span>
-          <span className="block text-[11.5px] text-ink-500 mt-1.5">{timeAgo(n.createdAt)}</span>
+          <span className={cn("block text-[13.5px] leading-snug mt-0.5 font-medium", unread ? "text-ink-600" : "text-ink-500")}>{n.body}</span>
+          <span className="block text-[11.5px] text-ink-400 mt-1.5 font-bold">{timeAgo(n.createdAt)}</span>
         </span>
       </motion.button>
     </motion.li>

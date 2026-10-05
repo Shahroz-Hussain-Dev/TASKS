@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, LocateFixed, MapPinOff, Star, TriangleAlert } from "lucide-react";
+import { Bell, Crosshair, GpsSlash, Star, Warning } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DriverDto, DriverRequestFeedItem } from "@raahi/shared";
+import { BuddyBubble } from "@/components/buddy";
 import { OnlineToggle } from "@/components/driver/OnlineToggle";
 import { RequestCard } from "@/components/driver/RequestCard";
 import { AnimatedCar, RadarSearch } from "@/components/Illustrations";
@@ -181,7 +182,7 @@ export default function DriverHomeScreen() {
   const statusLine = pres.online ? (items.length > 0 ? `Online · ${items.length} request${items.length === 1 ? "" : "s"} nearby` : pendingBids > 0 ? `Online · ${pendingBids} offer${pendingBids === 1 ? "" : "s"} waiting` : "Online · looking for requests") : "You're offline";
 
   return (
-    <div className="relative h-full w-full bg-ink-900">
+    <div className="relative h-full w-full bg-paper-50">
       <MapView ref={mapRef} center={center} zoom={15} padding={MAP_PADDING} onMoveStart={() => setFollow(false)}>
         {pres.fix && (
           <Marker position={pres.fix} zIndex={5}>
@@ -198,20 +199,20 @@ export default function DriverHomeScreen() {
 
       {/* Top bar */}
       <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="absolute inset-x-0 top-0 px-4 pointer-events-none" style={{ paddingTop: "calc(var(--safe-top) + 12px)" }}>
-        <motion.div variants={item.down} className="pointer-events-auto glass rounded-[24px] shadow-float p-2 pl-2.5 flex items-center gap-3">
+        <motion.div variants={item.down} className="pointer-events-auto glass rounded-[26px] p-2 pl-2.5 flex items-center gap-3">
           <motion.button type="button" whileTap={{ scale: 0.94 }} transition={spring} onClick={() => navigate("/profile")} aria-label="Profile">
-            <Avatar name={user?.fullName ?? "Driver"} src={user?.avatarUrl} size={42} ring={pres.online} />
+            <Avatar name={user?.fullName ?? "Driver"} src={user?.avatarUrl} size={44} ring={pres.online} className={pres.online ? "ring-teal-400!" : undefined} />
           </motion.button>
           <div className="flex-1 min-w-0">
-            <p className="font-display text-[15px] font-semibold text-ink-50 truncate">{greeting(user?.fullName ?? "")}</p>
-            <p className="text-[12.5px] text-ink-400 truncate flex items-center gap-1.5">
-              <span className={pres.online ? "size-1.5 rounded-full bg-brand-400" : "size-1.5 rounded-full bg-ink-500"} />
+            <p className="font-display text-[17px] font-semibold text-ink-900 truncate">{greeting(user?.fullName ?? "")}</p>
+            <p className="text-[12.5px] font-bold text-ink-500 truncate flex items-center gap-1.5">
+              <span className={pres.online ? "size-2 rounded-full bg-teal-500" : "size-2 rounded-full bg-ink-300"} />
               {statusLine}
             </p>
           </div>
           <div className="relative">
-            <IconButton icon={Bell} label="Notifications" variant="ghost" size={40} onClick={() => navigate("/notifications")} />
-            {unread > 0 && <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-ink-950 text-[10px] font-bold flex items-center justify-center tabular-nums">{unread > 9 ? "9+" : unread}</span>}
+            <IconButton icon={Bell} label="Notifications" variant="ghost" size={42} className="text-coral-500" onClick={() => navigate("/notifications")} />
+            {unread > 0 && <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-sun-500 text-ink-900 text-[10px] font-extrabold flex items-center justify-center tabular-nums">{unread > 9 ? "9+" : unread}</span>}
           </div>
         </motion.div>
       </motion.div>
@@ -219,25 +220,27 @@ export default function DriverHomeScreen() {
       {/* Recenter */}
       <AnimatePresence>
         {!follow && pres.fix && (
-          <motion.div key="recenter" initial={{ opacity: 0, scale: 0.7, x: 16 }} animate={{ opacity: 1, scale: 1, x: 0 }} exit={{ opacity: 0, scale: 0.7, x: 16 }} transition={spring} className="absolute right-4 z-10" style={{ top: "calc(var(--safe-top) + 92px)" }}>
-            <IconButton icon={LocateFixed} label="Recenter map" onClick={recenter} />
+          <motion.div key="recenter" initial={{ opacity: 0, scale: 0.7, x: 16 }} animate={{ opacity: 1, scale: 1, x: 0 }} exit={{ opacity: 0, scale: 0.7, x: 16 }} transition={spring} className="absolute right-4 z-10" style={{ top: "calc(var(--safe-top) + 96px)" }}>
+            <IconButton icon={Crosshair} label="Recenter map" variant="solid" className="text-teal-600" onClick={recenter} />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BuddyBubble hint="Ask me to go online" />
 
       {/* Bottom */}
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-4 pointer-events-none" style={{ paddingBottom: TAB_BAR_CLEARANCE }}>
         <AnimatePresence mode="popLayout" initial={false}>
           {pres.permission === "denied" ? (
-            <motion.div key="denied" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full glass rounded-[28px] shadow-float p-4 flex items-center gap-3">
-              <span className="size-11 rounded-2xl bg-amber-400/12 text-amber-300 flex items-center justify-center shrink-0">
-                <MapPinOff className="size-5" />
+            <motion.div key="denied" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full pillow p-4 flex items-center gap-3">
+              <span className="size-12 rounded-[18px] bg-sun-100 text-sun-600 flex items-center justify-center shrink-0">
+                <GpsSlash className="size-6" weight="duotone" />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-ink-50">Location is off</p>
-                <p className="text-[12.5px] text-ink-400 leading-snug">Passengers can't find you without it. Allow location to go online.</p>
+                <p className="font-display font-semibold text-[16px] text-ink-900">Location is off</p>
+                <p className="text-[12.5px] font-semibold text-ink-500 leading-snug">Passengers can't find you without it. Allow location to go online.</p>
               </div>
-              <Button size="sm" variant="secondary" onClick={() => void presence.acquire("home")}>
+              <Button size="sm" variant="teal" onClick={() => void presence.acquire("home")}>
                 Allow
               </Button>
             </motion.div>
@@ -263,36 +266,41 @@ export default function DriverHomeScreen() {
                 </AnimatePresence>
               </motion.div>
             ) : (
-              <motion.div key="searching" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full glass rounded-[28px] shadow-float p-4 flex items-center gap-4">
-                <RadarSearch size={76} className="shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-display text-[16px] font-semibold text-ink-50">{pendingBids > 0 ? `${pendingBids} offer${pendingBids === 1 ? "" : "s"} waiting` : "Looking for requests nearby…"}</p>
-                  <p className="text-[12.5px] text-ink-400 leading-snug mt-0.5 flex items-start gap-1.5">
-                    {feed.isError && <TriangleAlert className="size-3.5 text-amber-300 shrink-0 mt-0.5" />}
-                    <span>{feed.isError ? "Can't reach Raahi right now — retrying." : "Stay near busy areas. You'll feel a buzz when a passenger posts a ride."}</span>
-                  </p>
+              <motion.div key="searching" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full relative">
+                <span aria-hidden className="blob bg-teal-100 w-40 h-40 -left-6 -top-10 -z-10 opacity-90" />
+                <div className="sticker sticker-tilt-l bg-teal-100 p-4 flex items-center gap-4">
+                  <RadarSearch size={76} className="shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display text-[17px] font-semibold text-ink-900">{pendingBids > 0 ? `${pendingBids} offer${pendingBids === 1 ? "" : "s"} waiting` : "You're online — looking for requests nearby…"}</p>
+                    <p className="text-[12.5px] font-semibold text-ink-600 leading-snug mt-0.5 flex items-start gap-1.5">
+                      {feed.isError && <Warning className="size-4 text-sun-600 shrink-0 mt-0.5" weight="duotone" />}
+                      <span>{feed.isError ? "Can't reach Raahi right now — retrying." : "Stay near busy areas. You'll feel a buzz when a passenger posts a ride."}</span>
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )
           ) : (
-            <motion.div key="offline" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full glass rounded-[28px] shadow-float p-4 relative overflow-hidden">
-              <div className="flex items-center gap-3">
+            <motion.div key="offline" variants={item.up} initial="hidden" animate="show" exit="exit" className="pointer-events-auto w-full pillow p-4 relative overflow-hidden">
+              <span aria-hidden className="blob bg-sun-100 w-48 h-48 -right-12 -top-16 opacity-90" />
+              <span aria-hidden className="blob bg-teal-100 w-32 h-32 -left-10 -bottom-12 opacity-80" style={{ animationDelay: "-5s" }} />
+              <div className="relative flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-display text-[18px] font-semibold text-ink-50">You're offline</p>
-                  <p className="text-[13px] text-ink-400 leading-snug mt-0.5">Go online to see ride requests near you. Every rupee of every fare is yours.</p>
+                  <p className="font-display text-[22px] font-semibold text-ink-900 leading-tight">You're offline</p>
+                  <p className="text-[13px] font-semibold text-ink-500 leading-snug mt-1">Go online to see ride requests near you. Every rupee of every fare is yours.</p>
                 </div>
                 <motion.div animate={{ x: [0, 4, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} className="shrink-0">
                   <AnimatedCar size={110} />
                 </motion.div>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Stat label="Today" value={earnings.data ? <Money value={earnings.data.todayPkr} className="text-[15px] font-bold text-brand-300" /> : "—"} />
+              <div className="relative mt-3 grid grid-cols-3 gap-2">
+                <Stat label="Today" value={earnings.data ? <Money value={earnings.data.todayPkr} className="text-[15px] text-teal-600" /> : "—"} />
                 <Stat label="Rides today" value={earnings.data ? String(earnings.data.ridesToday) : "—"} />
                 <Stat
                   label="Rating"
                   value={
                     <span className="inline-flex items-center gap-1">
-                      <Star className="size-3.5 text-amber-300 fill-amber-300" />
+                      <Star className="size-4 text-sun-500" weight="fill" />
                       {user && user.ratingCount > 0 ? user.ratingAvg.toFixed(1) : "New"}
                     </span>
                   }
@@ -312,9 +320,9 @@ export default function DriverHomeScreen() {
 
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white/4 border border-white/6 px-3 py-2">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-500">{label}</p>
-      <p className="mt-0.5 text-[15px] font-display font-semibold text-ink-50 tabular-nums">{value}</p>
+    <div className="rounded-[18px] bg-paper-100 px-3 py-2">
+      <p className="text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-ink-400">{label}</p>
+      <p className="mt-0.5 text-[15px] font-display font-semibold text-ink-900 tabular-nums">{value}</p>
     </div>
   );
 }

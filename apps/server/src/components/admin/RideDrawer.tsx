@@ -1,7 +1,7 @@
 "use client";
 
+import { ChatCircle, Clock, Money, Path, Star } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
-import { Clock, MessageSquare, Route, Star } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { decodePolyline, type LatLng, type RideDto } from "@raahi/shared";
@@ -32,7 +32,7 @@ export function RideDrawer({ ride, onClose }: { ride: RideDto | null; onClose: (
     return m;
   }, [ride]);
 
-  const lines = useMemo<MapLineSpec[]>(() => (route.length >= 2 ? [{ id: "route", points: route, color: "#34d399", width: 4 }] : []), [route]);
+  const lines = useMemo<MapLineSpec[]>(() => (route.length >= 2 ? [{ id: "route", points: route, color: "#ff6b4a", width: 4 }] : []), [route]);
   const fitPoints = useMemo(() => [...route, ...markers.map((m) => ({ lat: m.lat, lng: m.lng }))], [route, markers]);
 
   return (
@@ -47,32 +47,34 @@ export function RideDrawer({ ride, onClose }: { ride: RideDto | null; onClose: (
             <Badge tone={RIDE_STATUS_TONE[ride.status]} dot={ride.status === "in_progress"} className="text-[13px]">
               {RIDE_STATUS_LABEL[ride.status]}
             </Badge>
-            <p className="font-display text-[26px] font-semibold text-ink-50">{pkr(ride.farePkr)}</p>
+            <p className="inline-flex items-center gap-2 rounded-full bg-sun-100 px-3.5 py-1 font-display text-[24px] font-semibold tabular-nums text-ink-900">
+              <Money size={22} weight="duotone" className="text-sun-600" /> {pkr(ride.farePkr)}
+            </p>
           </motion.div>
 
-          <motion.div variants={item.up} className="rounded-2xl border border-white/6 bg-ink-800 p-4">
+          <motion.div variants={item.up} className="pillow p-4">
             <ol className="relative space-y-4 pl-6">
-              <span className="absolute left-[7px] top-2 h-[calc(100%-16px)] w-px bg-ink-600" />
+              <span className="absolute left-[7px] top-2 h-[calc(100%-16px)] w-0.5 rounded-full bg-paper-200" />
               <li className="relative">
-                <span className="absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 border-ink-800 bg-sky-400" />
-                <p className="text-[12px] uppercase tracking-wide text-ink-500">Pickup</p>
-                <p className="text-[14px] text-ink-100">{ride.pickup.address}</p>
+                <span className="absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-[3px] border-white bg-sky-500 shadow-[0_0_0_1px_#e1f1ff]" />
+                <p className="text-[12px] font-bold uppercase tracking-wide text-ink-500">Pickup</p>
+                <p className="text-[14px] text-ink-900">{ride.pickup.address}</p>
               </li>
               <li className="relative">
-                <span className="absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 border-ink-800 bg-rose-400" />
-                <p className="text-[12px] uppercase tracking-wide text-ink-500">Drop-off</p>
-                <p className="text-[14px] text-ink-100">{ride.dropoff.address}</p>
+                <span className="absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-[3px] border-white bg-coral-500 shadow-[0_0_0_1px_#ffe9e2]" />
+                <p className="text-[12px] font-bold uppercase tracking-wide text-ink-500">Drop-off</p>
+                <p className="text-[14px] text-ink-900">{ride.dropoff.address}</p>
               </li>
             </ol>
-            <div className="mt-4 flex flex-wrap gap-4 text-[13px] text-ink-300">
+            <div className="mt-4 flex flex-wrap gap-4 text-[13px] font-semibold text-ink-600">
               <span className="inline-flex items-center gap-1.5">
-                <Route size={14} /> {km(ride.distanceKm)}
+                <Path size={16} weight="duotone" className="text-coral-500" /> {km(ride.distanceKm)}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock size={14} /> {minutes(ride.durationMin)}
+                <Clock size={16} weight="duotone" className="text-coral-500" /> {minutes(ride.durationMin)}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <MessageSquare size={14} /> Cash
+                <ChatCircle size={16} weight="duotone" className="text-coral-500" /> Cash
               </span>
             </div>
           </motion.div>
@@ -82,7 +84,7 @@ export function RideDrawer({ ride, onClose }: { ride: RideDto | null; onClose: (
             <PersonCard title="Driver" name={ride.driver.fullName} avatar={ride.driver.avatarUrl} rating={ride.driver.ratingAvg} count={ride.driver.ratingCount} sub={ride.driver.vehicle ? `${ride.driver.vehicle.make} ${ride.driver.vehicle.model} · ${ride.driver.vehicle.plate}` : undefined} href={`/admin/drivers/${ride.driver.id}`} />
           </motion.div>
 
-          <motion.div variants={item.up}>
+          <motion.div variants={item.up} className="pillow p-4">
             <KeyValue
               columns={2}
               items={[
@@ -110,13 +112,13 @@ export function RideDrawer({ ride, onClose }: { ride: RideDto | null; onClose: (
 
 function PersonCard({ title, name, avatar, rating, count, sub, href }: { title: string; name: string; avatar: string | null; rating: number; count: number; sub?: string; href?: string }) {
   const body = (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/6 bg-ink-800 p-4">
+    <div className="pillow flex items-center gap-3 p-4">
       <Avatar name={name} src={avatar} size={44} />
       <div className="min-w-0">
-        <p className="text-[12px] uppercase tracking-wide text-ink-500">{title}</p>
-        <p className="truncate text-[15px] font-semibold text-ink-50">{name}</p>
-        <p className="inline-flex items-center gap-1 text-[12.5px] text-ink-400">
-          <Star size={12} className="fill-amber-400 text-amber-400" /> {rating.toFixed(1)} ({count}){sub ? ` · ${sub}` : ""}
+        <p className="text-[12px] font-bold uppercase tracking-wide text-ink-500">{title}</p>
+        <p className="truncate text-[15px] font-bold text-ink-900">{name}</p>
+        <p className="inline-flex items-center gap-1 text-[12.5px] text-ink-600">
+          <Star size={13} weight="fill" className="text-sun-500" /> {rating.toFixed(1)} ({count}){sub ? ` · ${sub}` : ""}
         </p>
       </div>
     </div>
@@ -132,14 +134,14 @@ function PersonCard({ title, name, avatar, rating, count, sub, href }: { title: 
 
 function RatingCard({ title, stars, comment }: { title: string; stars: number; comment: string | null }) {
   return (
-    <div className="rounded-2xl border border-white/6 bg-ink-800 p-4">
-      <p className="text-[12px] uppercase tracking-wide text-ink-500">{title}</p>
+    <div className="pillow p-4">
+      <p className="text-[12px] font-bold uppercase tracking-wide text-ink-500">{title}</p>
       <p className="mt-1 flex gap-0.5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={i} size={16} className={i < stars ? "fill-amber-400 text-amber-400" : "text-ink-600"} />
+          <Star key={i} size={17} weight={i < stars ? "fill" : "duotone"} className={i < stars ? "text-sun-500" : "text-ink-200"} />
         ))}
       </p>
-      {comment ? <p className="mt-2 text-[13.5px] text-ink-300">“{comment}”</p> : null}
+      {comment ? <p className="mt-2 text-[13.5px] text-ink-700">“{comment}”</p> : null}
     </div>
   );
 }

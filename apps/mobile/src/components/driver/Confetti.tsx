@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
-const COLORS = ["#34d399", "#6ee7b7", "#fbbf24", "#fcd34d", "#a78bfa", "#38bdf8", "#f8fafc"];
+const COLORS = ["#ff6b4a", "#ffc53d", "#12a594", "#3da9fc", "#8b7cf6", "#2fbf71", "#ffd0c2"];
 
 interface Particle {
   id: number;
@@ -32,7 +32,7 @@ export function Confetti({ count = 70, className, seed = 1 }: { count?: number; 
       x: 5 + rnd() * 90,
       drift: (rnd() - 0.5) * 160,
       size: 6 + rnd() * 8,
-      color: COLORS[Math.floor(rnd() * COLORS.length)] ?? "#34d399",
+      color: COLORS[Math.floor(rnd() * COLORS.length)] ?? "#ff6b4a",
       delay: rnd() * 0.6,
       duration: 2 + rnd() * 1.6,
       rotate: 360 + rnd() * 720,

@@ -1,22 +1,8 @@
 "use client";
 
+import { Car, CreditCard, GearSix, Lifebuoy, List, MapTrifold, Pulse, Scroll, SignOut, SquaresFour, Taxi, UsersThree, X, type Icon } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Activity,
-  CreditCard,
-  Car,
-  LayoutDashboard,
-  LifeBuoy,
-  LogOut,
-  Map as MapIcon,
-  Menu,
-  ScrollText,
-  Settings,
-  CarTaxiFront,
-  Users,
-  X,
-} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -31,20 +17,20 @@ import { Avatar, IconButton } from "./ui";
 interface NavItem {
   href: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: Icon;
   badge?: "pendingDrivers" | "openTickets";
 }
 
 const NAV: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/drivers", label: "Drivers", icon: CarTaxiFront, badge: "pendingDrivers" },
-  { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin", label: "Dashboard", icon: SquaresFour },
+  { href: "/admin/drivers", label: "Drivers", icon: Taxi, badge: "pendingDrivers" },
+  { href: "/admin/customers", label: "Customers", icon: UsersThree },
   { href: "/admin/rides", label: "Rides", icon: Car },
-  { href: "/admin/live", label: "Live map", icon: MapIcon },
+  { href: "/admin/live", label: "Live map", icon: MapTrifold },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
-  { href: "/admin/support", label: "Support", icon: LifeBuoy, badge: "openTickets" },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/audit", label: "Audit", icon: ScrollText },
+  { href: "/admin/support", label: "Support", icon: Lifebuoy, badge: "openTickets" },
+  { href: "/admin/settings", label: "Settings", icon: GearSix },
+  { href: "/admin/audit", label: "Audit", icon: Scroll },
 ];
 
 const PAGE_TITLES: Record<string, string> = Object.fromEntries(NAV.map((n) => [n.href, n.label]));
@@ -84,7 +70,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <BootScreen
         message="We couldn't reach the Raahi server."
         action={
-          <button type="button" onClick={() => me.refetch()} className="mt-4 rounded-2xl bg-ink-700 px-4 py-2 text-sm font-semibold text-ink-50 hover:bg-ink-600">
+          <button type="button" onClick={() => me.refetch()} className="jelly jelly-cream mt-5 h-10 rounded-full px-5 text-sm font-bold">
             Try again
           </button>
         }
@@ -97,13 +83,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
 function BootScreen({ message, action }: { message: string; action?: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ink-900 px-6 text-center">
-      <span className="aurora left-[10%] top-[20%] h-72 w-72 bg-brand-500/40" />
-      <span className="aurora right-[10%] bottom-[10%] h-64 w-64 bg-violet-400/30" style={{ animationDelay: "-7s" }} />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-paper-50 px-6 text-center">
+      <span className="blob left-[8%] top-[14%] h-72 w-72 bg-coral-100" />
+      <span className="blob right-[8%] bottom-[10%] h-64 w-64 bg-teal-100" style={{ animationDelay: "-7s" }} />
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={springSoft} className="relative">
         <Logo size={56} />
       </motion.div>
-      <p className="relative mt-5 text-[14px] text-ink-300">{message}</p>
+      <p className="relative mt-5 text-[14px] font-semibold text-ink-600">{message}</p>
       {action}
     </div>
   );
@@ -153,10 +139,10 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
         const count = n.badge ? badges[n.badge] : 0;
         const Icon = n.icon;
         return (
-          <Link key={n.href} href={n.href} className={cn("relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[14px] font-semibold transition-colors", active ? "text-ink-50" : "text-ink-400 hover:bg-white/4 hover:text-ink-100")}>
-            {active ? <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-0 rounded-2xl bg-ink-700 shadow-card" /> : null}
-            {active ? <motion.span layoutId="admin-nav-bar" transition={spring} className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-brand-400" /> : null}
-            <Icon size={19} strokeWidth={2.1} className={cn("relative shrink-0", active ? "text-brand-400" : "")} />
+          <Link key={n.href} href={n.href} className={cn("relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[14px] font-bold transition-colors", active ? "text-ink-900" : "text-ink-600 hover:bg-white/70 hover:text-ink-900")}>
+            {active ? <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-0 rounded-2xl bg-white shadow-pillow" /> : null}
+            {active ? <motion.span layoutId="admin-nav-bar" transition={spring} className="absolute left-0 top-1/2 h-6 w-1.5 -translate-y-1/2 rounded-full bg-teal-500" /> : null}
+            <Icon size={22} weight={active ? "fill" : "duotone"} className={cn("relative shrink-0", active ? "text-teal-600" : "text-ink-500")} />
             <span className="relative flex-1">{n.label}</span>
             <AnimatePresence>
               {count > 0 ? (
@@ -166,7 +152,7 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.6, opacity: 0 }}
                   transition={spring}
-                  className={cn("relative rounded-full px-2 py-0.5 text-[11px] font-bold", n.badge === "pendingDrivers" ? "bg-amber-400 text-ink-950" : "bg-rose-500 text-white")}
+                  className={cn("relative rounded-full px-2 py-0.5 text-[11px] font-extrabold tabular-nums text-white", n.badge === "pendingDrivers" ? "bg-coral-500 shadow-[0_2px_0_0_#f2552f]" : "bg-rose-500 shadow-[0_2px_0_0_#d93d68]")}
                 >
                   {count > 99 ? "99+" : count}
                 </motion.span>
@@ -180,32 +166,32 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
 
   const brand = (
     <Link href="/admin" className="flex items-center gap-3 px-5 py-5">
-      <Logo size={36} />
+      <Logo size={38} />
       <span>
-        <span className="block font-display text-[17px] font-semibold leading-none text-ink-50">Raahi</span>
-        <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500">Admin</span>
+        <span className="block font-display text-[18px] font-semibold leading-none text-ink-900">Raahi</span>
+        <span className="mt-1 block text-[11px] font-extrabold uppercase tracking-[0.18em] text-coral-600">Admin</span>
       </span>
     </Link>
   );
 
   const liveStrip = (
-    <div className="mx-3 mb-3 rounded-2xl border border-white/6 bg-ink-900/60 p-3 text-[12.5px]">
-      <div className="flex items-center gap-2 text-ink-300">
-        <Activity size={14} className="text-brand-400" />
-        <span className="font-semibold">Right now</span>
+    <div className="pillow mx-3 mb-3 p-3 text-[12.5px]">
+      <div className="flex items-center gap-2 text-ink-700">
+        <Pulse size={16} weight="duotone" className="text-teal-600" />
+        <span className="font-bold">Right now</span>
       </div>
       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-        <Stat label="Online" value={stats.data?.driversOnline} />
-        <Stat label="Requests" value={stats.data?.openRequests} />
-        <Stat label="Rides" value={stats.data?.activeRides} />
+        <Stat label="Online" value={stats.data?.driversOnline} accent="text-teal-700" />
+        <Stat label="Requests" value={stats.data?.openRequests} accent="text-ink-900" />
+        <Stat label="Rides" value={stats.data?.activeRides} accent="text-ink-900" />
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-ink-900 text-ink-100 lg:flex">
+    <div className="min-h-screen bg-paper-50 text-ink-700 lg:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden w-[248px] shrink-0 flex-col border-r border-white/6 bg-ink-950/60 lg:sticky lg:top-0 lg:flex lg:h-screen">
+      <aside className="hidden w-[252px] shrink-0 flex-col border-r border-paper-200 bg-paper-100 lg:sticky lg:top-0 lg:flex lg:h-screen">
         {brand}
         {nav}
         {liveStrip}
@@ -215,12 +201,12 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
       <AnimatePresence>
         {mobileOpen ? (
           <motion.div key="mobile-nav" className="fixed inset-0 z-[70] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-            <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} transition={springSoft} className="relative flex h-full w-[264px] flex-col border-r border-white/8 bg-ink-950">
+            <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+            <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} transition={springSoft} className="relative flex h-full w-[268px] flex-col border-r border-paper-200 bg-paper-100 shadow-float">
               <div className="flex items-center justify-between pr-3">
                 {brand}
                 <IconButton label="Close menu" onClick={() => setMobileOpen(false)}>
-                  <X size={20} />
+                  <X size={20} weight="bold" />
                 </IconButton>
               </div>
               {nav}
@@ -231,28 +217,28 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
       </AnimatePresence>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-white/6 bg-ink-900/80 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 bg-white/90 px-4 shadow-bar backdrop-blur-xl sm:px-6">
           <IconButton label="Open menu" className="lg:hidden" onClick={() => setMobileOpen(true)}>
-            <Menu size={20} />
+            <List size={22} weight="bold" />
           </IconButton>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-[15px] font-semibold text-ink-50">{section ? PAGE_TITLES[section] : "Admin"}</p>
+            <p className="truncate font-display text-[16px] font-semibold text-ink-900">{section ? PAGE_TITLES[section] : "Admin"}</p>
           </div>
-          <Link href="/admin/live" className="hidden items-center gap-2 rounded-full border border-white/6 bg-ink-800 px-3 py-1.5 text-[12.5px] font-semibold text-ink-300 hover:text-ink-50 sm:flex">
+          <Link href="/admin/live" className="hidden items-center gap-2 rounded-full bg-teal-100 px-3 py-1.5 text-[12.5px] font-bold text-teal-700 transition-colors hover:bg-teal-200 sm:flex">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-400" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-500 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
             </span>
             {stats.data ? `${stats.data.driversOnline} online · ${stats.data.activeRides} active` : "Live"}
           </Link>
           <div className="flex items-center gap-2 pl-2">
             <Avatar name={user.fullName} src={user.avatarUrl} size={34} />
             <div className="hidden min-w-0 sm:block">
-              <p className="truncate text-[13.5px] font-semibold leading-tight text-ink-50">{user.fullName}</p>
+              <p className="truncate text-[13.5px] font-bold leading-tight text-ink-900">{user.fullName}</p>
               <p className="truncate text-[11.5px] text-ink-500">{user.email ?? "Administrator"}</p>
             </div>
             <IconButton label="Sign out" onClick={logout} disabled={loggingOut}>
-              <LogOut size={18} />
+              <SignOut size={20} weight="duotone" />
             </IconButton>
           </div>
         </header>
@@ -263,11 +249,11 @@ function Frame({ user, children }: { user: UserDto; children: ReactNode }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | undefined }) {
+function Stat({ label, value, accent }: { label: string; value: number | undefined; accent: string }) {
   return (
-    <div className="rounded-xl bg-ink-800 py-1.5">
-      <p className="font-display text-[15px] font-semibold text-ink-50">{value === undefined ? "–" : value}</p>
-      <p className="text-[10.5px] uppercase tracking-wide text-ink-500">{label}</p>
+    <div className="rounded-xl bg-paper-100 py-1.5">
+      <p className={cn("font-display text-[16px] font-semibold tabular-nums", accent)}>{value === undefined ? "–" : value}</p>
+      <p className="text-[10.5px] font-bold uppercase tracking-wide text-ink-500">{label}</p>
     </div>
   );
 }

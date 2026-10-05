@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Activity, CheckCircle2, Database, Globe, Info, RefreshCw, Save, Server, Smartphone, XCircle } from "lucide-react";
+import { ArrowsClockwise, CheckCircle, Database, DeviceMobile, FloppyDisk, Globe, HardDrives, Info, Pulse, XCircle } from "@phosphor-icons/react";
 import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Button, Card, Input, Screen, TopBar, useToast } from "@/components/ui";
+import { Badge, Button, Card, Input, Screen, TopBar, useToast, type IconComponent } from "@/components/ui";
 import { BackButton } from "@/components/shared/BackButton";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { APP_VERSION, DEFAULT_API_URL, MAP_STYLE_URL, getApiBaseUrl, setApiBaseUrl } from "@/lib/config";
@@ -117,19 +117,19 @@ export default function ServerSettingsScreen() {
         </motion.div>
 
         <motion.div variants={item.left}>
-          <Card className="flex items-center gap-3">
-            <span className="size-11 rounded-2xl bg-brand-500/12 text-brand-400 flex items-center justify-center shrink-0">
-              <Server className="size-5" />
+          <Card tone="sky" className="flex items-center gap-3 shadow-[0_4px_0_0_#c7e4fb]">
+            <span className="size-12 rounded-2xl bg-white text-sky-500 flex items-center justify-center shrink-0 shadow-pillow">
+              <HardDrives className="size-6" weight="duotone" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[12.5px] text-ink-400">Currently connected to</p>
-              <p className="font-display text-[16px] font-semibold text-ink-50 truncate">{hostLabel}</p>
+              <p className="text-[12.5px] text-sky-600 font-bold">Currently connected to</p>
+              <p className="font-display text-[17px] font-semibold text-ink-900 truncate">{hostLabel}</p>
             </div>
-            {current && current === DEFAULT_API_URL && <Badge tone="brand">Default</Badge>}
+            {current && current === DEFAULT_API_URL && <Badge tone="sky">Default</Badge>}
           </Card>
         </motion.div>
 
-        <motion.form variants={item.up} onSubmit={submit} className="flex flex-col gap-4" noValidate>
+        <motion.form variants={item.up} onSubmit={submit} className="pillow p-4 flex flex-col gap-4" noValidate>
           <Input
             label="API address"
             icon={Globe}
@@ -150,10 +150,10 @@ export default function ServerSettingsScreen() {
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <Button type="button" variant="secondary" icon={Activity} loading={test.isPending} disabled={check.url === null} onClick={() => test.mutate()}>
+            <Button type="button" variant="secondary" icon={Pulse} loading={test.isPending} disabled={check.url === null} onClick={() => test.mutate()}>
               Test connection
             </Button>
-            <Button type="submit" icon={Save} loading={save.isPending} disabled={check.url === null || !dirty}>
+            <Button type="submit" icon={FloppyDisk} loading={save.isPending} disabled={check.url === null || !dirty}>
               Save
             </Button>
           </div>
@@ -161,45 +161,50 @@ export default function ServerSettingsScreen() {
           <AnimatePresence initial={false} mode="wait">
             {result && (
               <motion.div key="ok" initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8 }} transition={spring}>
-                <Card className={cn("border", result.ok && result.db ? "border-brand-500/30" : "border-amber-400/30")}>
+                <div className={cn("rounded-[22px] p-3.5", result.ok && result.db ? "bg-teal-100" : "bg-sun-100")}>
                   <div className="flex items-center gap-2.5 mb-3">
-                    {result.ok ? <CheckCircle2 className="size-5 text-brand-400" /> : <XCircle className="size-5 text-amber-300" />}
-                    <p className="font-semibold text-ink-50">{result.ok ? "Raahi server reachable" : "Server responded with a problem"}</p>
+                    {result.ok ? <CheckCircle className="size-6 text-teal-600" weight="duotone" /> : <XCircle className="size-6 text-sun-600" weight="duotone" />}
+                    <p className="font-extrabold text-ink-900">{result.ok ? "Raahi server reachable" : "Server responded with a problem"}</p>
                   </div>
                   <dl className="grid grid-cols-3 gap-2 text-center">
-                    <Stat icon={Activity} label="Latency" value={`${result.latencyMs} ms`} />
-                    <Stat icon={Database} label="Database" value={result.db ? "Connected" : "Down"} tone={result.db ? "brand" : "rose"} />
-                    <Stat icon={RefreshCw} label="Server time" value={new Date(result.time).toLocaleTimeString("en-PK", { hour: "numeric", minute: "2-digit" })} />
+                    <Stat icon={Pulse} label="Latency" value={`${result.latencyMs} ms`} />
+                    <Stat icon={Database} label="Database" value={result.db ? "Connected" : "Down"} tone={result.db ? "teal" : "rose"} />
+                    <Stat icon={ArrowsClockwise} label="Server time" value={new Date(result.time).toLocaleTimeString("en-PK", { hour: "numeric", minute: "2-digit" })} />
                   </dl>
-                </Card>
+                </div>
               </motion.div>
             )}
             {testError && (
               <motion.div key="err" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring}>
-                <Card className="border border-rose-500/30 flex items-start gap-2.5">
-                  <XCircle className="size-5 text-rose-400 shrink-0 mt-0.5" />
+                <div className="rounded-[22px] bg-rose-100 p-3.5 flex items-start gap-2.5">
+                  <XCircle className="size-6 text-rose-500 shrink-0 mt-0.5" weight="duotone" />
                   <div>
-                    <p className="font-semibold text-ink-50">Connection failed</p>
-                    <p className="text-[13.5px] text-ink-300 mt-0.5 leading-snug">{testError}</p>
+                    <p className="font-extrabold text-ink-900">Connection failed</p>
+                    <p className="text-[13.5px] text-ink-600 mt-0.5 leading-snug font-medium">{testError}</p>
                   </div>
-                </Card>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
           {DEFAULT_API_URL && value !== DEFAULT_API_URL && (
-            <Button type="button" variant="ghost" size="md" onClick={() => {
-              setValue(DEFAULT_API_URL);
-              test.reset();
-            }}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={() => {
+                setValue(DEFAULT_API_URL);
+                test.reset();
+              }}
+            >
               Use default ({safeHost(DEFAULT_API_URL)})
             </Button>
           )}
         </motion.form>
 
-        <motion.div variants={item.right} className="mt-2">
-          <div className="rounded-3xl bg-ink-800 border border-white/6 shadow-card overflow-hidden">
-            <InfoRow icon={Smartphone} label="App version" value={`${APP_VERSION} · ${isNative ? "Android" : "Web"}`} />
+        <motion.div variants={item.right} className="mt-1">
+          <div className="pillow overflow-hidden px-1">
+            <InfoRow icon={DeviceMobile} label="App version" value={`${APP_VERSION} · ${isNative ? "Android" : "Web"}`} />
             <InfoRow icon={Globe} label="Map tiles" value={safeHost(MAP_STYLE_URL)} />
             <InfoRow icon={Info} label="Build default" value={DEFAULT_API_URL ? safeHost(DEFAULT_API_URL) : "None baked in"} last />
           </div>
@@ -217,22 +222,24 @@ function safeHost(url: string): string {
   }
 }
 
-function Stat({ icon: Icon, label, value, tone = "neutral" }: { icon: typeof Activity; label: string; value: string; tone?: "neutral" | "brand" | "rose" }) {
+function Stat({ icon: Icon, label, value, tone = "neutral" }: { icon: IconComponent; label: string; value: string; tone?: "neutral" | "teal" | "rose" }) {
   return (
-    <div className="rounded-2xl bg-white/4 px-2 py-2.5">
-      <Icon className={cn("size-4 mx-auto mb-1", tone === "brand" ? "text-brand-400" : tone === "rose" ? "text-rose-400" : "text-ink-400")} />
-      <dt className="text-[11px] text-ink-500">{label}</dt>
-      <dd className={cn("text-[13px] font-semibold tabular-nums", tone === "rose" ? "text-rose-400" : "text-ink-100")}>{value}</dd>
+    <div className="rounded-2xl bg-white/80 px-2 py-2.5">
+      <Icon className={cn("size-5 mx-auto mb-1", tone === "teal" ? "text-teal-600" : tone === "rose" ? "text-rose-500" : "text-ink-500")} weight="duotone" />
+      <dt className="text-[11px] text-ink-500 font-bold">{label}</dt>
+      <dd className={cn("text-[13px] font-extrabold tabular-nums", tone === "rose" ? "text-rose-500" : "text-ink-900")}>{value}</dd>
     </div>
   );
 }
 
-function InfoRow({ icon: Icon, label, value, last }: { icon: typeof Activity; label: string; value: string; last?: boolean }) {
+function InfoRow({ icon: Icon, label, value, last }: { icon: IconComponent; label: string; value: string; last?: boolean }) {
   return (
-    <div className={cn("flex items-center gap-3 px-4 py-3.5", !last && "border-b border-white/6")}>
-      <Icon className="size-[18px] text-ink-400 shrink-0" />
-      <span className="text-[14px] text-ink-200 flex-1">{label}</span>
-      <span className="text-[13px] text-ink-400 truncate max-w-[55%]">{value}</span>
+    <div className={cn("flex items-center gap-3 px-3 py-3.5", !last && "border-b border-paper-200")}>
+      <span className="size-9 rounded-xl bg-paper-100 text-ink-500 flex items-center justify-center shrink-0">
+        <Icon className="size-[18px]" weight="duotone" />
+      </span>
+      <span className="text-[14.5px] text-ink-800 flex-1 font-bold">{label}</span>
+      <span className="text-[13px] text-ink-500 truncate max-w-[50%] font-semibold">{value}</span>
     </div>
   );
 }
