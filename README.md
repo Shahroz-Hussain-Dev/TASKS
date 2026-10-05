@@ -20,7 +20,9 @@ legacy/         Previous unrelated project kept for reference
 - **Driver onboarding & KYC** — CNIC front/back, selfie, driving license, route permit, vehicle registration, vehicle photo. Every image is verified by **Gemini** (type match, legibility, extracted name/CNIC/expiry, issues) and surfaced to admins for the final call.
 - **Driver subscription** — PKR 1,000 / 30 days; receipt screenshot upload; auto-approved in test mode; zero commission on rides.
 - **Admin panel** — dashboard, approvals with document gallery + AI verdicts, live map, rides, customers, subscriptions, support inbox, settings, audit log.
+- **Buddy, the 3D voice assistant** — a cartoon character (react-three-fiber) that listens ("book me a ride from Liberty to Johar Town"), asks the missing questions (vehicle type, fare), books within the fair range and hands over to the bidding screen; Gemini function-calling on the server, speech recognition and text-to-speech on the device; users can plug in their own Gemini key from the Settings tab.
 - **AI support** — streaming Gemini assistant with user context, escalation to humans.
+- **Sunrise design system** — light, warm and friendly: cream paper surfaces, coral/teal/sun palette, Fredoka + Nunito, jelly buttons, pillow cards, Phosphor duotone icons, spring page transitions.
 - **Free map stack** — OpenFreeMap vector tiles, OSRM routing, Photon search, Nominatim reverse geocoding. No paid keys.
 - **Security** — bcrypt, rotating refresh tokens, DB-backed login lockout, zod validation everywhere, sharp re-encoding of uploads (EXIF stripped), owner-scoped file access, audit trail, strict security headers.
 

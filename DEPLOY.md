@@ -58,6 +58,8 @@ Name the Vercel project **`raahi-server`** if it is available — the pre-built 
 Upload the `.aab` to Play Console (app id `pk.raahi.app`, target SDK 36). Fill in the Data-safety form: the app collects phone number, name, optional email, precise location (foreground; background only during an active ride for drivers), photos (driver documents) and uses them for the ride service only. Provide the privacy policy URL `https://<your-app>.vercel.app/privacy`.
 
 ## 3. Day-to-day operations
+- **AI assistant key**: the app uses the server's `GEMINI_API_KEY` by default. A user (or you, for testing) can paste a personal Gemini key under **Profile → Settings → AI assistant**; it is stored only on that phone and sent as a header for that user's requests. Free-tier Gemini quotas are per model per day; the server automatically falls back through `GEMINI_MODEL_FALLBACKS`.
+- **Voice**: speech recognition and text-to-speech run on the phone (Android system services); the language (English/Urdu) is chosen in Settings.
 - **Petrol price**: Admin → Settings → Petrol price (OGRA notifies changes on the 1st and 16th). Fares update instantly.
 - **Driver approval**: Admin → Drivers → filter *Under review*. Gemini pre-verifies every document; approve when satisfied.
 - **Subscriptions**: test mode (`Auto-approve receipts`) is ON by default. Turn it off in Settings when you start collecting real payments; receipts then wait for your approval.
