@@ -62,34 +62,78 @@ export interface PlaceSuggestion {
   type: string;
 }
 
+/** Photon (komoot) — fast, typo-tolerant, but its public instance is not reachable from every host. */
+async function photonSearch(q: string, near: LatLng | null, limit: number): Promise<PlaceSuggestion[]> {
+  const params = new URLSearchParams({ q, limit: String(limit), lang: "en" });
+  if (near) {
+    params.set("lat", String(near.lat));
+    params.set("lon", String(near.lng));
+    params.set("location_bias_scale", "0.4");
+    params.set("zoom", "12");
+  }
+  const res = await fetch(`${env().PHOTON_URL}/api/?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(5000) });
+  if (!res.ok) throw new Error(`photon ${res.status}`);
+  const data = (await res.json()) as {
+    features: { geometry: { coordinates: [number, number] }; properties: Record<string, string | undefined> }[];
+  };
+  const out: PlaceSuggestion[] = [];
+  for (const f of data.features ?? []) {
+    const p = f.properties;
+    // Bias towards Pakistan — Photon has no country filter, so we post-filter.
+    if (p.countrycode && p.countrycode.toUpperCase() !== "PK") continue;
+    const [lng, lat] = f.geometry.coordinates;
+    const name = p.name ?? p.street ?? p.city ?? "Unnamed place";
+    const parts = [p.street && p.housenumber ? `${p.housenumber} ${p.street}` : p.street, p.district ?? p.locality, p.city ?? p.county, p.state]
+      .filter((x): x is string => Boolean(x) && x !== name);
+    out.push({ name, address: Array.from(new Set(parts)).join(", ") || (p.country ?? ""), lat, lng, type: p.osm_value ?? p.type ?? "place" });
+  }
+  return out;
+}
+
+/** Nominatim search — the fallback. Country-limited to Pakistan and biased to a box around the user. */
+async function nominatimSearch(q: string, near: LatLng | null, limit: number): Promise<PlaceSuggestion[]> {
+  const params = new URLSearchParams({ q, format: "jsonv2", limit: String(limit), countrycodes: "pk", addressdetails: "1", "accept-language": "en", dedupe: "1" });
+  if (near) {
+    const d = 0.6;
+    params.set("viewbox", `${near.lng - d},${near.lat + d},${near.lng + d},${near.lat - d}`);
+    params.set("bounded", "0");
+  }
+  const res = await fetch(`${env().NOMINATIM_URL}/search?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(6000) });
+  if (!res.ok) throw new Error(`nominatim ${res.status}`);
+  const data = (await res.json()) as { lat: string; lon: string; name?: string; display_name?: string; type?: string; address?: Record<string, string> }[];
+  return data.map((d) => {
+    const a = d.address ?? {};
+    const name = d.name || a.road || a.neighbourhood || a.suburb || d.display_name?.split(",")[0]?.trim() || "Unnamed place";
+    const parts = [a.road, a.neighbourhood ?? a.suburb, a.city ?? a.town ?? a.village ?? a.county, a.state].filter((x): x is string => Boolean(x) && x !== name);
+    return { name, address: Array.from(new Set(parts)).join(", ") || d.display_name?.split(",").slice(1, 4).join(",").trim() || "Pakistan", lat: Number(d.lat), lng: Number(d.lon), type: d.type ?? "place" };
+  });
+}
+
+/**
+ * Place search: Photon first, Nominatim when Photon is down, slow or empty.
+ * Never throws — a search failure is an empty list, and empty results are not cached
+ * so the next keystroke retries.
+ */
 export async function searchPlaces(q: string, near: LatLng | null, limit = 6): Promise<PlaceSuggestion[]> {
   const key = `s:${q.toLowerCase()}:${near ? `${near.lat.toFixed(2)},${near.lng.toFixed(2)}` : ""}:${limit}`;
-  return cached(key, 5 * 60_000, async () => {
-    const params = new URLSearchParams({ q, limit: String(limit), lang: "en" });
-    if (near) {
-      params.set("lat", String(near.lat));
-      params.set("lon", String(near.lng));
-      params.set("location_bias_scale", "0.4");
-      params.set("zoom", "12");
+  const out = await cached(key, 5 * 60_000, async () => {
+    let items: PlaceSuggestion[] = [];
+    try {
+      items = await photonSearch(q, near, limit);
+    } catch (err) {
+      console.warn("[geo] photon failed, trying nominatim:", err instanceof Error ? err.message : err);
     }
-    // Bias towards Pakistan — Photon has no country filter, so we post-filter.
-    const res = await fetch(`${env().PHOTON_URL}/api/?${params}`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      features: { geometry: { coordinates: [number, number] }; properties: Record<string, string | undefined> }[];
-    };
-    const out: PlaceSuggestion[] = [];
-    for (const f of data.features ?? []) {
-      const p = f.properties;
-      if (p.countrycode && p.countrycode.toUpperCase() !== "PK") continue;
-      const [lng, lat] = f.geometry.coordinates;
-      const name = p.name ?? p.street ?? p.city ?? "Unnamed place";
-      const parts = [p.street && p.housenumber ? `${p.housenumber} ${p.street}` : p.street, p.district ?? p.locality, p.city ?? p.county, p.state]
-        .filter((x): x is string => Boolean(x) && x !== name);
-      out.push({ name, address: Array.from(new Set(parts)).join(", ") || (p.country ?? ""), lat, lng, type: p.osm_value ?? p.type ?? "place" });
+    if (items.length === 0) {
+      try {
+        items = await nominatimSearch(q, near, limit);
+      } catch (err) {
+        console.warn("[geo] nominatim search failed:", err instanceof Error ? err.message : err);
+      }
     }
-    return out;
+    return items;
   });
+  if (out.length === 0) cache.delete(key);
+  return out;
 }
 
 export async function reverseGeocode(p: LatLng): Promise<{ name: string; address: string }> {
