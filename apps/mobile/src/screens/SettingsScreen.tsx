@@ -12,9 +12,6 @@ import { APP_VERSION } from "@/lib/config";
 import { item, spring, springJelly, stagger } from "@/lib/motion";
 import { haptic, isNative } from "@/lib/native";
 import { cn, errorMessage } from "@/lib/utils";
-// TEMP-GALLERY-START
-import { BuddyBubble } from "@/components/buddy";
-// TEMP-GALLERY-END
 
 const LONG_PRESS_MS = 3000;
 
@@ -70,27 +67,7 @@ export default function SettingsScreen() {
 
   const usingOwnKey = keyDraft.trim().length > 0;
 
-  // TEMP-GALLERY-START
-  if (window.location.hash.includes("gallery")) {
-    const states: BuddyState[] = ["idle", "listening", "thinking", "speaking", "happy", "sad"];
     return (
-      <Screen>
-        <TopBar title="Buddy gallery" />
-        <div className="grid grid-cols-2 gap-2">
-          {states.map((s) => (
-            <div key={s} className="flex flex-col items-center pillow p-2">
-              <Buddy state={s} size={170} />
-              <p className="text-[12px] font-bold text-ink-500">{s}</p>
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center mt-2"><Buddy state="happy" size={240} /></div>
-        <BuddyBubble />
-      </Screen>
-    );
-  }
-  // TEMP-GALLERY-END
-  return (
     <Screen>
       <motion.div variants={stagger(0.07)} initial="hidden" animate="show" className="flex flex-col gap-4 pb-4">
         <motion.div variants={item.down}>

@@ -87,7 +87,7 @@ export function withCors(req: NextRequest, res: Response): Response {
     if (trustedOrigin(requested)) headers.set("Access-Control-Allow-Credentials", "true");
   }
   headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Authorization,Content-Type,X-App-Version,X-Device-Id");
+  headers.set("Access-Control-Allow-Headers", "Authorization,Content-Type,X-App-Version,X-Device-Id,X-Assistant-Key");
   headers.set("Access-Control-Max-Age", "86400");
   if (!headers.has("Cache-Control")) headers.set("Cache-Control", "no-store");
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
