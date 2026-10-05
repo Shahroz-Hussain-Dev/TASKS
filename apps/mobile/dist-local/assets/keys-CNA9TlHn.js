@@ -1,1 +1,0 @@
-const r=e=>Math.round(e*1e4)/1e4,s={driver:["driver","me"],feed:["driver","feed"],bids:["driver","bids"],earnings:["driver","earnings"],activeRide:["driver","active-ride"],catalog:e=>["vehicles","catalog",e],ridesList:["rides","driver-list"],routeTo:(e,i)=>["geo","route",r(e.lat),r(e.lng),r(i.lat),r(i.lng)]},d=3e3,t=5e3,a=3e3,n=1e4;export{t as A,d as F,a as R,n as S,s as d};

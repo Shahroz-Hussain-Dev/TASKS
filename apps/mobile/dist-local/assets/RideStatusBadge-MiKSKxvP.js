@@ -1,1 +1,0 @@
-import{j as r}from"./vendor-CdHNLLpa.js";import{t as a}from"./index-C2j_Yn8E.js";import{R as s}from"./meta-BCx_CYKw.js";function p({status:o,className:e}){const t=s[o];return r.jsx(a,{tone:t.tone,className:e,children:t.label})}export{p as R};

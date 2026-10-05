@@ -1,1 +1,0 @@
-const s={config:["config"],me:["me"],ride:i=>["ride",i],rideMessages:i=>["ride",i,"messages"],rides:["rides"],notifications:["notifications"],notificationsList:["notifications","list"],notificationsBadge:["notifications","badge"],supportTickets:["support","tickets"]};export{s as q};
