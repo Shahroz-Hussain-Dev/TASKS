@@ -12,8 +12,9 @@ const HINT_MS = 5000;
 
 /**
  * The coral jelly circle with a mini Buddy. Floats bottom-right above the tab
- * bar by default; with `inline` the parent positions it (the passenger home
- * perches him on the corner of the "Where to?" card). Owns the Assistant
+ * bar by default; with `inline` it sits in normal flow where the parent puts
+ * it (the passenger home stacks it between the GPS button and the "Where to?"
+ * card). Owns the Assistant
  * sheet; shows a one-time speech-bubble hint.
  * Tapping Buddy opens the sheet and he speaks first, then listens.
  */
@@ -52,7 +53,7 @@ export function BuddyBubble({ className, hint = "Say where you want to go", inli
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.4, opacity: 0, y: 24 }}
             transition={springBouncy}
-            className={cn(inline ? "absolute z-30 flex items-end gap-2" : "fixed z-30 flex items-end gap-2", className)}
+            className={cn(inline ? "relative z-30 flex items-center gap-2" : "fixed z-30 flex items-end gap-2", className)}
             style={inline ? undefined : { right: 18, bottom: "calc(var(--safe-bottom) + 96px)" }}
           >
             <AnimatePresence>
@@ -85,7 +86,7 @@ export function BuddyBubble({ className, hint = "Say where you want to go", inli
               className="jelly jelly-coral relative flex size-16 items-center justify-center rounded-full shadow-glow"
             >
               <span className="absolute inset-0 rounded-full bg-white/10" aria-hidden />
-              <span className="pointer-events-none relative -translate-y-[1px]">
+              <span className="pointer-events-none relative flex size-14 items-center justify-center">
                 <Buddy size={56} state="idle" />
               </span>
             </motion.button>

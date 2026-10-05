@@ -460,10 +460,12 @@ export default function BuddyScene({ state, size }: { state: BuddyState; size: n
       flat
       frameloop="demand"
       gl={{ alpha: true, antialias: !compact, powerPreference: "low-power", premultipliedAlpha: true, stencil: false, depth: true }}
-      camera={{ position: [0, compact ? 0.5 : 0.42, compact ? 5.2 : 6.1], fov: 33, near: 0.1, far: 40 }}
+      camera={{ position: [0, compact ? 0.22 : 0.42, compact ? 5.6 : 6.1], fov: 33, near: 0.1, far: 40 }}
       onCreated={({ gl, camera }) => {
         gl.setClearColor(0x000000, 0);
-        camera.lookAt(0, compact ? 0.42 : 0.32, 0);
+        // Buddy spans roughly y = -1.1 (feet) to 1.5 (pin). The launcher looks at his
+        // visual middle so he sits dead centre in the circle; the hero frames his face.
+        camera.lookAt(0, compact ? 0.2 : 0.32, 0);
       }}
       style={{ width: "100%", height: "100%", background: "transparent", touchAction: "pan-y" }}
       aria-label="Buddy, the Raahi assistant"
