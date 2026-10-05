@@ -87,7 +87,8 @@ export async function verifyDocument(type: DocumentType, image: Buffer, mime: st
 
   const text = await generate(
     [{ role: "user", parts: [{ inlineData: { mimeType: mime, data: image.toString("base64") } }, { text: prompt }] }],
-    { model, json: true, responseSchema: RESPONSE_SCHEMA, temperature: 0.1, maxOutputTokens: 1024, timeoutMs: 60_000 },
+    // Thinking tokens count against maxOutputTokens on 2.5+ models; 1024 truncated the JSON mid-way and every verdict came back "unparseable".
+    { model, json: true, responseSchema: RESPONSE_SCHEMA, temperature: 0.1, maxOutputTokens: 4096, timeoutMs: 60_000 },
   );
 
   let parsed: Omit<DocumentAiVerdict, "nameMatchesProfile" | "model" | "verifiedAt">;

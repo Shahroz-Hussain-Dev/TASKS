@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { LogOut, ShieldAlert } from "lucide-react";
 import { useEffect } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { LogoMark } from "@/components/Brand";
 import { DriverTabBar } from "@/components/driver/DriverTabBar";
 import { SubscriptionBanner } from "@/components/driver/SubscriptionBanner";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
+import { Redirect } from "@/components/shared/Redirect";
 import { Button, EmptyState, Spinner } from "@/components/ui";
 import { presence, useDriverPresence } from "@/hooks/driver/presence";
 import { useActiveRideRedirect } from "@/hooks/driver/useActiveRideRedirect";
@@ -74,7 +75,7 @@ export default function DriverShell() {
     );
   }
 
-  if (driver.status !== "approved") return <Navigate to="/d/onboarding" replace />;
+  if (driver.status !== "approved") return <Redirect to="/d/onboarding" />;
 
   return (
     <div className="relative h-full w-full bg-ink-900">

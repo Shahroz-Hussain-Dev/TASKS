@@ -57,13 +57,13 @@ export function LogoMark({ size = 64, className, animated = false }: { size?: nu
 
 export function Wordmark({ className, size = 28 }: { className?: string; size?: number }) {
   return (
-    <span className={cn("font-display font-bold tracking-tight text-ink-50 inline-flex items-baseline", className)} style={{ fontSize: size, lineHeight: 1 }}>
+    <span className={cn("font-display font-semibold tracking-tight text-ink-900 inline-flex items-baseline", className)} style={{ fontSize: size, lineHeight: 1 }}>
       raah
       <span className="relative inline-block">
         <span className="opacity-0">i</span>
         <span className="absolute inset-x-0 bottom-0 flex flex-col items-center">
-          <span className="rounded-full bg-brand-400" style={{ width: size * 0.22, height: size * 0.22, marginBottom: size * 0.08 }} />
-          <span className="bg-ink-50 rounded-full" style={{ width: size * 0.13, height: size * 0.44 }} />
+          <span className="rounded-full bg-coral-500" style={{ width: size * 0.22, height: size * 0.22, marginBottom: size * 0.08 }} />
+          <span className="bg-ink-900 rounded-full" style={{ width: size * 0.13, height: size * 0.44 }} />
         </span>
       </span>
     </span>

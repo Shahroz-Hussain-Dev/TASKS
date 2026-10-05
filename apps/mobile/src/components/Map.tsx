@@ -110,41 +110,41 @@ export const MapView = forwardRef<MapHandle, MapViewProps>(function MapView(
 
   return (
     <div className={cn("relative w-full h-full", className)}>
-      <div ref={container} className="absolute inset-0" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#0b0f1a" }} />
+      <div ref={container} className="absolute inset-0" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#fff6ec" }} />
       <MapCtx.Provider value={map}>{map && children}</MapCtx.Provider>
     </div>
   );
 });
 
-/** Dim the light OSM style into Raahi's night palette without a custom style. */
+/** Repaint the OSM style into Raahi's warm "paper" palette without a custom style. */
 function applyDarkTheme(m: MLMap) {
   const style = m.getStyle();
   for (const layer of style.layers ?? []) {
     try {
-      if (layer.type === "background") m.setPaintProperty(layer.id, "background-color", "#0b0f1a");
+      const id = layer.id.toLowerCase();
+      if (layer.type === "background") m.setPaintProperty(layer.id, "background-color", "#fff6ec");
       else if (layer.type === "fill") {
-        const id = layer.id.toLowerCase();
-        if (id.includes("water")) m.setPaintProperty(layer.id, "fill-color", "#0e1a2b");
-        else if (id.includes("park") || id.includes("grass") || id.includes("wood") || id.includes("forest")) m.setPaintProperty(layer.id, "fill-color", "#0f1f1c");
+        if (id.includes("water")) m.setPaintProperty(layer.id, "fill-color", "#cfe8ff");
+        else if (id.includes("park") || id.includes("grass") || id.includes("wood") || id.includes("forest") || id.includes("green")) m.setPaintProperty(layer.id, "fill-color", "#dff3e3");
         else if (id.includes("building")) {
-          m.setPaintProperty(layer.id, "fill-color", "#161e2e");
+          m.setPaintProperty(layer.id, "fill-color", "#f3e4d2");
           m.setPaintProperty(layer.id, "fill-opacity", 0.9);
-        } else m.setPaintProperty(layer.id, "fill-color", "#111827");
+        } else if (id.includes("residential") || id.includes("landuse")) m.setPaintProperty(layer.id, "fill-color", "#fbeedd");
+        else m.setPaintProperty(layer.id, "fill-color", "#fdf1e3");
       } else if (layer.type === "line") {
-        const id = layer.id.toLowerCase();
-        if (id.includes("water")) m.setPaintProperty(layer.id, "line-color", "#13233a");
-        else if (id.includes("motorway") || id.includes("trunk") || id.includes("highway")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#1f2a3f" : "#3b4b66");
-        else if (id.includes("primary") || id.includes("secondary")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#1a2235" : "#33415a");
-        else if (id.includes("rail")) m.setPaintProperty(layer.id, "line-color", "#1f2a3f");
-        else if (id.includes("boundary")) m.setPaintProperty(layer.id, "line-color", "#2b3650");
-        else m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#141b2b" : "#263247");
+        if (id.includes("water")) m.setPaintProperty(layer.id, "line-color", "#b9dcff");
+        else if (id.includes("motorway") || id.includes("trunk") || id.includes("highway")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#f0cfae" : "#ffd9a8");
+        else if (id.includes("primary") || id.includes("secondary")) m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#ecd2b8" : "#ffffff");
+        else if (id.includes("rail")) m.setPaintProperty(layer.id, "line-color", "#e2d3c1");
+        else if (id.includes("boundary")) m.setPaintProperty(layer.id, "line-color", "#e8cfc0");
+        else m.setPaintProperty(layer.id, "line-color", id.includes("casing") ? "#ecdcc8" : "#ffffff");
       } else if (layer.type === "symbol") {
-        m.setPaintProperty(layer.id, "text-color", "#9aa6bd");
-        m.setPaintProperty(layer.id, "text-halo-color", "#0b0f1a");
-        m.setPaintProperty(layer.id, "text-halo-width", 1.2);
-        if (layer.id.toLowerCase().includes("poi")) m.setLayoutProperty(layer.id, "visibility", "none");
+        m.setPaintProperty(layer.id, "text-color", "#6b6478");
+        m.setPaintProperty(layer.id, "text-halo-color", "#fff6ec");
+        m.setPaintProperty(layer.id, "text-halo-width", 1.4);
+        if (id.includes("poi")) m.setLayoutProperty(layer.id, "visibility", "none");
       } else if (layer.type === "fill-extrusion") {
-        m.setPaintProperty(layer.id, "fill-extrusion-color", "#1a2235");
+        m.setPaintProperty(layer.id, "fill-extrusion-color", "#f3e4d2");
       }
     } catch {
       /* layer may not support the property */
@@ -187,7 +187,7 @@ export function Marker({ position, children, anchor = "center", zIndex, rotation
 /* Route line                                                          */
 /* ------------------------------------------------------------------ */
 
-export function RouteLine({ points, id = "route", color = "#34d399", width = 5, animated = true }: { points: LatLng[]; id?: string; color?: string; width?: number; animated?: boolean }) {
+export function RouteLine({ points, id = "route", color = "#ff6b4a", width = 5, animated = true }: { points: LatLng[]; id?: string; color?: string; width?: number; animated?: boolean }) {
   const map = useMap();
   useEffect(() => {
     if (!map || points.length < 2) return;
@@ -196,13 +196,13 @@ export function RouteLine({ points, id = "route", color = "#34d399", width = 5, 
     if (map.getSource(srcId)) (map.getSource(srcId) as GeoJSONSource).setData(data);
     else {
       map.addSource(srcId, { type: "geojson", data, lineMetrics: true });
-      map.addLayer({ id: `${id}-casing`, type: "line", source: srcId, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b0f1a", "line-width": width + 6, "line-opacity": 0.8 } });
+      map.addLayer({ id: `${id}-casing`, type: "line", source: srcId, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ffffff", "line-width": width + 6, "line-opacity": 0.9 } });
       map.addLayer({
         id,
         type: "line",
         source: srcId,
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": color, "line-width": width, "line-gradient": ["interpolate", ["linear"], ["line-progress"], 0, "#6ee7b7", 1, color] },
+        paint: { "line-color": color, "line-width": width, "line-gradient": ["interpolate", ["linear"], ["line-progress"], 0, "#12a594", 1, color] },
       });
       if (animated) {
         map.addLayer({ id: `${id}-dash`, type: "line", source: srcId, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ffffff", "line-width": Math.max(1.5, width - 3), "line-opacity": 0.55, "line-dasharray": [0, 2, 3] } });
@@ -250,14 +250,14 @@ export function RouteLine({ points, id = "route", color = "#34d399", width = 5, 
 /* ------------------------------------------------------------------ */
 
 export function PinMarker({ kind, label }: { kind: "pickup" | "dropoff"; label?: string }) {
-  const color = kind === "pickup" ? "#34d399" : "#fbbf24";
+  const color = kind === "pickup" ? "#12a594" : "#ff6b4a";
   return (
     <div className="flex flex-col items-center -translate-y-1 pointer-events-none">
-      {label && <div className="glass rounded-xl px-2.5 py-1 text-[12px] font-semibold text-ink-50 whitespace-nowrap mb-1 shadow-card max-w-44 truncate">{label}</div>}
+      {label && <div className="rounded-xl px-2.5 py-1 text-[12px] font-extrabold text-ink-900 bg-white shadow-pillow whitespace-nowrap mb-1 max-w-44 truncate">{label}</div>}
       <div className="relative">
-        <div className="size-5 rounded-full border-[3px] border-ink-950 shadow-float" style={{ background: color }} />
+        <div className="size-5 rounded-full border-[3px] border-white shadow-float" style={{ background: color }} />
         <div className="absolute left-1/2 -translate-x-1/2 top-4 w-0.5 h-5 rounded-full" style={{ background: color }} />
-        <div className="absolute left-1/2 -translate-x-1/2 top-[34px] size-2 rounded-full bg-ink-950/60 blur-[2px]" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-[34px] size-2 rounded-full bg-ink-900/25 blur-[2px]" />
       </div>
     </div>
   );
@@ -266,14 +266,14 @@ export function PinMarker({ kind, label }: { kind: "pickup" | "dropoff"; label?:
 export function CarMarker({ heading = 0, category = "car", pulse }: { heading?: number | null; category?: string; pulse?: boolean }) {
   return (
     <div className="relative size-12 flex items-center justify-center pointer-events-none">
-      {pulse && <span className="absolute inset-0 rounded-full bg-brand-500/30 radar-ring" />}
-      <div className="absolute size-9 rounded-full bg-brand-500/20 blur-md" />
-      <div className="relative size-9 rounded-full glass flex items-center justify-center shadow-float" style={{ transform: `rotate(${heading ?? 0}deg)`, transition: "transform 600ms ease" }}>
+      {pulse && <span className="absolute inset-0 rounded-full bg-teal-500/30 radar-ring" />}
+      <div className="absolute size-9 rounded-full bg-teal-500/20 blur-md" />
+      <div className="relative size-9 rounded-full bg-white shadow-float flex items-center justify-center" style={{ transform: `rotate(${heading ?? 0}deg)`, transition: "transform 600ms ease" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           {category === "bike" ? (
-            <path d="M12 3l3 7h-6l3-7zM8 12a4 4 0 100 8 4 4 0 000-8zm8 0a4 4 0 100 8 4 4 0 000-8z" fill="#34d399" />
+            <path d="M12 3l3 7h-6l3-7zM8 12a4 4 0 100 8 4 4 0 000-8zm8 0a4 4 0 100 8 4 4 0 000-8z" fill="#12a594" />
           ) : (
-            <path d="M12 2.5c-.9 0-1.7.4-2.3 1L6.8 7.4A2.5 2.5 0 006 9.2V19a2 2 0 002 2h8a2 2 0 002-2V9.2c0-.7-.3-1.3-.8-1.8L14.3 3.5A3.2 3.2 0 0012 2.5zm-4 8.5h8v3H8v-3z" fill="#34d399" />
+            <path d="M12 2.5c-.9 0-1.7.4-2.3 1L6.8 7.4A2.5 2.5 0 006 9.2V19a2 2 0 002 2h8a2 2 0 002-2V9.2c0-.7-.3-1.3-.8-1.8L14.3 3.5A3.2 3.2 0 0012 2.5zm-4 8.5h8v3H8v-3z" fill="#12a594" />
           )}
         </svg>
       </div>
@@ -285,7 +285,7 @@ export function UserDot() {
   return (
     <div className="relative size-10 flex items-center justify-center pointer-events-none">
       <span className="absolute inset-0 rounded-full bg-sky-400/30 radar-ring" />
-      <div className="size-4 rounded-full bg-sky-400 border-[3px] border-ink-950 shadow-float" />
+      <div className="size-4 rounded-full bg-sky-500 border-[3px] border-white shadow-float" />
     </div>
   );
 }

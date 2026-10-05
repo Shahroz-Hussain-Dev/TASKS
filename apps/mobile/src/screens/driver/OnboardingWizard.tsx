@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, LogOut, ShieldAlert, UserRound } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import type { DriverDto, UserDto } from "@raahi/shared";
 import { LogoMark } from "@/components/Brand";
 import { DetailsStep } from "@/components/driver/onboarding/DetailsStep";
@@ -11,6 +11,7 @@ import { StatusView } from "@/components/driver/onboarding/StatusView";
 import { SubscriptionStep } from "@/components/driver/onboarding/SubscriptionStep";
 import { VehicleStep } from "@/components/driver/onboarding/VehicleStep";
 import { ProgressRail } from "@/components/driver/ProgressRail";
+import { Redirect } from "@/components/shared/Redirect";
 import { Aurora } from "@/components/shared/Aurora";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { Badge, Button, EmptyState, IconButton, Screen, Spinner, TopBar } from "@/components/ui";
@@ -50,12 +51,12 @@ export default function OnboardingWizard() {
 
   return (
     <Routes>
-      <Route index element={<Navigate to={wizardEntry(driver)} replace />} />
+      <Route index element={<Redirect to={`${BASE}/${wizardEntry(driver)}`} />} />
       {WIZARD_STEPS.map((s) => (
         <Route key={s.id} path={s.id} element={<StepScreen step={s.id} driver={driver} user={user} />} />
       ))}
       <Route path="status" element={<StatusScreen driver={driver} refreshing={query.isFetching} onRefresh={() => void query.refetch()} />} />
-      <Route path="*" element={<Navigate to={BASE} replace />} />
+      <Route path="*" element={<Redirect to={BASE} />} />
     </Routes>
   );
 }
@@ -70,7 +71,7 @@ function StepScreen({ step, driver, user }: { step: WizardStep; driver: DriverDt
   const inStatusFlow = driver.status !== "onboarding";
 
   // Approved drivers have nothing left to do here.
-  if (driver.status === "approved") return <Navigate to="/d/home" replace />;
+  if (driver.status === "approved") return <Redirect to="/d/home" />;
 
   const go = (s: WizardStep) => navigate(`${BASE}/${s}`);
   const next = () => {
@@ -143,7 +144,7 @@ function StatusScreen({ driver, refreshing, onRefresh }: { driver: DriverDto; re
   const { pathname } = useLocation();
 
   // Nothing submitted yet → back to the first unfinished step.
-  if (driver.status === "onboarding") return <Navigate to={`${BASE}/${wizardEntry(driver)}`} replace />;
+  if (driver.status === "onboarding") return <Redirect to={`${BASE}/${wizardEntry(driver)}`} />;
 
   return (
     <Screen className="noise">

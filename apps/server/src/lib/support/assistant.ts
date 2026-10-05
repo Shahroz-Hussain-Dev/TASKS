@@ -326,7 +326,8 @@ async function prepare(actor: SupportActor, input: SupportMessageInput): Promise
   return { ticket: { ...ticket, status: "open" }, userMessage, systemInstruction: `${productBrief(settings)}\n\n${context}`, history };
 }
 
-const GENERATION = { temperature: 0.5, maxOutputTokens: 700 } as const;
+// Generous cap: on thinking models the budget includes reasoning tokens, so a small cap can leave no room for the visible reply.
+const GENERATION = { temperature: 0.5, maxOutputTokens: 2048 } as const;
 
 /* ------------------------------------------------------------------ */
 /* Public API                                                          */

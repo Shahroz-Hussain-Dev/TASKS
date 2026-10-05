@@ -1,62 +1,96 @@
-# Raahi — design & UX specification
+# Raahi — design & UX specification (v2 "Sunrise")
 
-Raahi is a fair-price ride-hailing app for Pakistan (inDrive model): the passenger names a fare, nearby drivers accept or counter-bid, the passenger picks a driver. 100% of the fare goes to the driver; drivers pay PKR 1,000 / month.
+Raahi is a fair-price ride-hailing app for Pakistan (inDrive model): the passenger names a fare, nearby drivers accept or counter-bid, the passenger picks a driver. 100% of the fare goes to the driver; drivers pay PKR 1,000 / month. v2 replaces the dark fintech look with a **light, warm, friendly, unmistakably premium** identity built around a 3D cartoon assistant ("Buddy") and voice booking.
 
-## 1. Visual language
-- **Mood**: night-time premium fintech. Deep ink surfaces, emerald brand accent, amber for money/attention. Calm, decisive, no clutter. Think "a product Apple would ship if it made inDrive".
-- **Palette** (Tailwind tokens from `apps/mobile/src/styles/global.css`): `ink-950…ink-50` surfaces/text, `brand-300…700` emerald, `amber-300…500` money, `rose-400/500` danger, `sky-400` user location, `violet-400` info.
-- **Type**: `font-display` (Sora) for headings & numbers, `font-sans` (Manrope) for body. Sizes: display 28–34px, title 22px, body 15–16px, caption 12.5–13.5px. Tight letter-spacing on display.
-- **Shape**: cards `rounded-3xl`, controls `rounded-2xl`, chips/pills full. Borders `border-white/6…12`. Shadows `shadow-card`, floating `shadow-float`, brand glow `shadow-glow`.
-- **Surfaces**: solid `bg-ink-800` cards for content; `.glass` cards when floating over the map. Use `.aurora` blobs (2–3 max, brand + amber + violet, low opacity) behind hero/empty states.
-- **Icons**: `lucide-react`, strokeWidth 2–2.2, 18–22px. No emoji in UI chrome (emoji allowed only inside notification copy).
-- **Copy**: short, warm, confident, British/Pakistani English. "Offer", "fare", "PKR 450" (use `pkr()` or `<Money>`). Never lorem ipsum; every string is final product copy.
+## 1. Identity: "Sunrise"
+Mood words: warm, soft, playful-but-grown-up, generous whitespace, tactile. Think a premium toy brand meets a modern bank: cream paper, coral sun, teal water, sticker-like cards, jelly buttons, a cartoon mascot that reacts to what you do. Nothing may look like a generic Tailwind template: no plain grey borders, no 8px-radius boxes, no default blue.
 
-## 2. Motion rules (the signature)
-- Page transitions are handled by `App.tsx` (`pageVariants`). Screens do NOT animate their root.
-- Inside a screen, wrap content in `motion.div variants={stagger()} initial="hidden" animate="show"` and give children `variants={item.up | item.down | item.left | item.right | item.scale}`. Vary directions: header from top (`item.down`), hero from left, cards from bottom, side actions from right. 60–90 ms stagger.
-- Springs only (`spring`, `springSoft`, `springBouncy` from `lib/motion.ts`); durations ≤ 450 ms for layout, continuous loops allowed for ambient art.
-- Every tappable element uses `Button`/`IconButton`/`Chip`/`Card onClick` (they include whileTap). Use `haptic.*` on important actions (bid sent → `success`, error → `error`).
-- Lists: `AnimatePresence` with `layout` on items so bids/requests slide in and reorder smoothly.
-- Numbers that change (fares, earnings, timers) use `<Money>` or `motion` counters — never jump.
-- Bottom sheets via `<Sheet>` (drag-to-dismiss). Map overlays slide up from bottom (`item.up`) and fade.
-- Respect `prefers-reduced-motion` implicitly (framer handles) — never block interaction on an animation.
+### Palette (tokens in `apps/mobile/src/styles/global.css`)
+| Token | Hex | Use |
+|---|---|---|
+| `paper-50` | #FFFBF5 | app background (warm cream) |
+| `paper-100` | #FFF4E8 | section bands, chips background |
+| `paper-200` | #F6E9D8 | hairlines, dividers |
+| `card` | #FFFFFF | cards |
+| `ink-900` | #1F1B2D | headings |
+| `ink-700` | #3C3650 | body |
+| `ink-500` | #6B6478 | secondary text |
+| `ink-300` | #A39CB0 | placeholders, disabled |
+| `coral-500` | #FF6B4A | primary action, passenger brand |
+| `coral-600` | #F2552F | pressed / shadow edge |
+| `coral-100` | #FFE9E2 | tint |
+| `teal-500` | #12A594 | driver brand, success-ish, map route |
+| `teal-600` | #0E8A7B | pressed |
+| `teal-100` | #DCF4EF | tint |
+| `sun-500` | #FFC53D | money, highlights |
+| `sun-100` | #FFF2CC | tint |
+| `lavender-500` | #8B7CF6 | comfort tier, info |
+| `lavender-100` | #ECE9FF | tint |
+| `sky-500` | #3DA9FC | moto tier, user location |
+| `sky-100` | #E1F1FF | tint |
+| `mint-500` | #2FBF71 | success |
+| `rose-500` | #F4537E | danger |
 
-## 3. Layout & platform
-- Full-height screens: `<Screen>` (scrollable, safe-area padded) or custom `h-full relative` for map screens. Honour `var(--safe-top)` / `var(--safe-bottom)`.
-- Map screens: `<MapView>` fills the screen; floating glass top bar and bottom panel. Keep map padding so pins are not hidden under panels (`padding={{ bottom: 300 }}`).
-- Tab shells (`CustomerShell`, `DriverShell`): floating glass tab bar at the bottom (3 tabs max), animated active pill (`layoutId`), hidden on sub-screens.
-- Inputs: `Input` from ui; phone fields use `inputMode="tel"`, prefix `+92`; money fields `inputMode="numeric"`.
-- Errors: inline under fields; network/server errors via `useToast()`; empty states via `EmptyState` with an illustration where it helps.
-- Loading: skeletons (`Skeleton`) for lists; `Button loading` for actions; never a blank screen.
-- Images that need auth: `<AuthImage src={dto.url}>` or `<Avatar src>`.
-- Data: `@tanstack/react-query`. Polling intervals from docs/API.md; pause polling when `document.hidden` via `refetchIntervalInBackground: false`.
+Category colours: Moto = sky, Rickshaw = sun, Ride = coral, Ride AC = teal, Comfort = lavender — each category chip/card uses its tint background + 500 icon.
+Gradients: `sunrise` (coral → sun, 135°) for hero/primary surfaces; `lagoon` (teal → sky) for driver surfaces. Use sparingly (one per screen).
 
-## 4. Customer flows (inDrive parity)
-1. **Home** (`/c/home`): map centred on GPS (sky `UserDot`), nearby online drivers as `CarMarker`s (from `GET /api/requests/active` → not available; omit drivers or show none). Floating search card "Where to?" with recent/saved places → `/c/plan`. Shows active request/ride banner if one exists (`GET /api/requests/active`) and routes to it.
-2. **Plan ride** (`/c/plan`): pickup (defaults to GPS reverse-geocoded) and drop-off fields → `PlaceSearch` sheet (Photon autocomplete via `api.geo.search`, debounced 350 ms, "Choose on map" option → draggable centre pin + reverse geocode). Once both set: quote (`api.rides.quote`) → map fits route (`RouteLine`), category carousel (Moto, Rickshaw, Ride, Ride AC, Comfort) each showing recommended fare and seats, offer stepper pre-filled with recommended fare, chips `-10 / +10 / +50`, slider clamped to `[min,max]` with a visible "Fair range" bar and a fuel-cost explainer ("Covers ~2.1 L petrol + driver's PKR 100"). Passengers count, note field. CTA "Find a driver for PKR X" → `api.requests.create` → `/c/request/:id`.
-3. **Bidding** (`/c/request/:id`): poll `api.requests.get` every 2.5 s. Top: map with route + driver `CarMarker`s from bids. Centre: `RadarSearch` while no bids with "Sending your offer to nearby drivers…" and request countdown. Bids list: card per bid (slides in from the right, newest on top): avatar, name, rating ★ 4.9 (123), car + plate, ETA, price (highlight "Your price" vs "+PKR 50"), 60 s countdown ring (from `expiresAt`), buttons **Accept** / **Decline** (decline = hide locally). Bottom: "Raise your fare" chips (+20/+50/+100 → `api.requests.updateOffer`) and Cancel (→ `api.requests.cancel`). On accept → `api.requests.accept` → `/c/ride/:id`. If `request.status` becomes `accepted` with `rideId`, navigate; `expired`/`cancelled` → explain + back.
-4. **Ride** (`/c/ride/:id`): poll `api.rides.get` every 3 s. Map: driver `CarMarker` (heading), route, pins. Panel: status headline ("Driver is on the way" / "Driver has arrived" / "Heading to destination"), driver card (call button `tel:`, chat → `/rides/:id/chat` with unread badge), fare, plate big & bold, PIN not needed. Actions: Cancel (`CancelSheet`, only before in_progress), Share trip (Web Share API with map link), SOS (tel:15 + 1122). On `completed` → `RatingSheet` then `/c/home`. On cancelled → toast + home.
-5. **Rides history** (`/c/rides`): paginated list grouped by date; each row → `/rides/:id` (`RideDetailScreen`: route thumbnail map, breakdown, rating, "Report an issue" → `/support`).
-6. **Profile** (`/profile`): avatar upload (`pickImage` → `api.files.upload('avatar')` → `api.me.update`), name/email edit, change password, notifications, support, server settings (long-press version), logout, delete account.
+### Typography
+- Display: **Fredoka** (`font-display`, weights 500–600) — rounded, friendly, big (28–36px titles with -0.01em tracking).
+- Body: **Nunito** (`font-sans`, 400–800) — 15–16px body, 13px captions, bold labels.
+- Numbers (fares) in Fredoka 600, tabular.
 
-## 5. Driver flows
-1. **Onboarding wizard** (`/d/onboarding/*`), 5 steps with progress rail at top (animated): (1) Personal details & KYC: CNIC, city, license no., expiry, emergency contact → `api.driver.details`. (2) Vehicle: category → catalog search (`api.vehicleCatalog`) with km/L shown, or custom model (make, model, km/L), year, colour, plate → `api.driver.vehicle`. (3) Documents: grid of 7 tiles (`DOCUMENT_META`): selfie (camera only), CNIC front/back, driving license, route permit, vehicle registration, vehicle photo. Each tile: capture via `pickImage` → upload (`api.files.upload('document')`) → `api.driver.attachDocument` → show AI verdict chip (Verified ✓ / Needs review / Rejected) with the Gemini summary; retake allowed. (4) Subscription: payment instructions from `api.config()` (JazzCash/EasyPaisa/bank, PKR 1,000), method picker, transaction ref, receipt screenshot upload → `api.driver.subscription` (auto-approved in test mode; show "Active until <date>"). (5) Review & submit → `api.driver.submit`; status screen for `under_review` (animated clock + "usually within 24h"), `rejected` (reasons + fix buttons), `approved` (confetti burst → go to Home).
-   The wizard resumes at the first incomplete step using `driver.onboarding`. `DriverShell` redirects to the wizard whenever `driver.status !== 'approved'`.
-2. **Home** (`/d/home`): map with own `CarMarker` (heading) following GPS; big **Go online** toggle (pill that morphs; `api.driver.presence`); while online, `watchLocation` → `api.driver.location` every 5 s (throttle) and poll `api.driver.feed` every 3 s. Request cards stack at the bottom (newest slides in from the right with a ping sound-free haptic): pickup → dropoff addresses, distance to pickup + ETA, trip km/min, **customer offer** big in amber, personal economics line ("Fuel ≈ PKR 280 · you keep PKR 220"), buttons **Accept PKR X** (bid = offer) and **Offer price** (opens bid composer) → `/d/request/:id`. Shows "Your offer sent — waiting" state with countdown when `myBid` pending, with Withdraw. Subscription expiry banner when `daysLeft ≤ 5`.
-3. **Request detail / bid composer** (`/d/request/:id`): full route map, customer card (name, rating), chips `Accept at PKR X`, `+10% / +20% / +30%` and custom stepper clamped to `[min,max]`; ETA stepper (auto from distance); live economics (`driverEconomics`) showing net earning and PKR/min; **Send offer** → `api.driver.placeBid`. On accepted (poll feed/bids or `/api/rides/active`) → `/d/ride/:id`.
-4. **Ride** (`/d/ride/:id`): map with route to pickup then to drop-off; step CTA that morphs: **Navigate** (opens `geo:` / Google Maps intent URL `https://www.google.com/maps/dir/?api=1&destination=lat,lng`), **I've arrived** → `arrived`, **Start trip** → `start`, **Complete trip** → `complete` (shows fare collected PKR X, "Collect cash", then `RatingSheet` for the passenger). Call/chat passenger. Cancel via `CancelSheet` (driver reasons).
-5. **Earnings** (`/d/earnings`): today/week/month tiles (`Money`), 30-day bar chart (SVG, animated bars), acceptance rate, rating, total rides; subscription card with renew CTA → `/d/subscription`.
-6. **Subscription** (`/d/subscription`): current status, history, renew flow (same as wizard step 4).
-7. **Rides** (`/d/rides`): history list.
+### Icons
+**Phosphor Icons, duotone weight** (`@phosphor-icons/react`, `weight="duotone"`), 22–26px, coloured with the surface's accent (duotone layer at 25%). Lucide is not used in the mobile app any more. Tab bar icons switch to `fill` weight when active.
 
-## 6. Shared screens
-- **Welcome** (`/welcome`): full-bleed animated carousel (3 slides using `CityScene`, `BiddingScene`, `SafetyScene`/`EarningsScene`), parallax on swipe, animated `LogoMark`, dots; bottom: two role cards "I need a ride" / "I want to drive" (hover/tap lift) → login with role; "Create account" links. Long-press logo → `/settings/server`.
-- **Login** (`/auth/login?role=`): phone + password, role segmented control, inline validation using shared zod schemas (`loginSchema`), "Create account". Error toast on 401/429 with server message.
-- **Signup customer**: full name, phone, email (optional), password + confirm, terms line. **Signup driver**: full name, phone, password → lands in onboarding wizard.
-- **Support** (`/support`): chat UI with Gemini assistant (streamed via `api.support.send`), typing indicator, suggested questions chips, "Talk to a human" → `api.support.escalate` (then show admin replies from `api.support.tickets` polled every 10 s).
-- **Notifications** (`/notifications`): list with unread dots, mark all read, tap → deep link via `data.rideId/requestId`.
-- **Ride detail** (`/rides/:id`), **Ride chat** (`/rides/:id/chat`): bubbles (mine right brand, theirs left glass), quick replies ("I'm here", "2 minutes", "Call me"), poll every 2 s.
-- **Server settings** (`/settings/server`): current API URL, test connection (`api.health`), save.
+### Shape & depth
+- Cards: radius 28px, white, **pillow shadow** `0 10px 30px -12px rgb(63 42 20 / 0.18), 0 1px 0 rgb(255 255 255) inset`, no visible border (optional 1px `paper-200` hairline on busy screens).
+- **Jelly buttons**: 56px pill, solid colour with a 4px darker bottom edge (`box-shadow: 0 4px 0 <600>`), on tap translateY(3px) + edge 1px (squash). Secondary = cream fill with ink text and `paper-200` edge. Icon buttons 48px circles with the same edge treatment.
+- **Sticker cards**: highlighted items (recommended fare, winning bid, "You're online") get a slight rotation (-1.5°/+1°) and a thick white outline (`outline: 4px solid white`) over a tinted blob background.
+- Blobs: organic shapes (`border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%`) in tints behind hero elements and empty states, slowly morphing (`@keyframes blob`).
+- Inputs: 56px, cream fill `paper-100`, radius 20px, 2px coral focus ring with offset, duotone leading icon.
+- Chips: 40px pills, tint background + 500 text; selected = solid 500 + white text with a tiny bounce.
+- Status bar/safe areas: light status bar (dark icons). Background always `paper-50`; map screens show the map edge-to-edge under floating cards.
 
-## 7. Admin panel (Next.js, `/admin`)
-Dark, dense, same tokens. Sidebar (Dashboard, Drivers, Customers, Rides, Live map, Subscriptions, Support, Settings, Audit) with animated active indicator; top bar with search + admin menu. Dashboard: KPI tiles (animated counters), 14-day rides/GMV area chart (recharts), category mix donut, live activity. Drivers: table with status filter, drawer/page with document gallery (zoomable images via `/api/files/:id` — same-origin cookie auth), Gemini verdict panels (confidence bar, extracted fields, issues), approve/reject with reason, re-verify. Subscriptions: receipt viewer, approve/reject. Rides: table + detail with route map (MapLibre). Live map: online drivers + open requests + active rides. Settings: petrol price (with fare preview calculator calling `/api/admin/fare/preview`), multipliers, subscription price, payment instructions, auto-approve toggle. Support: escalated tickets, reply. Audit log table.
+## 2. Motion (the signature) — `apps/mobile/src/lib/motion.ts`
+- **Page transitions** (`pageVariants`): incoming page rises from 24px with scale 0.97 → 1 and a spring overshoot (stiffness 380, damping 30), outgoing drops 12px and fades in 180ms. Back navigation reverses direction. Route groups keep tab shells mounted.
+- **Jelly**: every tappable uses `pressJelly` (whileTap scale 0.96 + translateY 3px). Primary CTAs idle with a very subtle breathing scale (1 → 1.015, 3 s) when they are the next step.
+- **Stagger in from different edges**: `stagger()` + `item.up/down/left/right/pop` — headers from top, hero from left, cards from bottom, side actions from right, chips `pop` (scale 0.6 → 1 bouncy).
+- **Shared layout**: tab indicator, category selection and the fare "thumb" use `layoutId` morphs.
+- **Lists**: `AnimatePresence` + `layout` so bids/requests slide in and reorder.
+- **Numbers**: `<Money>` springs; countdown rings animate `pathLength`.
+- **Delight moments**: confetti (canvas-confetti) on driver approval and ride completion; Buddy jumps when a bid arrives; haptics on all key actions.
+- Durations ≤ 450ms for layout; ambient loops allowed (blobs, Buddy idle). Respect reduced motion.
+
+## 3. Buddy — the 3D assistant (`apps/mobile/src/components/buddy/`)
+A small round cartoon character rendered with react-three-fiber (procedural geometry, toon-shaded, no external models): cream body, coral cheeks, big friendly eyes, a tiny teal driver's cap, an antenna ending in a glowing location pin, stubby arms. Soft contact shadow. States drive animation:
+- `idle`: gentle bob + blink every 3–5 s + occasional head tilt.
+- `listening`: leans forward, antenna pin pulses coral, ears (cap) wiggle.
+- `thinking`: looks up, slow spin of a small halo of dots.
+- `speaking`: bounces with the speech, mouth bars animate.
+- `happy`: jump + spin + confetti; `sad`: droop (ride cancelled).
+Exports: `<Buddy state size />` (canvas, transparent), `<BuddyBubble />` (floating 64px button bottom-right on Home screens that opens the Assistant sheet; shows a speech bubble hint "Say where you want to go" the first time).
+
+## 4. Voice assistant (Assistant sheet + `/api/assistant/chat`)
+- Open from the Buddy bubble or the mic in the "Where to?" card. Full-height sheet: Buddy (large) at top, transcript bubbles, suggestion chips, bottom: big mic jelly button (press to talk; waveform while listening), text input fallback.
+- Speech-to-text: `@capacitor-community/speech-recognition` on Android, Web Speech API on web; language from Settings (English (Pakistan) / Urdu). Text-to-speech: `@capacitor-community/text-to-speech` / `speechSynthesis`, toggle in Settings.
+- Brain: POST `/api/assistant/chat` with the running transcript + context (role, GPS, active request/ride). The server runs Gemini with function tools (search places, quote, create request with the recommended or user-stated offer within the fair range, raise offer, cancel, go online/offline for drivers, FAQ). The assistant asks one question at a time (destination → category → confirm fare), then acts and returns `{ reply, actions, suggestions }`; the app speaks the reply, renders chips for suggestions and performs actions (navigate to the bidding screen).
+- Header `X-Assistant-Key`: when the user saved their own Gemini key in Settings it is sent and used instead of the server key.
+
+## 5. Settings tab (`/settings`)
+Rows: AI assistant (key field with show/hide, "Test key"), Voice (language, auto-speak replies), Appearance (Buddy on home: on/off), Notifications, Server (hidden behind long-press as before), About. Light cards, duotone icons.
+
+## 6. Screens — same flows as v1, restyled
+All flows from v1 stay identical in behaviour (customer: home → plan → bidding → ride → rate; driver: onboarding → online → feed → bid → ride → earnings; shared: welcome, auth, profile, notifications, support, ride detail/chat). Restyle rules:
+- Welcome: cream background with morphing blobs, Buddy waving (3D) as the hero, three sticker-style story cards, role cards as big jelly buttons (coral "I need a ride", teal "I want to drive").
+- Home (customer): light map (custom light palette, see Map.tsx), cream top greeting card with Buddy bubble, "Where to?" sticker card with mic.
+- Plan ride: category carousel of tinted sticker cards with duotone icons; fare composer as a sun-tinted card with a big Fredoka amount and a rainbow range bar.
+- Bidding: coral radar, bid cards as white pillows sliding in from the right with countdown rings; Accept = coral jelly.
+- Ride: status pill morphs colour per state; driver card with large plate "sticker".
+- Driver home: teal identity (online toggle is a teal jelly pill), request cards with sun-tinted offer.
+- Earnings: teal hero card, playful bar chart with rounded bars.
+- Onboarding: step rail as a path with Buddy walking along it; document tiles as polaroids (slight rotation, white frame).
+- Support: Buddy as the agent avatar, bubbles in cream/teal.
+Copy stays warm and short. Emoji still not used in UI chrome.
+
+## 7. Admin panel
+Admin keeps its own tokens but moves to the same light "Sunrise" palette (paper background, ink text, coral/teal accents, Fredoka/Nunito, Phosphor icons) so the brand is one system. Dense tables keep 12–13px type; charts use coral/teal/sun/lavender/sky.

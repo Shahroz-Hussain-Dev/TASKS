@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Banknote, Flag, LocateFixed, MessageCircle, Navigation, Siren, Star, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { decodePolyline, estimateDurationMin, estimateRoadKm, type LatLng, type RideDto, type RideStatus, type RouteQuote } from "@raahi/shared";
+import { decodePolyline, estimateDurationMin, estimateRoadKm, haversineKm, type LatLng, type RideDto, type RideStatus, type RouteQuote } from "@raahi/shared";
 import { Confetti } from "@/components/driver/Confetti";
 import { FitCamera } from "@/components/driver/FitCamera";
 import { CarMarker, MapView, Marker, PinMarker, RouteLine, type MapHandle } from "@/components/Map";
@@ -26,6 +26,8 @@ const POLICE = "15";
 const RESCUE = "1122";
 /** Driver position is rounded to ~100 m for the route-to-pickup query so GPS jitter doesn't refetch. */
 const r3 = (n: number) => Math.round(n * 1e3) / 1e3;
+/** The routing API refuses legs shorter than this (same floor as the server); draw a straight line instead of asking. */
+const MIN_ROUTE_KM = 0.2;
 
 function dial(number: string) {
   const url = `tel:${number}`;
@@ -104,7 +106,7 @@ export default function DriverRideScreen() {
   const pickupRoute = useQuery({
     queryKey: from && ride ? dk.routeTo(from, ride.pickup) : ["geo", "route", "idle"],
     queryFn: () => request<RouteQuote>("/api/geo/route", { body: { pickup: from, dropoff: ride?.pickup } }),
-    enabled: Boolean(from && ride && toPickup),
+    enabled: Boolean(from && ride && toPickup && haversineKm(from, ride.pickup) >= MIN_ROUTE_KM),
     staleTime: 60_000,
     retry: 1,
   });
