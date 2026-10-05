@@ -136,7 +136,7 @@ export function VehicleStep({ driver, onNext }: { driver: DriverDto; onNext: () 
             return (
               <motion.button key={c} type="button" whileTap={{ scale: 0.95 }} transition={spring} onClick={() => pickCategory(c)} className={cn("relative shrink-0 w-[108px] rounded-[24px] p-3 text-left transition-colors", tint.idle, active && "sticker sticker-tilt-r")}>
                 {active && <motion.span layoutId="veh-cat" className="absolute inset-0 rounded-[24px] ring-[3px] ring-white" transition={spring} />}
-                <span className={cn("relative size-10 rounded-[14px] flex items-center justify-center bg-white", active ? cn(tint.active, "text-white") : tint.icon)}>
+                <span className={cn("relative size-10 rounded-[14px] flex items-center justify-center", active ? cn(tint.active, "text-white") : cn("bg-white", tint.icon))}>
                   <CategoryIcon category={c} className="size-6" weight={active ? "fill" : "duotone"} />
                 </span>
                 <p className="relative mt-2 text-[14px] font-extrabold text-ink-900">{meta.label}</p>

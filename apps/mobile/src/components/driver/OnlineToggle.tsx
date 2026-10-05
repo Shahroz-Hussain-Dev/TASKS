@@ -24,7 +24,7 @@ export function OnlineToggle({ online, busy, onToggle, nearby = 0, className }: 
       }}
       className={cn(
         "relative h-14 rounded-full flex items-center justify-center gap-2.5 px-6 font-display font-semibold text-[16px] select-none overflow-hidden jelly",
-        online ? "jelly-white text-ink-900 min-w-56" : "jelly-teal min-w-64",
+        online ? "jelly-white text-ink-900 min-w-52 max-w-[calc(100vw-120px)]" : "jelly-teal min-w-56",
         busy && "opacity-80",
         className,
       )}
